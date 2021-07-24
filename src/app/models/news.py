@@ -11,5 +11,5 @@ class News(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     title = Column(UnicodeText),
     text = Column(UnicodeText),
-    datetime = Column(TIMESTAMP),
+    creation_datetime = Column(TIMESTAMP),
     img_path = Column(Text)
