@@ -1,8 +1,9 @@
-from sqlalchemy import Boolean, Column, Integer, Unicode, TIMESTAMP, Text
+from sqlalchemy import Boolean, Column, Integer, Unicode, TIMESTAMP, Text, Enum
 from sqlalchemy.orm import relationship
 from datetime import datetime
 
 from ..database.db import Base
+from .roles import Roles
 
 
 class User(Base):
@@ -13,10 +14,11 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     email = Column(Unicode(100), unique=True, index=True)
     team_name = Column(Unicode(100), unique=True, index=True)
+    username = Column(Unicode(50))
     squads = Column(relationship('Squad', cascade="all,delete"))
-    avatar_path = Column(Text)
+    avatar_path = Column(Text)  # default value needed
     hashed_password = Column(Unicode(200))
     is_active = Column(Boolean, default=True)
-    is_confirmed = Column(Boolean, default=True)
+    is_confirmed = Column(Boolean, default=False)
     registration_date = Column(TIMESTAMP, default=datetime.now())
-
+    role = Column(Enum(Roles), default=Roles.USER)

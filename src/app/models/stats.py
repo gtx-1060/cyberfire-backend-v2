@@ -1,11 +1,13 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, SmallInteger
+from sqlalchemy import Column, ForeignKey, Integer, String, SmallInteger, Enum
 from sqlalchemy.orm import relationship
 
 from ..database.db import Base
+from .games import Games
 
 
 class Stats:
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    game = Column(Enum(Games))
     kills_count = Column(Integer)
     wins_count = Column(Integer)
     score = Column(Integer)

@@ -2,7 +2,7 @@ import enum
 
 
 class States(enum):
-    WAITING_FOR_START = 0,
-    REGISTRATION = 1,
-    IS_ON = 2,
-    FINISHED = 3
+    WAITING_FOR_START = 'waiting',
+    REGISTRATION = 'registration',
+    IS_ON = 'is-on',
+    FINISHED = 'finished'

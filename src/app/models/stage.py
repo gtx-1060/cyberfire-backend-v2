@@ -18,6 +18,6 @@ class Stage(Base):
     keys = Column(MutableList.as_mutable(PickleType))
     tournament_id = Column(Integer, ForeignKey('tournaments.id'))
     tournament = relationship("Tournament", back_populates="stages")
-    match_count = Column(SmallInteger, default=-1)
+    matches_count = Column(SmallInteger, default=-1)
     matches = relationship("MatchStats")
     stage_datetime = Column(TIMESTAMP)

@@ -1,6 +1,5 @@
-from sqlalchemy import Column, PickleType, Integer, Text, UnicodeText, TIMESTAMP
-from sqlalchemy.ext.mutable import MutableList
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, Integer, Text, UnicodeText, TIMESTAMP
+
 
 from ..database.db import Base
 
