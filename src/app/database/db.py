@@ -2,10 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-USER = 'postgres'
-PASSWORD = 'nba2003nba'
-HOST = 'localhost'
-DB = 'postgres'
+from src.app.config import USER, PASSWORD, HOST, DB
 
 SQLALCHEMY_DATABASE_URL = f'postgresql+psycopg2://{USER}:{PASSWORD}@{HOST}/{DB}'
 

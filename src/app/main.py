@@ -3,7 +3,7 @@ import uvicorn
 from starlette.middleware.cors import CORSMiddleware
 from starlette.staticfiles import StaticFiles
 
-from middleware.db_session_middleware import DatabaseSessionMiddleware
+from src.app.middleware.db_session_middleware import DatabaseSessionMiddleware
 from src.app.config import STATIC_FILES_PATH
 from src.app.routers import news, users
 
@@ -21,7 +21,10 @@ app.mount("/static", StaticFiles(directory=STATIC_FILES_PATH), name="static")
 app.include_router(news.router)
 app.include_router(users.router)
 
+
+def start():
+    uvicorn.run("src.app.main:app", host="127.0.0.1", port=3001)
+
+
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="127.0.0.1", port=3001)
-
-
+    start()
