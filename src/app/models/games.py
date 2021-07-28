@@ -1,7 +1,7 @@
-import enum
+from enum import Enum
 
 
-class Games(enum):
+class Games(Enum):
     APEX = 'apex',
     FORTNITE = 'fortnite',
     COD_WARZONE = 'warzone',

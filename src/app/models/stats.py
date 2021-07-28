@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, SmallInteger, Enum
+from sqlalchemy import Column, ForeignKey, Integer, String, SmallInteger, Enum, Boolean
 from sqlalchemy.orm import relationship
 
 from ..database.db import Base
@@ -22,6 +22,8 @@ class MatchStats(Stats, Base):
     map = Column(String(50))
 
     stage_id = Column(Integer, ForeignKey('stages.id'))
+    rival_id = Column(Integer)
+    attended = Column(Boolean, default=True)
     index = Column(SmallInteger)
 
 

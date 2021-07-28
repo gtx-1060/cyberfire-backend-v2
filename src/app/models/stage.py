@@ -9,7 +9,6 @@ class Stage(Base):
     __tablename__ = "stages"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    user_team_names = Column(MutableList.as_mutable(PickleType))
     finished = Column(Boolean)
     title = Column(UnicodeText)
     description = Column(UnicodeText)

@@ -2,6 +2,7 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 from .squad import Squad
+from ..models.roles import Roles
 
 
 class UserBase(BaseModel):
@@ -29,6 +30,7 @@ class UserPrivateEdit(BaseModel):
 
 class User(UserBase):
     avatar_path: str
+    role: Roles
     squads: List[Squad]
 
     class Config:

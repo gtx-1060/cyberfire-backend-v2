@@ -1,7 +1,8 @@
 from sqlalchemy import Column, Integer, Text, UnicodeText, TIMESTAMP
-
+from datetime import datetime
 
 from ..database.db import Base
+
 
 
 class News(Base):
@@ -10,5 +11,5 @@ class News(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     title = Column(UnicodeText),
     text = Column(UnicodeText),
-    creation_datetime = Column(TIMESTAMP),
+    creation_datetime = Column(TIMESTAMP, default=datetime.now()),
     img_path = Column(Text)

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, Enum, PickleType
+from sqlalchemy import Column, ForeignKey, Integer, Enum, PickleType, Unicode, String
 from sqlalchemy.ext.mutable import MutableList
 
 from .games import Games
@@ -11,4 +11,4 @@ class Squad(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     game = Column(Enum(Games))
     user_id = Column(Integer, ForeignKey('users.id'))
-    players = Column(MutableList.as_mutable(PickleType), default=[])
+    players = Column(MutableList.as_mutable(PickleType))

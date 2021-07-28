@@ -1,6 +1,6 @@
-import enum
+from enum import Enum
 
 
-class Roles(enum):
+class Roles(Enum):
     USER = 'user',
     ADMIN = 'admin'
