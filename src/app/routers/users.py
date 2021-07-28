@@ -12,7 +12,7 @@ from src.app.services.auth import auth_user, register, log_in, authorize_using_r
 from src.app.utils import get_db, save_image, delete_image_by_web_path
 
 router = APIRouter(
-    prefix="api/v2/users",
+    prefix="/api/v2/users",
     tags=["users"],
     responses={404: {"description": "Not found"}},
 )

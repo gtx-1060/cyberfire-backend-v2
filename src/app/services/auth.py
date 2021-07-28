@@ -60,6 +60,8 @@ def try_auth_user(token: str = Depends(oauth2_scheme)) -> Optional[TokenData]:
 
 
 def auth_user(token: str = Depends(oauth2_scheme)) -> TokenData:
+    if token is None:
+        raise AuthenticationException('token header is empty')
     return decode_token(token)
 
 

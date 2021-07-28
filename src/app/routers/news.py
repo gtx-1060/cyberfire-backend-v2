@@ -11,7 +11,7 @@ from src.app.utils import get_db, save_image, delete_image_by_web_path
 from ..config import NEWS_STATIC_PATH
 
 router = APIRouter(
-    prefix="api/v2/news",
+    prefix="/api/v2/news",
     tags=["news"],
     responses={404: {"description": "Not found"}},
 )

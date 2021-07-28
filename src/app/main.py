@@ -4,6 +4,8 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.staticfiles import StaticFiles
 
 from middleware.db_session_middleware import DatabaseSessionMiddleware
+from src.app.config import STATIC_FILES_PATH
+from src.app.routers import news, users
 
 app = FastAPI()
 app.add_middleware(
@@ -15,7 +17,9 @@ app.add_middleware(
 )
 app.middleware("http")(DatabaseSessionMiddleware())
 
-app.mount("/static", StaticFiles(directory="../static"), name="static")
+app.mount("/static", StaticFiles(directory=STATIC_FILES_PATH), name="static")
+app.include_router(news.router)
+app.include_router(users.router)
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="127.0.0.1", port=3001)

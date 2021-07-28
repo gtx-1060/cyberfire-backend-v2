@@ -1,4 +1,4 @@
-from base import MyException
+from .base import MyException
 
 
 class UserAlreadyExists(MyException):
