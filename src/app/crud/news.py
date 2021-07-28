@@ -29,7 +29,6 @@ def create_news(news: news_schemas.NewsCreate, db: Session):
     db_news = News(
         title=news.title,
         text=news.text,
-        img_path=""
     )
     db.add(db_news)
     db.commit()

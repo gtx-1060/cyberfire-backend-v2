@@ -15,7 +15,7 @@ from ..schemas.token_data import TokenData, Tokens
 from ..middleware.auth_middleware import MyOAuth2PasswordBearer
 from ..utils import verify_password
 
-oauth2_scheme = MyOAuth2PasswordBearer(tokenUrl='users/auth')
+oauth2_scheme = MyOAuth2PasswordBearer(tokenUrl='/api/v2/users/login')
 
 
 def get_scope(user: User) -> str:
@@ -25,8 +25,9 @@ def get_scope(user: User) -> str:
 def get_role(scope: str) -> Roles:
     try:
         role = Roles(scope)
-    except Exception:
-        raise AuthenticationException("wrong access token")
+    except Exception as e:
+        print(e)
+        raise AuthenticationException("wrong role in access token")
     return role
 
 
@@ -82,6 +83,7 @@ def __auth_with_password(password: str, email: str, db: Session) -> Optional[Use
 
 def log_in(security_form: OAuth2PasswordRequestForm, db: Session) -> Tokens:
     user = __auth_with_password(security_form.password, security_form.username, db)
+    print(user.email)
     access_token = create_jwt_token(user)
     refresh_token = create_jwt_token(user, timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS))
     update_refresh_token(user.email, refresh_token, db)

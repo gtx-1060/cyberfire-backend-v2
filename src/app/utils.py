@@ -23,17 +23,17 @@ def get_db(request: Request):
     return request.state.db
 
 
-def save_image(path: str, content):
+def save_image(path: str, content) -> str:
     if "static" not in path:
         raise WrongFilePath()
     full_path = join(path, f"{uuid1()}.jpg")
     try:
-        with open(full_path, 'w') as f:
+        with open(full_path, 'wb') as f:
             f.write(content)
             f.close()
-        return full_path[full_path.find('static')::].replace(r"\\", "/")
+        return full_path[full_path.find('static')::].replace("\\", "/")
     except Exception as e:
-        # TODO: LOGGER HERE
+        print(e)
         raise FileSaveException()
 
 
@@ -42,6 +42,6 @@ def delete_image_by_web_path(web_path: str):
     try:
         remove(full_path)
     except Exception as e:
-        # TODO: LOGGER HERE
+        print(e)
         raise FileRemoveException()
 

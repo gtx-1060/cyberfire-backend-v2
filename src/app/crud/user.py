@@ -7,7 +7,7 @@ from ..models.squad import Squad
 from ..models.roles import Roles
 from ..models.games import Games
 from ..exceptions import user_exceptions
-from .. import utils, config
+from .. import utils
 
 
 def __check_email_unique(email: str, db: Session):
@@ -39,7 +39,6 @@ def create_user(user: user_schemas.UserCreate, db: Session):
         email=user.email,
         team_name=user.team_name,
         username=user.username,
-        avatar_path=config.AVATAR_PATH,
         hashed_password=hashed_pass,
         role=Roles.USER,
         refresh_token=''
@@ -62,7 +61,7 @@ def edit_user(user: user_schemas.UserEdit, email: str, db: Session):
     if user.username is not None:
         db_user.username = user.username
     if user.avatar_path is not None:
-        db_user.team_name = user.avatar_path
+        db_user.avatar_path = user.avatar_path
     if user.team_name is not None:
         __check_team_unique(user.team_name, db)
         db_user.team_name = user.team_name

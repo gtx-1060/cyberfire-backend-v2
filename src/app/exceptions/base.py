@@ -15,14 +15,14 @@ class ItemNotFound(MyException):
 
 class WrongFilePath(MyException):
     def __init__(self):
-        super().__init__(404, "wrong wile path")
+        super().__init__(400, "wrong wile path")
 
 
 class FileSaveException(MyException):
     def __init__(self):
-        super().__init__(404, "problem with saving file occurred")
+        super().__init__(400, "problem with saving file occurred")
 
 
 class FileRemoveException(MyException):
     def __init__(self):
-        super().__init__(404, "problem with removing file occurred")
+        super().__init__(400, "problem with removing file occurred")

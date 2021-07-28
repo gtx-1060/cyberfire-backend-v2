@@ -2,6 +2,7 @@ from sqlalchemy import Boolean, Column, Integer, Unicode, TIMESTAMP, Text, Enum,
 from sqlalchemy.orm import relationship
 from datetime import datetime
 
+from ..config import DEFAULT_AVATAR_PATH
 from ..database.db import Base
 from .roles import Roles
 
@@ -17,7 +18,7 @@ class User(Base):
     refresh_token = Column(Text)
     username = Column(Unicode(50))
     squads = relationship('Squad', cascade="all,delete")
-    avatar_path = Column(Text)  # default value needed
+    avatar_path = Column(Text, default=DEFAULT_AVATAR_PATH)  # default value needed
     hashed_password = Column(Unicode(200))
     is_active = Column(Boolean, default=True)
     is_confirmed = Column(Boolean, default=False)
