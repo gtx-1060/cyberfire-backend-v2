@@ -24,6 +24,7 @@ python-multipart = "^0.0.5"
 
 [tool.poetry.scripts]
 server = "src.app.main:start"
+create_tables = "src.app.database.init:create_tables"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
