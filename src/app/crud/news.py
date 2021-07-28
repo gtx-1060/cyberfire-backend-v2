@@ -21,11 +21,15 @@ def get_news(offset: int, count: int, db: Session) -> List[News]:
     return news
 
 
+def get_news_count(db: Session) -> int:
+    return db.query(News).count()
+
+
 def create_news(news: news_schemas.NewsCreate, db: Session):
     db_news = News(
         title=news.title,
         text=news.text,
-        img_path=news.img_path
+        img_path=""
     )
     db.add(db_news)
     db.commit()

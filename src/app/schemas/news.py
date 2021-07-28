@@ -6,7 +6,6 @@ from datetime import datetime
 class NewsCreate(BaseModel):
     title: str
     text: str
-    img_path: str
 
 
 class NewsEdit(BaseModel):
@@ -17,6 +16,7 @@ class NewsEdit(BaseModel):
 
 class News(NewsCreate):
     creation_datetime: datetime
+    img_path: str
 
     class Config:
         orm_mode = True

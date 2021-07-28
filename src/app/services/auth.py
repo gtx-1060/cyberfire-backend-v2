@@ -90,7 +90,7 @@ def register(user: UserCreate, db: Session):
     create_user(user, db)
 
 
-def generate_tokens_using_refresh(refresh_token: str, db: Session) -> Tokens:
+def authorize_using_refresh(refresh_token: str, db: Session) -> Tokens:
     data = decode_token(refresh_token)
     user = get_user_by_email(data.email, db)
     if refresh_token != user.refresh_token:

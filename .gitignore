@@ -149,6 +149,8 @@ crashlytics.properties
 crashlytics-build.properties
 fabric.properties
 
-
 # config file
 config.py
+
+# static files like images
+static/*
