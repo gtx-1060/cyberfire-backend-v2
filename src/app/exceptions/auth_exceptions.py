@@ -14,3 +14,8 @@ class WrongCredentialsException(MyException):
 class UserIsNotActiveException(MyException):
     def __init__(self):
         super().__init__(400, "Auth failed: user isn't active")
+
+
+class NotEnoughPermissions(MyException):
+    def __init__(self):
+        super().__init__(403, "You must be admin for this")

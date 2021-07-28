@@ -1,5 +1,5 @@
 from datetime import timedelta, datetime
-from typing import Optional, List
+from typing import Optional
 
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordRequestForm
@@ -10,7 +10,7 @@ from ..crud.user import get_user_by_email, update_refresh_token, create_user
 from ..schemas.user import User, UserCreate
 from ..models.roles import Roles
 from ..config import SECRET_KEY, ALGORITHM, REFRESH_TOKEN_EXPIRE_DAYS
-from ..exceptions.auth_exceptions import AuthenticationException, WrongCredentialsException
+from ..exceptions.auth_exceptions import AuthenticationException, WrongCredentialsException, NotEnoughPermissions
 from ..schemas.token_data import TokenData, Tokens
 from ..middleware.auth_middleware import MyOAuth2PasswordBearer
 from ..utils import verify_password
@@ -63,6 +63,12 @@ def auth_user(token: str = Depends(oauth2_scheme)) -> TokenData:
     return decode_token(token)
 
 
+def auth_admin(data: TokenData = Depends(auth_user)) -> TokenData:
+    if data.role != Roles.ADMIN:
+        raise NotEnoughPermissions()
+    return data
+
+
 def __auth_with_password(password: str, email: str, db: Session) -> Optional[User]:
     current_user = get_user_by_email(email, db)
     if not current_user:
@@ -81,7 +87,7 @@ def log_in(security_form: OAuth2PasswordRequestForm, db: Session) -> Tokens:
 
 
 def register(user: UserCreate, db: Session):
-    return create_user(user, db)
+    create_user(user, db)
 
 
 def generate_tokens_using_refresh(refresh_token: str, db: Session) -> Tokens:
