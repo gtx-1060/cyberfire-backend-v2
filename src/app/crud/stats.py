@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from typing import List
+from sqlalchemy import and_
 
 from .user import user_by_team, get_user_by_email
 from ..models.games import Games
@@ -13,6 +14,14 @@ def get_match_stats(stage_id: int, db: Session) -> List[MatchStats]:
     if matches is None:
         return []
     return matches
+
+
+def get_match_by_team(stage_id: int, team_name: str, db: Session) -> MatchStats:
+    stats = db.query(MatchStats).filter(and_(MatchStats.stage_id == stage_id, MatchStats.user.team_name == team_name))\
+        .first()
+    if stats is None:
+        raise ItemNotFound()
+    return stats
 
 
 def create_match_stats(stats: stats_schemas.MatchStatsCreate, stage_id: int, db: Session, commit=True):
@@ -50,6 +59,14 @@ def edit_match_stats(stats: stats_schemas.MatchStatsEdit, stats_id: int, db: Ses
         db_stats.attended = stats.attended
     db.add(db_stats)
     db.commit()
+
+
+def delete_match_stats(stats_id: int, db: Session) -> List[MatchStats]:
+    db.query(MatchStats).filter(MatchStats.id == stats_id).delete()
+
+
+def delete_match_by_stage(team_name: str, stage_id: int, db: Session):
+    db.query(MatchStats).filter(and_(MatchStats.stage_id == stage_id, MatchStats.user.team_name == team_name)).delete()
 
 
 def get_tournament_stats(tournament_id: int, db: Session) -> List[TournamentStats]:

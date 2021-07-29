@@ -9,7 +9,7 @@ class Stage(Base):
     __tablename__ = "stages"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    finished = Column(Boolean)
+    finished = Column(Boolean, default=False)
     title = Column(UnicodeText)
     description = Column(UnicodeText)
     kill_leaders = Column(MutableList.as_mutable(PickleType))
