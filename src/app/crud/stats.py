@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from typing import List
 
-from .user import user_by_team
+from .user import user_by_team, get_user_by_email
 from ..models.games import Games
 from ..schemas import stats as stats_schemas
 from ..models.stats import MatchStats, TournamentStats, GlobalStats
@@ -95,9 +95,23 @@ def get_global_stats(game: Games, offset: int, count: int, db: Session) -> List[
     return stats
 
 
+def create_empty_global_stats(user_email: str, db: Session):
+    user = get_user_by_email(user_email, db)
+    for game in Games:
+        stats = GlobalStats(
+            score=0,
+            kills_count=0,
+            wins_count=0,
+            user_id=user.id,
+            game=game
+        )
+        db.add(stats)
+    db.commit()
+
+
 def create_global_stats(stats: stats_schemas.GlobalStatsCreate, db: Session):
     user = user_by_team(stats.team_name, db)
-    db_stats = TournamentStats(
+    db_stats = GlobalStats(
         game=stats.game,
         kills_count=stats.kills_count,
         score=stats.score,

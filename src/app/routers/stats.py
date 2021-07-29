@@ -19,24 +19,26 @@ router = APIRouter(
 )
 
 
-@router.get('/by_stage', response_model=List[MatchStats])
+@router.get('/matches', response_model=List[MatchStats])
 def get_math_stats(stage_id: int, db: Session = Depends(get_db)):
     return stats_crud.get_match_stats(stage_id, db)
 
 
-@router.get('/by_tournament', response_model=List[TournamentStats])
-def get_math_stats(tournament_id: int, db: Session = Depends(get_db)):
+@router.get('/tournament', response_model=List[TournamentStats])
+def get_tournament_stats(tournament_id: int, db: Session = Depends(get_db)):
     return stats_crud.get_tournament_stats(tournament_id, db)
 
 
 @router.get('/', response_model=List[GlobalStats])
-def get_math_stats(game: Games, offset=0, count=20, db: Session = Depends(get_db)):
-    return stats_crud.get_global_stats(game, offset, count, db)
+def get_global_stats(game: Games, offset=0, count=20, db: Session = Depends(get_db)):
+    db_stats = stats_crud.get_global_stats(game, offset, count, db)
+    stats: GlobalStats = db_stats[0]
+    return [stats]
 
 
 @router.post('/match')
-def get_math_stats(stats_list: List[MatchStatsCreate], stage_id: int, db: Session = Depends(get_db),
-                   auth_data=Depends(auth_admin)):
+def create_match_stats(stats_list: List[MatchStatsCreate], stage_id: int, db: Session = Depends(get_db),
+                       auth_data=Depends(auth_admin)):
     for stats in stats_list:
         stats_crud.create_match_stats(stats, stage_id, db, False)
     db.commit()

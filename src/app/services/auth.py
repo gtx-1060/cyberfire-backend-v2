@@ -6,6 +6,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
+from ..crud.stats import create_empty_global_stats
 from ..crud.user import get_user_by_email, update_refresh_token, create_user
 from ..schemas.user import User, UserCreate
 from ..models.roles import Roles
@@ -92,6 +93,7 @@ def log_in(security_form: OAuth2PasswordRequestForm, db: Session) -> Tokens:
 
 def register(user: UserCreate, db: Session):
     create_user(user, db)
+    create_empty_global_stats(user.email, db)
 
 
 def authorize_using_refresh(refresh_token: str, db: Session) -> Tokens:
