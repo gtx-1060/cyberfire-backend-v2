@@ -15,6 +15,7 @@ class NewsEdit(BaseModel):
 
 
 class News(NewsCreate):
+    id: int
     creation_datetime: datetime
     img_path: str
 

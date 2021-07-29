@@ -44,3 +44,7 @@ def edit_news(news: news_schemas.NewsEdit, news_id: int, db: Session):
         db_news.img_path = news.img_path
     db.add(db_news)
     db.commit()
+
+
+def remove_news(news_id: int, db: Session):
+    db.query(News).filter(News.id == news_id).delete()

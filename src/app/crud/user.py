@@ -31,6 +31,13 @@ def __create_squads(user_id: int, db: Session):
     db.commit()
 
 
+def user_by_team(team_name: str, db: Session) -> User:
+    user = db.query(User).filter(User.team_name == team_name).first()
+    if user is None:
+        raise user_exceptions.UserNotFound()
+    return user
+
+
 def create_user(user: user_schemas.UserCreate, db: Session):
     __check_team_unique(user.team_name, db)
     __check_email_unique(user.email, db)
