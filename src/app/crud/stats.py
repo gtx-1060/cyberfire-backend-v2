@@ -15,7 +15,7 @@ def get_match_stats(stage_id: int, db: Session) -> List[MatchStats]:
     return matches
 
 
-def create_match_stats(stats: stats_schemas.MatchStatsCreate, stage_id: int, db: Session):
+def create_match_stats(stats: stats_schemas.MatchStatsCreate, stage_id: int, db: Session, commit=True):
     user = user_by_team(stats.team_name, db)
     db_stats = MatchStats(
         game=stats.game,
@@ -28,7 +28,8 @@ def create_match_stats(stats: stats_schemas.MatchStatsCreate, stage_id: int, db:
         rival_id=stats.rival_id
     )
     db.add(db_stats)
-    db.commit()
+    if commit:
+        db.commit()
 
 
 def edit_match_stats(stats: stats_schemas.MatchStatsEdit, stats_id: int, db: Session):
@@ -59,7 +60,7 @@ def get_tournament_stats(tournament_id: int, db: Session) -> List[TournamentStat
     return stats
 
 
-def create_tournament_stats(stats: stats_schemas.TournamentStatsCreate, tournament_id: int, db: Session):
+def create_tournament_stats(stats: stats_schemas.TournamentStatsCreate, tournament_id: int, db: Session, commit=True):
     user = user_by_team(stats.team_name, db)
     db_stats = TournamentStats(
         game=stats.game,
@@ -69,10 +70,11 @@ def create_tournament_stats(stats: stats_schemas.TournamentStatsCreate, tourname
         tournament_id=tournament_id
     )
     db.add(db_stats)
-    db.commit()
+    if commit:
+        db.commit()
 
 
-def edit_tournament_stats(stats: stats_schemas.TournamentStatsEdit, stats_id: int, db: Session):
+def edit_tournament_stats(stats: stats_schemas.TournamentStatsEdit, stats_id: int, db: Session, commit=True):
     db_stats = db.query(TournamentStats).filter(TournamentStats.id == stats_id).first()
     if db_stats is None:
         raise ItemNotFound()
@@ -81,7 +83,8 @@ def edit_tournament_stats(stats: stats_schemas.TournamentStatsEdit, stats_id: in
     if stats.kills_count is not None:
         db_stats.kills_count = stats.kills_count
     db.add(db_stats)
-    db.commit()
+    if commit:
+        db.commit()
 
 
 def get_global_stats(game: Games, offset: int, count: int, db: Session) -> List[GlobalStats]:
@@ -105,7 +108,7 @@ def create_global_stats(stats: stats_schemas.GlobalStatsCreate, db: Session):
     db.commit()
 
 
-def edit_global_stats(stats: stats_schemas.GlobalStatsEdit, user_id: int, db: Session):
+def edit_global_stats(stats: stats_schemas.GlobalStatsEdit, user_id: int, db: Session, commit=True):
     db_stats = db.query(GlobalStats).filter(GlobalStats.user_id == user_id).first()
     if db_stats is None:
         raise ItemNotFound()
@@ -116,4 +119,5 @@ def edit_global_stats(stats: stats_schemas.GlobalStatsEdit, user_id: int, db: Se
     if stats.wins_count is not None:
         db_stats.wins_count = stats.wins_count
     db.add(db_stats)
-    db.commit()
+    if commit:
+        db.commit()
