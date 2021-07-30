@@ -4,6 +4,7 @@ from sqlalchemy import and_
 
 from .user import user_by_team, get_user_by_email
 from ..models.games import Games
+from ..models.user import User
 from ..schemas import stats as stats_schemas
 from ..models.stats import MatchStats, TournamentStats, GlobalStats
 from ..exceptions.base import ItemNotFound
@@ -61,12 +62,16 @@ def edit_match_stats(stats: stats_schemas.MatchStatsEdit, stats_id: int, db: Ses
     db.commit()
 
 
-def delete_match_stats(stats_id: int, db: Session) -> List[MatchStats]:
+def delete_match_stats(stats_id: int, db: Session):
     db.query(MatchStats).filter(MatchStats.id == stats_id).delete()
 
 
 def delete_match_by_stage(team_name: str, stage_id: int, db: Session):
-    db.query(MatchStats).filter(and_(MatchStats.stage_id == stage_id, MatchStats.user.team_name == team_name)).delete()
+    match = db.query(MatchStats).join(User)\
+        .filter(and_(MatchStats.stage_id == stage_id, User.team_name == team_name)).first()
+    if match is None:
+        raise ItemNotFound()
+    db.query(MatchStats).filter(MatchStats.id == match.id).delete()
 
 
 def get_tournament_stats(tournament_id: int, db: Session) -> List[TournamentStats]:
