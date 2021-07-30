@@ -30,7 +30,7 @@ def get_stage(stage_id: int, db: Session = Depends(get_db)):
 
 
 @router.put('/')
-def edit_stage(stage: StageEdit, stage_id: int, db: Session = Depends(get_db), data=Depends(auth_admin)):
+def edit_stage(stage: StageEdit, stage_id: int, db: Session = Depends(get_db), _=Depends(auth_admin)):
     if is_stage_tvt(stage_id, db):
         raise NotAllowedForTVT()
     stages_crud.edit_stage(stage, stage_id, db)
@@ -38,6 +38,6 @@ def edit_stage(stage: StageEdit, stage_id: int, db: Session = Depends(get_db), d
 
 
 @router.delete('/team')
-def delete_team_stats(stage_id: int, team_name: str, db: Session = Depends(get_db), data=Depends(auth_admin)):
+def delete_team_stats(stage_id: int, team_name: str, db: Session = Depends(get_db), _=Depends(auth_admin)):
     delete_match_by_stage(team_name, stage_id, db)
     return Response(status_code=202)
