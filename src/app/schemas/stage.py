@@ -6,9 +6,11 @@ from datetime import datetime
 class TournamentData(BaseModel):
     name: str = Field(..., alias='title')
 
+    class Config:
+        orm_mode = True
+
 
 class StageCreate(BaseModel):
-    tournament_id: int
     title: str
     description: str
     stage_datetime: datetime
@@ -31,5 +33,14 @@ class Stage(StageCreate):
     finished: bool
     keys: List[str]
     
+    class Config:
+        orm_mode = True
+
+
+class StagePreview(BaseModel):
+    id: int
+    title: str
+    time: datetime
+
     class Config:
         orm_mode = True

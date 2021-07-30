@@ -5,7 +5,7 @@ from starlette.staticfiles import StaticFiles
 
 from src.app.middleware.db_session_middleware import DatabaseSessionMiddleware
 from src.app.config import STATIC_FILES_PATH
-from src.app.routers import news, users, stats
+from src.app.routers import news, users, stats, stages
 
 app = FastAPI()
 app.add_middleware(
@@ -21,6 +21,7 @@ app.mount("/static", StaticFiles(directory=STATIC_FILES_PATH), name="static")
 app.include_router(news.router)
 app.include_router(users.router)
 app.include_router(stats.router)
+app.include_router(stages.router)
 
 
 def start():

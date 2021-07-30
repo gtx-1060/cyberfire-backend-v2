@@ -1,8 +1,7 @@
 from typing import List
 
 from fastapi import APIRouter
-from fastapi.params import File, Depends
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.params import Depends
 from sqlalchemy.orm import Session
 from starlette.responses import Response
 
