@@ -1,5 +1,7 @@
-from sqlalchemy import Column, PickleType, Integer, UnicodeText, ForeignKey, SmallInteger, Enum, Table, String, Text
+from sqlalchemy import Column, PickleType, Integer, UnicodeText, ForeignKey, SmallInteger, Enum, Table, String, Text,\
+    TIMESTAMP
 from sqlalchemy.ext.mutable import MutableList
+from datetime import datetime
 from sqlalchemy.orm import relationship
 
 from .games import Games
@@ -24,7 +26,9 @@ class Tournament(Base):
     users = relationship("User", secondary=association_table, backref="tournaments")
     stages_count = Column(SmallInteger)
     stream_url = Column(String)
-    stats = relationship("TournamentStats")
+    stats = relationship("TournamentStats")  # creates on tournament start
     game = Column(Enum(Games))
     img_path = Column(Text)
     max_squads = Column(SmallInteger)
+    start_date = Column(TIMESTAMP, default=datetime.now())
+    end_date = Column(TIMESTAMP, default=datetime.now())

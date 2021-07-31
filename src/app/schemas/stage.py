@@ -27,6 +27,7 @@ class StageEdit(BaseModel):
 
 
 class Stage(StageCreate):
+    id: int
     kill_leaders: List[str]
     damage_leaders: List[str]
     tournament_data: TournamentData = Field(..., alias='tournament')

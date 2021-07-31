@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from typing import List
 
+from .tournaments import update_tournament_date
 from ..models.stage import Stage
 from ..exceptions.base import ItemNotFound
 from ..schemas.stage import StageCreate, StageEdit
@@ -40,6 +41,7 @@ def edit_stage(stage: StageEdit, stage_id: int, db: Session):
     db_stage = get_stage_by_id(stage_id, db)
     if stage.stage_datetime is not None:
         db_stage.stage_datetime = stage.stage_datetime
+        update_tournament_date(stage.stage_datetime, db_stage.tournament_id, db, False)
     if stage.title is not None:
         db_stage.title = stage.title
     if stage.description is not None:
