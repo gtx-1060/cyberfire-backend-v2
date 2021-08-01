@@ -1,9 +1,10 @@
+from datetime import datetime
 from typing import Optional, List
 from pydantic import BaseModel, Field
 
 from src.app.models.games import Games
 from src.app.models.tournament_states import States
-from src.app.schemas.stage import StageCreate
+from src.app.schemas.stage import StageCreate, StagePreview
 
 
 class TournamentCreate(BaseModel):
@@ -24,8 +25,22 @@ class TournamentEdit(BaseModel):
     rewards: Optional[str]
 
 
-class Tournament(TournamentCreate):
+class TournamentPreview(BaseModel):
     id: int
-    state: States
-    img_path: str
+    title: str
+    description: str
+    stages_count: int
+    start_date: datetime
+    end_date: datetime
+    game: Games
     is_player_registered: bool = Field(default=False)
+    img_path: str
+    state: States
+
+
+class Tournament(TournamentPreview):
+    stream_url: Optional[str]
+    max_squads: Optional[int]
+    rewards: Optional[str]
+    stages: List[StagePreview]
+

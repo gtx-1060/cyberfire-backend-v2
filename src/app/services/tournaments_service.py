@@ -16,4 +16,3 @@ def set_tournament_dates(stages: List[StageCreate], tournament: Tournament) -> T
     tournament.start_date = start_date
     tournament.end_date = end_date
     return tournament
-

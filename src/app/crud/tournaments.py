@@ -1,3 +1,4 @@
+from sqlalchemy import exists
 from sqlalchemy.orm import Session
 from typing import List
 from datetime import datetime
@@ -11,6 +12,10 @@ from ..models.tournament_states import States
 from ..models.user import User
 from ..schemas.tournaments import TournamentCreate, TournamentEdit
 from ..services.tournaments_service import set_tournament_dates
+
+
+def is_tournament_exists(tournament_id: int, db: Session) -> bool:
+    return db.query(exists().where(Tournament.id == tournament_id)).scalar()
 
 
 def get_tournaments(game: Games, db: Session):
@@ -74,12 +79,3 @@ def count_users_in_tournament(tournament_id: int, db: Session):
     return db.query(User).join(Tournament).filter(User.tournament.id == tournament_id).count()
 
 
-def update_tournament_date(date: datetime, tournament_id: int, db: Session, commit=True):
-    tournament = get_tournament(tournament_id, db)
-    if date < tournament.start_date:
-        tournament.start_date = date
-    elif date > tournament.end_date:
-        tournament.end_date = date
-    db.add(tournament)
-    if commit:
-        db.commit()
