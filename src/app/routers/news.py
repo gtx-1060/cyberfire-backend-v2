@@ -46,8 +46,8 @@ def get_news(offset=0, count=20, db: Session = Depends(get_db)):
     return news_crud.get_news(offset, count, db)
 
 
-@router.get('/by_id', response_model=List[News])
-def get_news(news_id: int, db: Session = Depends(get_db)):
+@router.get('/by_id', response_model=News)
+def get_one_news(news_id: int, db: Session = Depends(get_db)):
     return news_crud.get_news_by_id(news_id, db)
 
 
