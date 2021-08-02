@@ -62,8 +62,15 @@ def edit_match_stats(stats: stats_schemas.MatchStatsEdit, stats_id: int, db: Ses
     db.commit()
 
 
+# def delete_unassigned_match_stats(stage_id: int, db: Session, commit=True):
+#     db.query(MatchStats).filter(and_(MatchStats.stage_id == stage_id, MatchStats.a)).delete()
+#     if commit:
+#         db.commit()
+
+
 def delete_match_stats(stats_id: int, db: Session):
     db.query(MatchStats).filter(MatchStats.id == stats_id).delete()
+    db.commit()
 
 
 def delete_match_by_stage(team_name: str, stage_id: int, db: Session):
@@ -72,6 +79,7 @@ def delete_match_by_stage(team_name: str, stage_id: int, db: Session):
     if match is None:
         raise ItemNotFound()
     db.query(MatchStats).filter(MatchStats.id == match.id).delete()
+    db.commit()
 
 
 def get_tournament_stats(tournament_id: int, db: Session) -> List[TournamentStats]:

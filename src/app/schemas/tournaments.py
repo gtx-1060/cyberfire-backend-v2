@@ -15,6 +15,8 @@ class TournamentCreate(BaseModel):
     stream_url: str
     game: Games
     max_squads: int
+    start_date: Optional[datetime]
+    end_date: Optional[datetime]
 
 
 class TournamentEdit(BaseModel):

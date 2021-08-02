@@ -6,6 +6,7 @@ from starlette.staticfiles import StaticFiles
 from src.app.middleware.db_session_middleware import DatabaseSessionMiddleware
 from src.app.config import STATIC_FILES_PATH
 from src.app.routers import news, users, stats, stages
+from src.app.services.schedule_service import myscheduler
 
 app = FastAPI()
 app.add_middleware(
@@ -22,6 +23,16 @@ app.include_router(news.router)
 app.include_router(users.router)
 app.include_router(stats.router)
 app.include_router(stages.router)
+
+
+@app.on_event("startup")
+async def startup_event():
+    myscheduler.start()
+
+
+@app.on_event("shutdown")
+async def startup_event():
+    myscheduler.stop()
 
 
 def start():

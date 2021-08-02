@@ -9,8 +9,10 @@ from src.app.crud.stats import delete_match_by_stage
 from src.app.crud import stages as stages_crud
 from src.app.exceptions.tournament_exceptions import NotAllowedForTVT
 from src.app.schemas.stage import Stage, StagePreview, StageEdit
+from src.app.schemas.tournaments import TournamentEdit
 from src.app.services.auth import auth_admin
-from src.app.utils import get_db, is_stage_tvt
+from src.app.utils import get_db
+from src.app.services.tournaments_service import is_stage_tvt, update_db_tournament_date
 
 router = APIRouter(
     prefix="/api/v2/stages",
@@ -34,6 +36,8 @@ def edit_stage(stage: StageEdit, stage_id: int, db: Session = Depends(get_db), _
     if is_stage_tvt(stage_id, db):
         raise NotAllowedForTVT()
     stages_crud.edit_stage(stage, stage_id, db)
+    if stage.stage_datetime is not None:
+        update_db_tournament_date(stage_id, db)
     return Response(status_code=202)
 
 

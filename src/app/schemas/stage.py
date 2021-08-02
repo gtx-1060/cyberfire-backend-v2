@@ -2,6 +2,8 @@ from typing import Optional, List
 from pydantic import BaseModel, Field
 from datetime import datetime
 
+from src.app.schemas.stats import MatchStats
+
 
 class TournamentData(BaseModel):
     name: str = Field(..., alias='title')
@@ -31,6 +33,7 @@ class Stage(StageCreate):
     kill_leaders: List[str]
     damage_leaders: List[str]
     tournament_data: TournamentData = Field(..., alias='tournament')
+    teams: List[str]
     finished: bool
     keys: List[str]
     

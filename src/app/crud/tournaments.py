@@ -1,4 +1,4 @@
-from sqlalchemy import exists
+from sqlalchemy import exists, and_
 from sqlalchemy.orm import Session
 from typing import List
 from datetime import datetime
@@ -11,7 +11,6 @@ from ..exceptions.base import ItemNotFound
 from ..models.tournament_states import States
 from ..models.user import User
 from ..schemas.tournaments import TournamentCreate, TournamentEdit
-from ..services.tournaments_service import set_tournament_dates
 
 
 def is_tournament_exists(tournament_id: int, db: Session) -> bool:
@@ -36,19 +35,24 @@ def get_tournament(tournament_id: int, db: Session) -> Tournament:
     return tournament
 
 
+def get_tournaments_count(db: Session) -> int:
+    return db.query(Tournament).count()
+
+
 def create_tournament(tournament: TournamentCreate, db: Session) -> Tournament:
     db_tournament = Tournament(
         title=tournament.title,
         description=tournament.description,
-        state=States.WAITING_FOR_START,
+        state=States.REGISTRATION,
         rewards=tournament.rewards,
         stream_url=tournament.stream_url,
         stages_count=len(tournament.stages),
         game=tournament.game,
         img_path=DEFAULT_IMAGE_PATH,
-        max_squads=tournament.max_squads
+        max_squads=tournament.max_squads,
+        start_date=tournament.start_date,
+        end_date=tournament.end_date
     )
-    db_tournament = set_tournament_dates(tournament.stages, db_tournament)
     db.add(db_tournament)
     db.commit()
     db.refresh(db_tournament)
@@ -79,3 +83,15 @@ def count_users_in_tournament(tournament_id: int, db: Session):
     return db.query(User).join(Tournament).filter(User.tournament.id == tournament_id).count()
 
 
+def is_users_in_tournament(tournament_id: int, user_email: str, db: Session):
+    return (db.query(Tournament).join(User.email)
+            .filter(and_(Tournament.stage_id == tournament_id, User.email == user_email)).first() is not None)
+
+
+def update_tournament_state(new_state: States, tournament_id: int, db: Session):
+    db.query(Tournament).filter(Tournament.id == tournament_id).update({
+        Tournament.state: new_state
+    })
+    db.commit()
+
+# TODO: РЕГИСТРАЦИЯ В ТУРИНРЕ
