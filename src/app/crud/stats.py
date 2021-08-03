@@ -35,7 +35,8 @@ def create_match_stats(stats: stats_schemas.MatchStatsCreate, stage_id: int, db:
         map=stats.map,
         stage_id=stage_id,
         index=stats.index,
-        rival_id=stats.rival_id
+        rival_id=stats.rival_id,
+        winner=stats.winner
     )
     db.add(db_stats)
     if commit:
@@ -64,6 +65,8 @@ def edit_match_stats(stats: stats_schemas.MatchStatsEdit, stats_id: int, db: Ses
         db_stats.rival_id = stats.rival_id
     if stats.attended is not None:
         db_stats.attended = stats.attended
+    if stats.winner is not None:
+        db_stats.winner = stats.winner
     db.add(db_stats)
     db.commit()
 
@@ -103,6 +106,7 @@ def create_tournament_stats(stats: stats_schemas.TournamentStatsCreate, tourname
         kills_count=stats.kills_count,
         score=stats.score,
         user_id=user.id,
+        wins_count=stats.wins_count,
         tournament_id=tournament_id
     )
     db.add(db_stats)
@@ -118,6 +122,8 @@ def edit_tournament_stats(stats: stats_schemas.TournamentStatsEdit, stats_id: in
         db_stats.score = stats.score
     if stats.kills_count is not None:
         db_stats.kills_count = stats.kills_count
+    if stats.wins_count is not None:
+        db_stats.wins_count = stats.wins_count
     db.add(db_stats)
     if commit:
         db.commit()

@@ -18,6 +18,7 @@ class MatchStatsCreate(BaseModel):
     team_name: str
     index: int
     map: str
+    winner: bool
     game: Games
     rival_id: int
 
@@ -29,6 +30,7 @@ class MatchStatsEdit(BaseModel):
     attended: Optional[bool]
     index: Optional[int]
     rival_id: Optional[int]
+    winner: Optional[bool]
 
 
 class MatchStats(BaseModel):
@@ -57,17 +59,20 @@ class TvtStats(MatchStats):
 class TournamentStatsCreate(BaseModel):
     score: int
     kills_count: int
+    wins_count: int
     team_name: str
 
 
 class TournamentStatsEdit(BaseModel):
     score: Optional[int]
     kills_count: Optional[int]
+    wins_count: Optional[int]
 
 
 class TournamentStats(BaseModel):
     score: int
     kills_count: int
+    wins_count: int
     user_data: UserData = Field(..., alias='user')
 
     class Config:

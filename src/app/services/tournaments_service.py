@@ -98,9 +98,12 @@ def pause_tournament(tournament_id: int, db: Session):
     tournaments_crud.update_tournament_state(States.PAUSED, tournament_id, db)
 
 
-def kick_player_from_tournament(team_name: str, stage_id: int, db: Session):
-    """EMPTY FUNC"""
-    pass
+def kick_player_from_tournament(user_email: str, tournament_id: int, db: Session):
+    tournaments_crud.remove_tournament_player(tournament_id, user_email, db)
+
+
+def register_in_tournament(user_email: str, tournament_id: int, db: Session):
+    tournaments_crud.add_user_to_tournament(tournament_id, user_email, db)
 
 
 def upload_stats(stage_id: int, stats: List[stats_schemas.MatchStatsCreate], db: Session):
@@ -112,13 +115,14 @@ def upload_stats(stage_id: int, stats: List[stats_schemas.MatchStatsCreate], db:
     create_match_stats_list(stats, stage_id, db)
 
 
-def save_tournament_stats(stats: Dict[str, Tuple[int, int]], tournament_id: int, db: Session, commit=True):
+def save_tournament_stats(stats: Dict[str, Tuple[int, int, int]], tournament_id: int, db: Session, commit=True):
     db_stats_list = get_tournament_stats(tournament_id, db)
     for db_stats in db_stats_list:
         team_name = db_stats.user.team_name
         if team_name in stats:
             db_stats.score += stats[team_name][0]
             db_stats.kills_count += stats[team_name][1]
+            db_stats.wins_count += stats[team_name][2]
         else:
             print(f"[NOT ERROR, BUT INFO] team {team_name} exists in tournament list, but not found in stage stats")
         db.add(db_stats)
@@ -136,15 +140,14 @@ def start_battleroyale_tournament(tournament_id: int):
 
 
 def end_battleroyale_tournament(tournament_id: int, last_stage: Stage, db: Session):
-    # TODO: ЧТО С КОЛ-ВОМ ПОБЕД???
     tournaments_crud.update_tournament_state(States.FINISHED, tournament_id, db)
     _, summary_score = match_players_stats(last_stage.matches, False)
     save_tournament_stats(summary_score, tournament_id, db, False)
     db.commit()
     tournament_stats_list = get_tournament_stats(tournament_id, db)
     for stats in tournament_stats_list:
-        gl_stat_crate = GlobalStatsEdit(score=stats.score, kills_count=stats.kills_count)
-        edit_global_stats(gl_stat_crate, stats.user_id, db, False)
+        gl_stat_new = GlobalStatsEdit(score=stats.score, kills_count=stats.kills_count, wins_count=stats.wins_count)
+        edit_global_stats(gl_stat_new, stats.user_id, db, False)
     db.commit()
 
 
@@ -162,7 +165,7 @@ def create_empty_tournament_stats(tournament, db):
 
 
 def match_players_stats(stats_list: List[MatchStats], winners_list=True) -> Tuple[Optional[List[str]],
-                                                                                  Dict[str, Tuple[int, int]]]:
+                                                                                  Dict[str, Tuple[int, int, int]]]:
     """
     BATTLEROYALE GAMES ONLY!\n
     return list of players past in next stage and full list of user stats
@@ -172,8 +175,9 @@ def match_players_stats(stats_list: List[MatchStats], winners_list=True) -> Tupl
         if stats.user_id in summary_score:
             summary_score[stats.user.team_name][0] += stats.score
             summary_score[stats.user.team_name][1] += stats.kills_count
+            summary_score[stats.user.team_name][2] += stats.winner
         else:
-            summary_score[stats.user.team_name] = (stats.score, stats.kills_count)
+            summary_score[stats.user.team_name] = (stats.score, stats.kills_count, int(stats.winner))
     if winners_list:
         winners_raw = sorted(summary_score.items(), key=lambda x: x[1][0], reverse=True)[0:len(summary_score)//2+1]
         return list(map(lambda x: x[0], winners_raw)), summary_score

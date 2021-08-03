@@ -35,6 +35,7 @@ class MatchStats(StatsMixin, Base):
     stage_id = Column(Integer, ForeignKey('stages.id'))
     rival_id = Column(Integer)
     attended = Column(Boolean, default=True)
+    winner = Column(Boolean, default=False)
     index = Column(SmallInteger)
 
 
@@ -43,6 +44,7 @@ class TournamentStats(StatsMixin, Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     tournament_id = Column(Integer, ForeignKey('tournaments.id'))
+    wins_count = Column(Integer)
 
 
 class GlobalStats(StatsMixin, Base):

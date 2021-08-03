@@ -55,13 +55,13 @@ def decode_token(token: str) -> TokenData:
         raise AuthenticationException('access token is wrong or expired')
 
 
-def try_auth_user(token: str = Depends(oauth2_scheme)) -> Optional[TokenData]:
+def try_auth_user(token: Optional[str] = Depends(oauth2_scheme)) -> Optional[TokenData]:
     if token is None:
         return None
     return decode_token(token)
 
 
-def auth_user(token: str = Depends(oauth2_scheme)) -> TokenData:
+def auth_user(token: Optional[str] = Depends(oauth2_scheme)) -> TokenData:
     if token is None:
         raise AuthenticationException('token header is empty')
     return decode_token(token)

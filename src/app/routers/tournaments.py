@@ -9,10 +9,9 @@ from src.app.exceptions.tournament_exceptions import NotAllowedForTVT
 from src.app.models.games import Games
 from src.app.schemas.token_data import TokenData
 from src.app.schemas.tournaments import TournamentCreate, TournamentPreview, Tournament
-from src.app.services.auth import auth_admin, try_auth_user
+from src.app.services.auth import auth_admin, try_auth_user, auth_user
 from src.app.utils import get_db
 from src.app.services import tournaments_service
-
 
 router = APIRouter(
     prefix="/api/v2/tournaments",
@@ -23,7 +22,7 @@ router = APIRouter(
 
 @router.get("/", response_model=List[TournamentPreview])
 def get_tournaments_previews(game: Optional[Games], db: Session = Depends(get_db),
-                             auth: TokenData = Depends(try_auth_user())):
+                             auth: Optional[TokenData] = Depends(try_auth_user)):
     tournaments: List[TournamentPreview] = tournaments_crud.get_tournaments(game, db)
     if auth is not None:
         for tournament in tournaments:
@@ -49,3 +48,11 @@ def create_tournament(tournament: TournamentCreate, db: Session = Depends(get_db
     return tournaments_service.create_tournament(tournament, db)
 
 
+@router.get("/register", response_model=dict)
+def create_tournament(tournament_id: int, db: Session = Depends(get_db), user_data: TokenData = Depends(auth_user)):
+    tournaments_service.register_in_tournament(user_data.email, tournament_id, db)
+
+
+@router.get("/unregister", response_model=dict)
+def create_tournament(tournament_id: int, db: Session = Depends(get_db), user_data: TokenData = Depends(auth_user)):
+    tournaments_service.kick_player_from_tournament(user_data.email, tournament_id, db)
