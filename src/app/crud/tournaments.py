@@ -20,7 +20,7 @@ def is_tournament_exists(tournament_id: int, db: Session) -> bool:
     return db.query(exists().where(Tournament.id == tournament_id)).scalar()
 
 
-def get_tournaments(game: Games, db: Session):
+def get_tournaments(game: Games, db: Session) -> List[Tournament]:
     tournaments = None
     if game is None:
         tournaments = db.query(Tournament).order_by(Tournament.start_date.desc()).all()
@@ -86,9 +86,9 @@ def count_users_in_tournament(tournament_id: int, db: Session):
     return db.query(User).join(Tournament).filter(User.tournament.id == tournament_id).count()
 
 
-def is_users_in_tournament(tournament_id: int, user_email: str, db: Session):
-    return (db.query(Tournament).join(User.email)
-            .filter(and_(Tournament.stage_id == tournament_id, User.email == user_email)).first() is not None)
+def is_users_in_tournament(tournament_id: int, user_email: str, db: Session) -> bool:
+    return (db.query(Tournament).join(User, Tournament.users)
+            .filter(and_(Tournament.id == tournament_id, User.email == user_email)).first() is not None)
 
 
 def update_tournament_state(new_state: States, tournament_id: int, db: Session):

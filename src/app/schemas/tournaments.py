@@ -39,10 +39,16 @@ class TournamentPreview(BaseModel):
     img_path: str
     state: States
 
+    class Config:
+        orm_mode = True
+
 
 class Tournament(TournamentPreview):
     stream_url: Optional[str]
     max_squads: Optional[int]
     rewards: Optional[str]
     stages: List[StagePreview]
+
+    class Config:
+        orm_mode = True
 

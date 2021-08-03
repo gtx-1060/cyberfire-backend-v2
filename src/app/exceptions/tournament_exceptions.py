@@ -39,3 +39,8 @@ class UserNotRegistered(MyException):
 class WrongTournamentState(MyException):
     def __init__(self):
         super().__init__(400, "you couldn't register/unregister to tournament now")
+
+
+class WrongTournamentDates(MyException):
+    def __init__(self):
+        super().__init__(400, "date of tournament calculated from stage dates are wrong")

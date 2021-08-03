@@ -1,7 +1,8 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import List, Tuple, Optional, Dict
 
+import pytz
 from sqlalchemy.orm import Session
 
 from src.app.crud import tournaments as tournaments_crud
@@ -10,7 +11,7 @@ from src.app.crud.stats import create_match_stats_list, create_tournament_stats,
 from src.app.crud.user import user_id_by_team
 from src.app.database.db import SessionLocal
 from src.app.exceptions.tournament_exceptions import StageMustBeEmpty, TournamentAlreadyFinished, \
-    StatsOfNotParticipatedTeam
+    StatsOfNotParticipatedTeam, WrongTournamentDates
 from src.app.models.games import Games
 from src.app.models.stage import Stage
 from src.app.models.stats import MatchStats, TournamentStats
@@ -45,8 +46,8 @@ def is_stage_tvt(stage_id: int, db: Session) -> bool:
 
 
 def set_tournament_dates(stages, tournament) -> Tournament:
-    start_date = datetime(year=9999, month=1, day=1)
-    end_date = datetime(year=1, month=1, day=1)
+    start_date = datetime(year=9999, month=1, day=1, tzinfo=pytz.UTC)
+    end_date = datetime(year=1, month=1, day=1, tzinfo=pytz.UTC)
     for stage in stages:
         if start_date > stage.stage_datetime:
             start_date = stage.stage_datetime
@@ -67,6 +68,9 @@ def update_db_tournament_date(stage_id: int, db: Session):
 
 def create_tournament(tournament: TournamentCreate, db: Session) -> dict:
     tournament = set_tournament_dates(tournament.stages, tournament)
+    now_moscow = datetime.now(pytz.timezone('Europe/Moscow'))
+    if tournament.start_date < now_moscow or tournament.end_date < tournament.start_date:
+        raise WrongTournamentDates()
     tournament = tournaments_crud.create_tournament(tournament, db)
     if not is_tournament_tvt(tournament):
         myscheduler.plan_task(get_tournament_task_id(TournamentEvents.START_TOURNAMENT, tournament.id),
