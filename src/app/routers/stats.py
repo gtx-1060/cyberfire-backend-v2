@@ -37,8 +37,6 @@ def get_global_stats(game: Games, offset=0, count=20, db: Session = Depends(get_
 
 @router.post('/match')
 def create_match_stats(stats_list: List[MatchStatsCreate], stage_id: int, db: Session = Depends(get_db),
-                       auth_data=Depends(auth_admin)):
-    for stats in stats_list:
-        stats_crud.create_match_stats(stats, stage_id, db, False)
-    db.commit()
+                       _=Depends(auth_admin)):
+    stats_crud.create_match_stats_list(stats_list, stage_id, db)
     return Response(status_code=202)

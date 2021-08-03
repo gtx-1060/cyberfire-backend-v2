@@ -1,20 +1,24 @@
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Dict
 
 from sqlalchemy.orm import Session
 
 from src.app.crud import tournaments as tournaments_crud
 from src.app.crud.stages import get_stages, get_stage_by_id
-from src.app.crud.stats import get_match_stats
+from src.app.crud.stats import create_match_stats_list, create_tournament_stats, get_tournament_stats, edit_global_stats
+from src.app.crud.user import user_id_by_team
 from src.app.database.db import SessionLocal
-from src.app.exceptions.tournament_exceptions import StageMustBeEmpty
+from src.app.exceptions.tournament_exceptions import StageMustBeEmpty, TournamentAlreadyFinished, \
+    StatsOfNotParticipatedTeam
 from src.app.models.games import Games
 from src.app.models.stage import Stage
-from src.app.models.stats import MatchStats
+from src.app.models.stats import MatchStats, TournamentStats
 from src.app.models.tournament import Tournament
 from src.app.models.tournament_states import States
+from src.app.schemas.stats import TournamentStatsCreate, GlobalStatsEdit
 from src.app.schemas.tournaments import TournamentCreate
+from src.app.schemas import stats as stats_schemas
 
 # list of all tvt games
 from src.app.services.schedule_service import myscheduler
@@ -63,53 +67,126 @@ def update_db_tournament_date(stage_id: int, db: Session):
 
 def create_tournament(tournament: TournamentCreate, db: Session) -> dict:
     tournament = set_tournament_dates(tournament.stages, tournament)
-    tournament_id = tournaments_crud.create_tournament(tournament, db).id
-    myscheduler.plan_task(get_tournament_task_id(TournamentEvents.START_TOURNAMENT, tournament_id),
-                          tournament.start_date, start_tournament, [tournament_id])
-    myscheduler.plan_task(get_tournament_task_id(TournamentEvents.START_STAGE, tournament_id),
-                          tournament.start_date+timedelta(seconds=10), start_tournament, [tournament_id])
-    return {"tournament_id": tournament_id}
+    tournament = tournaments_crud.create_tournament(tournament, db)
+    if not is_tournament_tvt(tournament):
+        myscheduler.plan_task(get_tournament_task_id(TournamentEvents.START_TOURNAMENT, tournament.id),
+                              tournament.start_date, start_battleroyale_tournament, [tournament.id])
+        myscheduler.plan_task(get_tournament_task_id(TournamentEvents.START_STAGE, tournament.id),
+                              tournament.start_date+timedelta(seconds=10), fill_next_stage_battleroyale, [tournament.id])
+    return {"tournament_id": tournament.id}
 
 
-def start_tournament(tournament_id):
-    db = SessionLocal()
-    tournaments_crud.update_tournament_state(States.IS_ON, tournament_id, db)
-    db.close()
-
-
-def find_active_stage(tournament_id: int, db: Session) -> Tuple[Stage, Optional[Stage]]:
+def find_active_stage(tournament_id: int, db: Session) -> Tuple[Optional[Stage], Optional[Stage], bool]:
+    """ returns active stage, previous stage, and bool = (is stage last)"""
     sorted_stages = get_stages(tournament_id, db)
-    for i in range(len(sorted_stages)):
+    stages_count = len(sorted_stages)
+    for i in range(stages_count):
         if not sorted_stages[i].finished:
             if i == 0:
-                return sorted_stages[i], None
-            return sorted_stages[i], sorted_stages[i-1]
+                return sorted_stages[i], None, (i == stages_count-1)
+            return sorted_stages[i], sorted_stages[i-1], (i == stages_count-1)
+    return None, None, False
 
 
-# def get_stage_teams(stats_list: List[MatchStats], db: Session) -> List[str]:
-#     team_names = set()
-#     for stats in stats_list:
-#         team_names.add(stats.user.team_name)
-#     return list(team_names)  # cash it for better performance
+def pause_tournament(tournament_id: int, db: Session):
+    tstart_task_id = get_tournament_task_id(TournamentEvents.START_TOURNAMENT, tournament_id)
+    sstart_task_id = get_tournament_task_id(TournamentEvents.START_STAGE, tournament_id)
+    if myscheduler.task_exists(tstart_task_id):
+        myscheduler.remove_task(tstart_task_id)
+    if myscheduler.task_exists(sstart_task_id):
+        myscheduler.remove_task(sstart_task_id)
+    tournaments_crud.update_tournament_state(States.PAUSED, tournament_id, db)
+
+
+def kick_player_from_tournament(team_name: str, stage_id: int, db: Session):
+    """EMPTY FUNC"""
+    pass
+
+
+def upload_stats(stage_id: int, stats: List[stats_schemas.MatchStatsCreate], db: Session):
+    stage = get_stage_by_id(stage_id, db)
+    teams = set(stage.teams)
+    for stat in stats:
+        if stat.team_name not in teams:
+            raise StatsOfNotParticipatedTeam()
+    create_match_stats_list(stats, stage_id, db)
+
+
+def save_tournament_stats(stats: Dict[str, Tuple[int, int]], tournament_id: int, db: Session, commit=True):
+    db_stats_list = get_tournament_stats(tournament_id, db)
+    for db_stats in db_stats_list:
+        team_name = db_stats.user.team_name
+        if team_name in stats:
+            db_stats.score += stats[team_name][0]
+            db_stats.kills_count += stats[team_name][1]
+        else:
+            print(f"[NOT ERROR, BUT INFO] team {team_name} exists in tournament list, but not found in stage stats")
+        db.add(db_stats)
+    if commit:
+        db.commit()
 
 
 # ---------------------- BATTLEROYALE ONLY -----------------------
-def get_winners(stats_list: List[MatchStats]) -> List[str]:
-    """BATTLEROYALE GAMES ONLY!"""
+def start_battleroyale_tournament(tournament_id: int):
+    db = SessionLocal()
+    tournaments_crud.update_tournament_state(States.IS_ON, tournament_id, db)
+    tournament = tournaments_crud.get_tournament(tournament_id, db)
+    create_empty_tournament_stats(tournament, db)
+    db.close()
+
+
+def end_battleroyale_tournament(tournament_id: int, last_stage: Stage, db: Session):
+    # TODO: ЧТО С КОЛ-ВОМ ПОБЕД???
+    tournaments_crud.update_tournament_state(States.FINISHED, tournament_id, db)
+    _, summary_score = match_players_stats(last_stage.matches, False)
+    save_tournament_stats(summary_score, tournament_id, db, False)
+    db.commit()
+    tournament_stats_list = get_tournament_stats(tournament_id, db)
+    for stats in tournament_stats_list:
+        gl_stat_crate = GlobalStatsEdit(score=stats.score, kills_count=stats.kills_count)
+        edit_global_stats(gl_stat_crate, stats.user_id, db, False)
+    db.commit()
+
+
+def create_empty_tournament_stats(tournament, db):
+    for user in tournament.users:
+        stats = TournamentStats(
+            game=tournament.game,
+            kills_count=0,
+            score=0,
+            user_id=user.id,
+            tournament_id=tournament.id
+        )
+        db.add(stats)
+    db.commit()
+
+
+def match_players_stats(stats_list: List[MatchStats], winners_list=True) -> Tuple[Optional[List[str]],
+                                                                                  Dict[str, Tuple[int, int]]]:
+    """
+    BATTLEROYALE GAMES ONLY!\n
+    return list of players past in next stage and full list of user stats
+    """
     summary_score = {}
     for stats in stats_list:
         if stats.user_id in summary_score:
-            summary_score[stats.user.team_name] += stats.score
+            summary_score[stats.user.team_name][0] += stats.score
+            summary_score[stats.user.team_name][1] += stats.kills_count
         else:
-            summary_score[stats.user.team_name] = stats.score
-    winners_raw = sorted(summary_score.items(), key=lambda x: x[1], reverse=True)[0:len(summary_score)//2+1]
-    return list(map(lambda x: x[0], winners_raw))
+            summary_score[stats.user.team_name] = (stats.score, stats.kills_count)
+    if winners_list:
+        winners_raw = sorted(summary_score.items(), key=lambda x: x[1][0], reverse=True)[0:len(summary_score)//2+1]
+        return list(map(lambda x: x[0], winners_raw)), summary_score
+    return None, summary_score
 
 
-def fill_next_stage_battleroyale(tournament_id: int):
+def fill_next_stage_battleroyale(tournament_id: int, db: Session = None):
     """BATTLEROYALE GAMES ONLY!"""
-    db = SessionLocal()
-    stage, previous_stage = find_active_stage(tournament_id, db)
+    if db is None:
+        db = SessionLocal()
+    stage, previous_stage, _ = find_active_stage(tournament_id, db)
+    if stage is None:
+        raise TournamentAlreadyFinished(tournament_id)
     if len(stage.matches) > 0:
         raise StageMustBeEmpty(stage.id)
     if previous_stage in None:
@@ -117,17 +194,33 @@ def fill_next_stage_battleroyale(tournament_id: int):
         for user in tournament.users:
             stage.teams.append(user.team_name)
     else:
-        stage.teams = get_winners(previous_stage.matches)
+        stage.teams, summary_score = match_players_stats(previous_stage.matches)
+        save_tournament_stats(summary_score, tournament_id, db, False)
         previous_stage.finished = True
+
     db.add(stage)
     db.add(previous_stage)
     db.commit()
     db.close()
 
 
+def end_active_stage_battleroyale(tournament_id: int, db: Session):
+    """BATTLEROYALE GAMES ONLY!"""
+    stage, _, last = find_active_stage(tournament_id, db)
+    if stage is None:
+        raise TournamentAlreadyFinished(tournament_id)
+    stage.finished = True
+    if last:
+        end_battleroyale_tournament(tournament_id, stage, db)
+        return
+
+    db.add(stage)
+    db.commit()
+    fill_next_stage_battleroyale(tournament_id, db)
+
+
 # ---------------------- TVT ONLY -----------------------
-def start_next_stage(tournament_id):
+def start_next_stage_tvt(tournament_id):
     """TVT GAMES ONLY!"""
     db = SessionLocal()
     tournament = tournaments_crud.get_tournament(tournament_id, db)
-    pass

@@ -42,6 +42,12 @@ def create_match_stats(stats: stats_schemas.MatchStatsCreate, stage_id: int, db:
         db.commit()
 
 
+def create_match_stats_list(stats_list: List[stats_schemas.MatchStatsCreate], stage_id: int, db: Session):
+    for stats in stats_list:
+        create_match_stats(stats, stage_id, db, False)
+    db.commit()
+
+
 def edit_match_stats(stats: stats_schemas.MatchStatsEdit, stats_id: int, db: Session):
     db_stats = db.query(MatchStats).filter(MatchStats.id == stats_id).first()
     if db_stats is None:
@@ -152,16 +158,16 @@ def create_global_stats(stats: stats_schemas.GlobalStatsCreate, db: Session):
     db.commit()
 
 
-def edit_global_stats(stats: stats_schemas.GlobalStatsEdit, user_id: int, db: Session, commit=True):
+def edit_global_stats(added_stats: stats_schemas.GlobalStatsEdit, user_id: int, db: Session, commit=True):
     db_stats = db.query(GlobalStats).filter(GlobalStats.user_id == user_id).first()
     if db_stats is None:
         raise ItemNotFound()
-    if stats.score is not None:
-        db_stats.score = stats.score
-    if stats.kills_count is not None:
-        db_stats.kills_count = stats.kills_count
-    if stats.wins_count is not None:
-        db_stats.wins_count = stats.wins_count
+    if added_stats.score is not None:
+        db_stats.score += added_stats.score
+    if added_stats.kills_count is not None:
+        db_stats.kills_count += added_stats.kills_count
+    if added_stats.wins_count is not None:
+        db_stats.wins_count += added_stats.wins_count
     db.add(db_stats)
     if commit:
         db.commit()

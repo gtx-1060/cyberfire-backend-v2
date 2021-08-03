@@ -3,8 +3,11 @@ from sqlalchemy.orm import Session
 from typing import List
 from datetime import datetime
 
+from .user import get_user_by_email
 from ..config import DEFAULT_IMAGE_PATH
 from ..exceptions.db_exceptions import FieldCouldntBeEdited
+from ..exceptions.tournament_exceptions import MaxSquadsCount, UserAlreadyRegistered, UserNotRegistered, \
+    WrongTournamentState
 from ..models.games import Games
 from ..models.tournament import Tournament
 from ..exceptions.base import ItemNotFound
@@ -94,4 +97,26 @@ def update_tournament_state(new_state: States, tournament_id: int, db: Session):
     })
     db.commit()
 
-# TODO: РЕГИСТРАЦИЯ В ТУРИНРЕ
+
+def add_user_to_tournament(tournament_id: int, user_email: str, db: Session):
+    user = get_user_by_email(user_email, db)
+    tournament = get_tournament(tournament_id, db)
+    if tournament.state != States.REGISTRATION:
+        raise WrongTournamentState()
+    if user in tournament.users:
+        raise UserAlreadyRegistered(user_email)
+    if tournament.max_squads < len(tournament.users):
+        tournament.users.append(user)
+    else:
+        raise MaxSquadsCount()
+
+
+def remove_tournament_player(tournament_id: int, user_email: str, db: Session):
+    user = get_user_by_email(user_email, db)
+    tournament = get_tournament(tournament_id, db)
+    if tournament.state != States.REGISTRATION:
+        raise WrongTournamentState()
+    if user in tournament.users:
+        tournament.users.remove(user)
+    else:
+        raise UserNotRegistered(user_email)

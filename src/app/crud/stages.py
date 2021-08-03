@@ -41,7 +41,6 @@ def edit_stage(stage: StageEdit, stage_id: int, db: Session):
     db_stage = get_stage_by_id(stage_id, db)
     if stage.stage_datetime is not None:
         db_stage.stage_datetime = stage.stage_datetime
-        date_edit = True
     if stage.title is not None:
         db_stage.title = stage.title
     if stage.description is not None:
@@ -55,3 +54,9 @@ def edit_stage(stage: StageEdit, stage_id: int, db: Session):
     db.add(db_stage)
     db.commit()
 
+
+def remove_team_from_stage(stage_id: int, team_name: str, db: Session):
+    db_stage = get_stage_by_id(stage_id, db)
+    if team_name in db_stage.teams:
+        db_stage.teams.remove(team_name)
+    db.commit()
