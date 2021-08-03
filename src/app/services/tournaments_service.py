@@ -137,8 +137,13 @@ def save_tournament_stats(stats: Dict[str, Tuple[int, int, int]], tournament_id:
 # ---------------------- BATTLEROYALE ONLY -----------------------
 def start_battleroyale_tournament(tournament_id: int):
     db = SessionLocal()
-    tournaments_crud.update_tournament_state(States.IS_ON, tournament_id, db)
     tournament = tournaments_crud.get_tournament(tournament_id, db)
+    if len(tournament.users) < tournament.max_squads:
+        tournaments_crud.update_tournament_state(States.PAUSED, tournament_id, db)
+        print("the number of registered players is less than required, the tournament is paused")
+        db.close()
+        return
+    tournaments_crud.update_tournament_state(States.IS_ON, tournament_id, db)
     create_empty_tournament_stats(tournament, db)
     db.close()
 
@@ -179,9 +184,9 @@ def match_players_stats(stats_list: List[MatchStats], winners_list=True) -> Tupl
         if stats.user_id in summary_score:
             summary_score[stats.user.team_name][0] += stats.score
             summary_score[stats.user.team_name][1] += stats.kills_count
-            summary_score[stats.user.team_name][2] += stats.winner
+            summary_score[stats.user.team_name][2] += stats.placement == 1
         else:
-            summary_score[stats.user.team_name] = (stats.score, stats.kills_count, int(stats.winner))
+            summary_score[stats.user.team_name] = (stats.score, stats.kills_count, int(stats.placement == 1))
     if winners_list:
         winners_raw = sorted(summary_score.items(), key=lambda x: x[1][0], reverse=True)[0:len(summary_score)//2+1]
         return list(map(lambda x: x[0], winners_raw)), summary_score

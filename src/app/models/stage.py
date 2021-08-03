@@ -19,5 +19,5 @@ class Stage(Base):
     tournament_id = Column(Integer, ForeignKey('tournaments.id'))
     tournament = relationship("Tournament", back_populates="stages")
     matches_count = Column(SmallInteger, default=-1)
-    matches = relationship("MatchStats")
+    matches = relationship("MatchStats", cascade="all,delete")
     stage_datetime = Column(TIMESTAMP)

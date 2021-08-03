@@ -44,9 +44,9 @@ class TournamentPreview(BaseModel):
 
 
 class Tournament(TournamentPreview):
-    stream_url: Optional[str]
-    max_squads: Optional[int]
-    rewards: Optional[str]
+    stream_url: str
+    max_squads: int
+    rewards: List[str]
     stages: List[StagePreview]
 
     class Config:

@@ -35,7 +35,7 @@ class MatchStats(StatsMixin, Base):
     stage_id = Column(Integer, ForeignKey('stages.id'))
     rival_id = Column(Integer)
     attended = Column(Boolean, default=True)
-    winner = Column(Boolean, default=False)
+    placement = Column(SmallInteger, default=999)
     index = Column(SmallInteger)
 
 

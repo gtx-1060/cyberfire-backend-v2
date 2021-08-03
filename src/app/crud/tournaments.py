@@ -82,6 +82,11 @@ def edit_tournament(tournament: TournamentEdit, tournament_id: int, db: Session)
     db.commit()
 
 
+def remove_tournament(tournament_id: int, db: Session):
+    db.query(Tournament).filter(Tournament.id == tournament_id).delete()
+    db.commit()
+
+
 def count_users_in_tournament(tournament_id: int, db: Session):
     return db.query(User).join(Tournament).filter(User.tournament.id == tournament_id).count()
 
@@ -105,7 +110,7 @@ def add_user_to_tournament(tournament_id: int, user_email: str, db: Session):
         raise WrongTournamentState()
     if user in tournament.users:
         raise UserAlreadyRegistered(user_email)
-    if tournament.max_squads < len(tournament.users):
+    if len(tournament.users) < tournament.max_squads:
         tournament.users.append(user)
     else:
         raise MaxSquadsCount()

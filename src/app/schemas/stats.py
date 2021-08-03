@@ -18,7 +18,7 @@ class MatchStatsCreate(BaseModel):
     team_name: str
     index: int
     map: str
-    winner: bool
+    placement: int
     game: Games
     rival_id: int
 
@@ -30,7 +30,7 @@ class MatchStatsEdit(BaseModel):
     attended: Optional[bool]
     index: Optional[int]
     rival_id: Optional[int]
-    winner: Optional[bool]
+    placement: Optional[int]
 
 
 class MatchStats(BaseModel):

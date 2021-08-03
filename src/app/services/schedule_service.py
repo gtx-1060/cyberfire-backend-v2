@@ -33,9 +33,10 @@ class __MyScheduler:
     def stop(self):
         self.__scheduler.shutdown()
 
-    def plan_task(self, task_id: str, date: datetime, task_func, f_args: list):
+    def plan_task(self, task_id: str, date: datetime, task_func, f_args: list, misfire_times=3600):
         try:
-            self.__scheduler.add_job(id=task_id, trigger='date', func=task_func, run_date=date, args=f_args)
+            self.__scheduler.add_job(id=task_id, trigger='date', func=task_func, run_date=date, args=f_args,
+                                     misfire_grace_time=misfire_times)
         except Exception as e:
             print(e)
             raise CannotScheduleTask(task_id, e)

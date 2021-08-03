@@ -11,7 +11,7 @@ from ..exceptions.base import ItemNotFound
 
 
 def get_match_stats(stage_id: int, db: Session) -> List[MatchStats]:
-    matches = db.query(MatchStats).filter(MatchStats.stage_id == stage_id).order_by(MatchStats.score.desc()).all()
+    matches = db.query(MatchStats).filter(MatchStats.stage_id == stage_id).order_by(MatchStats.placement).all()
     if matches is None:
         return []
     return matches
@@ -36,7 +36,7 @@ def create_match_stats(stats: stats_schemas.MatchStatsCreate, stage_id: int, db:
         stage_id=stage_id,
         index=stats.index,
         rival_id=stats.rival_id,
-        winner=stats.winner
+        placement=stats.placement
     )
     db.add(db_stats)
     if commit:
@@ -65,16 +65,10 @@ def edit_match_stats(stats: stats_schemas.MatchStatsEdit, stats_id: int, db: Ses
         db_stats.rival_id = stats.rival_id
     if stats.attended is not None:
         db_stats.attended = stats.attended
-    if stats.winner is not None:
-        db_stats.winner = stats.winner
+    if stats.placement is not None:
+        db_stats.placement = stats.placement
     db.add(db_stats)
     db.commit()
-
-
-# def delete_unassigned_match_stats(stage_id: int, db: Session, commit=True):
-#     db.query(MatchStats).filter(and_(MatchStats.stage_id == stage_id, MatchStats.a)).delete()
-#     if commit:
-#         db.commit()
 
 
 def delete_match_stats(stats_id: int, db: Session):

@@ -48,6 +48,11 @@ def create_tournament(tournament: TournamentCreate, db: Session = Depends(get_db
     return tournaments_service.create_tournament(tournament, db)
 
 
+@router.delete("/")
+def delete_tournament(tournament_id: int, db: Session = Depends(get_db), _=Depends(auth_admin)):
+    tournaments_crud.remove_tournament(tournament_id, db)
+
+
 @router.get("/register", response_model=dict)
 def create_tournament(tournament_id: int, db: Session = Depends(get_db), user_data: TokenData = Depends(auth_user)):
     tournaments_service.register_in_tournament(user_data.email, tournament_id, db)
