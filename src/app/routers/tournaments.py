@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from src.app.crud import tournaments as tournaments_crud
 from src.app.exceptions.tournament_exceptions import NotAllowedForTVT
 from src.app.models.games import Games
+from src.app.models.tournament_states import States
 from src.app.schemas.token_data import TokenData
 from src.app.schemas.tournaments import TournamentCreate, TournamentPreview, Tournament
 from src.app.services.auth import auth_admin, try_auth_user, auth_user
@@ -61,3 +62,8 @@ def create_tournament(tournament_id: int, db: Session = Depends(get_db), user_da
 @router.get("/unregister", response_model=dict)
 def create_tournament(tournament_id: int, db: Session = Depends(get_db), user_data: TokenData = Depends(auth_user)):
     tournaments_service.kick_player_from_tournament(user_data.email, tournament_id, db)
+
+
+@router.get("/pause")
+def pause_tournament(tournament_id: int, db: Session = Depends(get_db), _=Depends(auth_admin)):
+    tournaments_crud.update_tournament_state(States.PAUSED, tournament_id, db)
