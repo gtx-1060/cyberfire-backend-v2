@@ -1,6 +1,6 @@
 from sqlalchemy import exists, and_
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 from datetime import datetime
 
 from .user import get_user_by_email
@@ -20,12 +20,13 @@ def is_tournament_exists(tournament_id: int, db: Session) -> bool:
     return db.query(exists().where(Tournament.id == tournament_id)).scalar()
 
 
-def get_tournaments(game: Games, db: Session) -> List[Tournament]:
+def get_tournaments(game: Optional[Games], offset: int, limit: int, db: Session) -> List[Tournament]:
     tournaments = None
     if game is None:
-        tournaments = db.query(Tournament).order_by(Tournament.start_date.desc()).all()
+        tournaments = db.query(Tournament).order_by(Tournament.start_date.desc()).offset(offset).limit(limit).all()
     else:
-        tournaments = db.query(Tournament).filter(Tournament.game == game).order_by(Tournament.start_date.desc()).all()
+        tournaments = db.query(Tournament).filter(Tournament.game == game).order_by(Tournament.start_date.desc())\
+            .offset(offset).limit(limit).all()
     if tournaments is None:
         return []
     return tournaments
