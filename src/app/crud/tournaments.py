@@ -57,6 +57,7 @@ def create_tournament(tournament: TournamentCreate, db: Session) -> Tournament:
         start_date=tournament.start_date,
         end_date=tournament.end_date
     )
+
     db.add(db_tournament)
     db.commit()
     db.refresh(db_tournament)

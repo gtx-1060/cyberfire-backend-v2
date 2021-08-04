@@ -6,7 +6,7 @@ import pytz
 from sqlalchemy.orm import Session
 
 from src.app.crud import tournaments as tournaments_crud
-from src.app.crud.stages import get_stages, get_stage_by_id
+from src.app.crud.stages import get_stages, get_stage_by_id, create_stages
 from src.app.crud.stats import create_match_stats_list, create_tournament_stats, get_tournament_stats, edit_global_stats
 from src.app.crud.user import user_id_by_team
 from src.app.database.db import SessionLocal
@@ -66,18 +66,19 @@ def update_db_tournament_date(stage_id: int, db: Session):
     db.commit()
 
 
-def create_tournament(tournament: TournamentCreate, db: Session) -> dict:
-    tournament = set_tournament_dates(tournament.stages, tournament)
+def create_tournament(tournament_create: TournamentCreate, db: Session) -> dict:
+    tournament_create = set_tournament_dates(tournament_create.stages, tournament_create)
     now_moscow = datetime.now(pytz.timezone('Europe/Moscow'))
-    if tournament.start_date < now_moscow or tournament.end_date < tournament.start_date:
+    if tournament_create.start_date < now_moscow or tournament_create.end_date < tournament_create.start_date:
         raise WrongTournamentDates()
-    tournament = tournaments_crud.create_tournament(tournament, db)
-    if not is_tournament_tvt(tournament):
-        myscheduler.plan_task(get_tournament_task_id(TournamentEvents.START_TOURNAMENT, tournament.id),
-                              tournament.start_date, start_battleroyale_tournament, [tournament.id])
-        myscheduler.plan_task(get_tournament_task_id(TournamentEvents.START_STAGE, tournament.id),
-                              tournament.start_date+timedelta(seconds=10), fill_next_stage_battleroyale, [tournament.id])
-    return {"tournament_id": tournament.id}
+    db_tournament = tournaments_crud.create_tournament(tournament_create, db)
+    create_stages(tournament_create.stages, db_tournament.id, db)
+    if not is_tournament_tvt(db_tournament):
+        myscheduler.plan_task(get_tournament_task_id(TournamentEvents.START_TOURNAMENT, db_tournament.id),
+                              db_tournament.start_date, start_battleroyale_tournament, [db_tournament.id])
+        myscheduler.plan_task(get_tournament_task_id(TournamentEvents.START_STAGE, db_tournament.id),
+                              db_tournament.start_date+timedelta(seconds=10), fill_next_stage_battleroyale, [db_tournament.id])
+    return {"tournament_id": db_tournament.id}
 
 
 def find_active_stage(tournament_id: int, db: Session) -> Tuple[Optional[Stage], Optional[Stage], bool]:
