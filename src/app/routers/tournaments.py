@@ -1,17 +1,19 @@
 from typing import List, Optional
 
-from fastapi import APIRouter
-from fastapi.params import Depends
+from fastapi import APIRouter, UploadFile
+from fastapi.params import Depends, File
 from sqlalchemy.orm import Session
+from starlette.responses import Response
 
+from src.app.config import OTHER_STATIC_PATH
 from src.app.crud import tournaments as tournaments_crud
 from src.app.exceptions.tournament_exceptions import NotAllowedForTVT
 from src.app.models.games import Games
 from src.app.models.tournament_states import States
 from src.app.schemas.token_data import TokenData
-from src.app.schemas.tournaments import TournamentCreate, TournamentPreview, Tournament
+from src.app.schemas.tournaments import TournamentCreate, TournamentPreview, Tournament, TournamentEdit
 from src.app.services.auth import auth_admin, try_auth_user, auth_user
-from src.app.utils import get_db
+from src.app.utils import get_db, save_image, delete_image_by_web_path
 from src.app.services import tournaments_service
 
 router = APIRouter(
@@ -67,3 +69,15 @@ def create_tournament(tournament_id: int, db: Session = Depends(get_db), user_da
 @router.get("/pause")
 def pause_tournament(tournament_id: int, db: Session = Depends(get_db), _=Depends(auth_admin)):
     tournaments_crud.update_tournament_state(States.PAUSED, tournament_id, db)
+
+
+@router.post('/upload_image')
+def upload_news_image(tournament_id: int, image: UploadFile = File(...), data=Depends(auth_admin),
+                      db: Session = Depends(get_db)):
+    old_web_path = tournaments_crud.get_tournament(tournament_id, db).img_path
+    web_path = save_image(OTHER_STATIC_PATH, image.file.read())
+    tournaments_edit = TournamentEdit(img_path=web_path)
+    tournaments_crud.edit_tournament(tournaments_edit, tournament_id, db)
+    if old_web_path != '':
+        delete_image_by_web_path(old_web_path)
+    return Response(status_code=202)
