@@ -90,12 +90,12 @@ def remove_tournament(tournament_id: int, db: Session):
 
 
 def count_users_in_tournament(tournament_id: int, db: Session):
-    return db.query(User).join(Tournament).filter(User.tournament.id == tournament_id).count()
+    return db.query(User).join(Tournament, User.tournaments).filter(Tournament.id == tournament_id).count()
 
 
 def is_users_in_tournament(tournament_id: int, user_email: str, db: Session) -> bool:
     return (db.query(Tournament).join(User, Tournament.users)
-            .filter(and_(Tournament.id == tournament_id, User.email == user_email)).first() is not None)
+            .filter(and_(Tournament.id == tournament_id, User.email == user_email)).first()) is not None
 
 
 def update_tournament_state(new_state: States, tournament_id: int, db: Session):
@@ -116,6 +116,8 @@ def add_user_to_tournament(tournament_id: int, user_email: str, db: Session):
         tournament.users.append(user)
     else:
         raise MaxSquadsCount()
+    db.add(tournament)
+    db.commit()
 
 
 def remove_tournament_player(tournament_id: int, user_email: str, db: Session):
@@ -127,3 +129,5 @@ def remove_tournament_player(tournament_id: int, user_email: str, db: Session):
         tournament.users.remove(user)
     else:
         raise UserNotRegistered(user_email)
+    db.add(tournament)
+    db.commit()

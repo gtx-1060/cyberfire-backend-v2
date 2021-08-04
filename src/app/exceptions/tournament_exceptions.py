@@ -44,3 +44,8 @@ class WrongTournamentState(MyException):
 class WrongTournamentDates(MyException):
     def __init__(self):
         super().__init__(400, "date of tournament calculated from stage dates are wrong")
+
+
+class NotEnoughPlayersInSquad(MyException):
+    def __init__(self):
+        super().__init__(400, "not enough players in user's squad")

@@ -44,7 +44,7 @@ class Stage(StageCreate):
 class StagePreview(BaseModel):
     id: int
     title: str
-    time: datetime
+    stage_datetime: datetime
 
     class Config:
         orm_mode = True

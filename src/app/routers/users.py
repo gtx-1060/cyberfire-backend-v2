@@ -30,7 +30,7 @@ def authorize_user(form: OAuth2PasswordRequestForm = Depends(), db: Session = De
 
 
 @router.get("/me", response_model=User)
-def get_user_status(data: TokenData = Depends(auth_user), db: Session = Depends(get_db)):
+async def get_user_status(data: TokenData = Depends(auth_user), db: Session = Depends(get_db)):
     return get_user_by_email(data.email, db)
 
 

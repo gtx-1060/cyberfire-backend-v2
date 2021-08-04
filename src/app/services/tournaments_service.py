@@ -1,23 +1,23 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from enum import Enum
+from functools import reduce
 from typing import List, Tuple, Optional, Dict
-
 import pytz
 from sqlalchemy.orm import Session
 
 from src.app.crud import tournaments as tournaments_crud
 from src.app.crud.stages import get_stages, get_stage_by_id, create_stages
-from src.app.crud.stats import create_match_stats_list, create_tournament_stats, get_tournament_stats, edit_global_stats
-from src.app.crud.user import user_id_by_team
+from src.app.crud.stats import create_match_stats_list, get_tournament_stats, edit_global_stats
+from src.app.crud.user import get_user_squad
 from src.app.database.db import SessionLocal
 from src.app.exceptions.tournament_exceptions import StageMustBeEmpty, TournamentAlreadyFinished, \
-    StatsOfNotParticipatedTeam, WrongTournamentDates
-from src.app.models.games import Games
+    StatsOfNotParticipatedTeam, WrongTournamentDates, NotEnoughPlayersInSquad
+from src.app.models.games import Games, game_squad_sizes
 from src.app.models.stage import Stage
 from src.app.models.stats import MatchStats, TournamentStats
 from src.app.models.tournament import Tournament
 from src.app.models.tournament_states import States
-from src.app.schemas.stats import TournamentStatsCreate, GlobalStatsEdit
+from src.app.schemas.stats import GlobalStatsEdit
 from src.app.schemas.tournaments import TournamentCreate
 from src.app.schemas import stats as stats_schemas
 
@@ -108,6 +108,11 @@ def kick_player_from_tournament(user_email: str, tournament_id: int, db: Session
 
 
 def register_in_tournament(user_email: str, tournament_id: int, db: Session):
+    tournaments = tournaments_crud.get_tournament(tournament_id, db)
+    squad = get_user_squad(user_email, tournaments.game, db)
+    players_count = reduce(lambda a, x: a + (x != ''), squad.players, 0)
+    if players_count < game_squad_sizes[tournaments.game.value]:
+        raise NotEnoughPlayersInSquad()
     tournaments_crud.add_user_to_tournament(tournament_id, user_email, db)
 
 

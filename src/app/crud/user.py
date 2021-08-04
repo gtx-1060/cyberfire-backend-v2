@@ -84,9 +84,8 @@ def edit_user(user: user_schemas.UserEdit, email: str, db: Session):
             if squad is None:
                 # TODO: LOG SOMETHING
                 continue
-            db_squad = db.query(Squad).filter(and_(Squad.user_id == db_user.id,
-                                                   Squad.game == squad.game))
-            db_squad.players = squad.players
+            db_squad = db.query(Squad).filter(and_(Squad.user_id == db_user.id, Squad.game == squad.game)).first()
+            db_squad.players = squad.players.copy()
             db.add(db_squad)
     db.add(db_user)
     db.commit()
@@ -97,3 +96,7 @@ def update_refresh_token(email: str, new_token: str, db: Session):
     db_user.refresh_token = new_token
     db.add(db_user)
     db.commit()
+
+
+def get_user_squad(user_email: str, game: Games, db) -> Squad:
+    return db.query(Squad).join(User).filter(and_(User.email == user_email, Squad.game == game)).first()

@@ -7,6 +7,13 @@ from src.app.models.tournament_states import States
 from src.app.schemas.stage import StageCreate, StagePreview
 
 
+class UserData(BaseModel):
+    team_name: str
+
+    class Config:
+        orm_mode = True
+
+
 class TournamentCreate(BaseModel):
     title: str
     description: str
@@ -24,7 +31,7 @@ class TournamentEdit(BaseModel):
     description: Optional[str]
     stream_url: Optional[str]
     max_squads: Optional[int]
-    rewards: Optional[str]
+    rewards: Optional[List[str]]
 
 
 class TournamentPreview(BaseModel):
@@ -46,6 +53,7 @@ class TournamentPreview(BaseModel):
 class Tournament(TournamentPreview):
     stream_url: str
     max_squads: int
+    users: List[UserData]
     rewards: List[str]
     stages: List[StagePreview]
 

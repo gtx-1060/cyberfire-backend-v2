@@ -28,7 +28,7 @@ def create_stages(stages: List[StageCreate], tournament_id: int, db: Session):
     for stage in stages:
         db_stage = Stage(
             title=stage.title,
-            descriprion=stage.description,
+            description=stage.description,
             tournament_id=tournament_id,
             matches_count=stage.matches_count,
             stage_datetime=stage.stage_datetime

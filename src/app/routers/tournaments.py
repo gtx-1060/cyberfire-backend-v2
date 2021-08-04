@@ -42,7 +42,7 @@ def get_tournament(tournament_id: int, db: Session = Depends(get_db), auth: Toke
 
 
 @router.get("/count", response_model=int)
-def get_tournament(db: Session = Depends(get_db)):
+def get_tournaments_count(db: Session = Depends(get_db)):
     return tournaments_crud.get_tournaments_count(db)
 
 
@@ -54,25 +54,29 @@ def create_tournament(tournament: TournamentCreate, db: Session = Depends(get_db
 @router.delete("/")
 def delete_tournament(tournament_id: int, db: Session = Depends(get_db), _=Depends(auth_admin)):
     tournaments_crud.remove_tournament(tournament_id, db)
+    return Response(status_code=200)
 
 
 @router.get("/register", response_model=dict)
-def create_tournament(tournament_id: int, db: Session = Depends(get_db), user_data: TokenData = Depends(auth_user)):
+def register_in__tournament(tournament_id: int, db: Session = Depends(get_db), user_data: TokenData = Depends(auth_user)):
     tournaments_service.register_in_tournament(user_data.email, tournament_id, db)
+    return Response(status_code=200)
 
 
 @router.get("/unregister", response_model=dict)
-def create_tournament(tournament_id: int, db: Session = Depends(get_db), user_data: TokenData = Depends(auth_user)):
+def unregister_in_tournament(tournament_id: int, db: Session = Depends(get_db), user_data: TokenData = Depends(auth_user)):
     tournaments_service.kick_player_from_tournament(user_data.email, tournament_id, db)
+    return Response(status_code=200)
 
 
 @router.get("/pause")
 def pause_tournament(tournament_id: int, db: Session = Depends(get_db), _=Depends(auth_admin)):
     tournaments_crud.update_tournament_state(States.PAUSED, tournament_id, db)
+    return Response(status_code=200)
 
 
 @router.post('/upload_image')
-def upload_news_image(tournament_id: int, image: UploadFile = File(...), data=Depends(auth_admin),
+def upload_news_image(tournament_id: int, image: UploadFile = File(...), _=Depends(auth_admin),
                       db: Session = Depends(get_db)):
     old_web_path = tournaments_crud.get_tournament(tournament_id, db).img_path
     web_path = save_image(OTHER_STATIC_PATH, image.file.read())
@@ -81,3 +85,10 @@ def upload_news_image(tournament_id: int, image: UploadFile = File(...), data=De
     if old_web_path != '':
         delete_image_by_web_path(old_web_path)
     return Response(status_code=202)
+
+
+@router.put('/')
+def edit_tournament(tournament: TournamentEdit, tournament_id: int, _=Depends(auth_admin),
+                    db: Session = Depends(get_db)):
+    tournaments_crud.edit_tournament(tournament, tournament_id, db)
+    return Response(status_code=200)
