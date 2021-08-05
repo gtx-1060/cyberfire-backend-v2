@@ -36,6 +36,7 @@ class MatchStatsEdit(BaseModel):
 class MatchStats(BaseModel):
     id: int
     score: int
+    kills_count: int
     user_data: UserData = Field(..., alias='user')
     index: int
     squad_id: int
