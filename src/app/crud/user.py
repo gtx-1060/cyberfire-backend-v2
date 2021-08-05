@@ -91,6 +91,13 @@ def edit_user(user: user_schemas.UserEdit, email: str, db: Session):
     db.commit()
 
 
+def update_user_password(user_email: str, new_password_hash: str, db: Session):
+    db.query(User).filter(User.email == user_email).update({
+        User.hashed_password: new_password_hash
+    })
+    db.commit()
+
+
 def update_refresh_token(email: str, new_token: str, db: Session):
     db_user = get_user_by_email(email, db)
     db_user.refresh_token = new_token

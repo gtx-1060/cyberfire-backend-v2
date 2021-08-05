@@ -8,7 +8,7 @@ from src.app.config import AVATARS_STATIC_PATH
 from src.app.crud.user import get_user_by_email, edit_user
 from src.app.schemas.token_data import Tokens, TokenData
 from src.app.schemas.user import UserCreate, User, UserEdit
-from src.app.services.auth import auth_user, register, log_in, authorize_using_refresh
+from src.app.services.auth import auth_user, register, log_in, authorize_using_refresh, change_user_password
 from src.app.utils import get_db, save_image, delete_image_by_web_path
 
 router = APIRouter(
@@ -43,6 +43,12 @@ def update_user(user_edit: UserEdit, data: TokenData = Depends(auth_user), db: S
 @router.get("/refresh", response_model=Tokens)
 def refresh_tokens(refresh_token: str, db: Session = Depends(get_db)):
     return authorize_using_refresh(refresh_token, db)
+
+
+@router.get("/change_password")
+def change_password(old_password: str, new_password: str, user_data=Depends(auth_user), db: Session = Depends(get_db)):
+    change_user_password(old_password, new_password, user_data.email, db)
+    return Response(status_code=200)
 
 
 @router.post("/upload_avatar")

@@ -7,7 +7,7 @@ from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
 from ..crud.stats import create_empty_global_stats
-from ..crud.user import get_user_by_email, update_refresh_token, create_user
+from ..crud.user import get_user_by_email, update_refresh_token, create_user, update_user_password
 from ..schemas.user import User, UserCreate
 from ..models.roles import Roles
 from ..config import SECRET_KEY, ALGORITHM, REFRESH_TOKEN_EXPIRE_DAYS
@@ -94,6 +94,13 @@ def log_in(security_form: OAuth2PasswordRequestForm, db: Session) -> Tokens:
 def register(user: UserCreate, db: Session):
     create_user(user, db)
     create_empty_global_stats(user.email, db)
+
+
+def change_user_password(old_password: str, new_password: str, email: str, db: Session):
+    user = get_user_by_email(email, db)
+    if not verify_password(user.hashed_password, old_password):
+        WrongCredentialsException()
+    update_user_password(email, new_password, db)
 
 
 def authorize_using_refresh(refresh_token: str, db: Session) -> Tokens:
