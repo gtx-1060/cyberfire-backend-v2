@@ -17,13 +17,13 @@ router = APIRouter(
 )
 
 
-@router.post('/')
+@router.post('')
 def create_news(news: NewsCreate, data=Depends(auth_admin), db: Session = Depends(get_db)):
     news_crud.create_news(news, db)
     return Response(status_code=202)
 
 
-@router.put('/')
+@router.put('')
 def edit_news(news: NewsEdit, news_id: int, data=Depends(auth_admin), db: Session = Depends(get_db)):
     news_crud.edit_news(news, news_id, db)
     return Response(status_code=202)
@@ -41,7 +41,7 @@ def upload_news_image(news_id: int, image: UploadFile = File(...), data=Depends(
     return Response(status_code=202)
 
 
-@router.get('/', response_model=List[News])
+@router.get('', response_model=List[News])
 def get_news(offset=0, count=20, db: Session = Depends(get_db)):
     return news_crud.get_news(offset, count, db)
 

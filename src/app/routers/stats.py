@@ -28,7 +28,7 @@ def get_tournament_stats(tournament_id: int, db: Session = Depends(get_db)):
     return stats_crud.get_tournament_stats(tournament_id, db)
 
 
-@router.get('/', response_model=List[GlobalStats])
+@router.get('', response_model=List[GlobalStats])
 def get_global_stats(game: Games, offset=0, count=20, db: Session = Depends(get_db)):
     db_stats = stats_crud.get_global_stats(game, offset, count, db)
     stats: GlobalStats = db_stats[0]

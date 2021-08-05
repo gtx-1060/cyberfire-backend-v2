@@ -24,7 +24,7 @@ router = APIRouter(
 )
 
 
-@router.get('/', response_model=List[StagePreview])
+@router.get('', response_model=List[StagePreview])
 def get_stages_previews(tournament_id: int, db: Session = Depends(get_db)):
     return stages_crud.get_stages(tournament_id, db)
 
@@ -41,7 +41,7 @@ def get_stage(stage_id: int, user_data: TokenData = Depends(try_auth_user), db: 
     return stage
 
 
-@router.put('/')
+@router.put('')
 def edit_stage(stage: StageEdit, stage_id: int, db: Session = Depends(get_db), _=Depends(auth_admin)):
     if is_stage_tvt(stage_id, db):
         raise NotAllowedForTVT()

@@ -23,7 +23,7 @@ router = APIRouter(
 )
 
 
-@router.get("/", response_model=List[TournamentPreview])
+@router.get("", response_model=List[TournamentPreview])
 def get_tournaments_previews(game: Optional[Games] = None, db: Session = Depends(get_db), count=20, offset=0,
                              auth: Optional[TokenData] = Depends(try_auth_user)):
     tournaments: List[TournamentPreview] = tournaments_crud.get_tournaments(game, offset, count, db)
@@ -46,12 +46,12 @@ def get_tournaments_count(db: Session = Depends(get_db)):
     return tournaments_crud.get_tournaments_count(db)
 
 
-@router.post("/", response_model=dict)
+@router.post("", response_model=dict)
 def create_tournament(tournament: TournamentCreate, db: Session = Depends(get_db), _=Depends(auth_admin)):
     return tournaments_service.create_tournament(tournament, db)
 
 
-@router.delete("/")
+@router.delete("")
 def delete_tournament(tournament_id: int, db: Session = Depends(get_db), _=Depends(auth_admin)):
     tournaments_crud.remove_tournament(tournament_id, db)
     return Response(status_code=200)
@@ -87,7 +87,7 @@ def upload_news_image(tournament_id: int, image: UploadFile = File(...), _=Depen
     return Response(status_code=202)
 
 
-@router.put('/')
+@router.put('')
 def edit_tournament(tournament: TournamentEdit, tournament_id: int, _=Depends(auth_admin),
                     db: Session = Depends(get_db)):
     tournaments_crud.edit_tournament(tournament, tournament_id, db)
