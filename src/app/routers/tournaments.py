@@ -7,11 +7,13 @@ from starlette.responses import Response
 
 from src.app.config import OTHER_STATIC_PATH
 from src.app.crud import tournaments as tournaments_crud
+from src.app.crud.user import get_user_squad_by_team
 from src.app.exceptions.tournament_exceptions import NotAllowedForTVT
 from src.app.models.games import Games
 from src.app.models.tournament_states import States
 from src.app.schemas.token_data import TokenData
-from src.app.schemas.tournaments import TournamentCreate, TournamentPreview, Tournament, TournamentEdit
+from src.app.schemas.tournaments import TournamentCreate, TournamentPreview, Tournament, TournamentEdit, \
+    TournamentRegistered
 from src.app.services.auth import auth_admin, try_auth_user, auth_user
 from src.app.utils import get_db, save_image, delete_image_by_web_path
 from src.app.services import tournaments_service
@@ -24,20 +26,43 @@ router = APIRouter(
 
 
 @router.get("", response_model=List[TournamentPreview])
-def get_tournaments_previews(game: Optional[Games] = None, db: Session = Depends(get_db), count=20, offset=0,
-                             auth: Optional[TokenData] = Depends(try_auth_user)):
+def get_tournaments_previews(game: Optional[Games] = None, db: Session = Depends(get_db), count=20, offset=0):
     tournaments: List[TournamentPreview] = tournaments_crud.get_tournaments(game, offset, count, db)
-    if auth is not None:
-        for tournament in tournaments:
-            tournament.is_player_registered = tournaments_crud.is_users_in_tournament(tournament.id, auth.email, db)
+    # if auth is not None:
+    #     print(auth.email)
+    #     for tournament in tournaments:
+    #         tournament.is_player_registered = tournaments_crud.is_users_in_tournament(tournament.id, auth.email, db)
     return tournaments
 
 
+@router.get("/registered_list", response_model=List[TournamentRegistered])
+def is_user_tournaments_registered(game: Optional[Games] = None, count=20, offset=0, db: Session = Depends(get_db),
+                                   auth: TokenData = Depends(auth_user)):
+    tournaments = tournaments_crud.get_tournaments(game, offset, count, db)
+    tournaments_registered: List[TournamentRegistered] = []
+    for tournament in tournaments:
+        registered = tournaments_crud.is_users_in_tournament(tournament.id, auth.email, db)
+        tournaments_registered.append(TournamentRegistered(registered=registered, id=tournament.id))
+    return tournaments_registered
+
+
+@router.get("/registered", response_model=dict)
+def is_user_tournament_registered(tournament_id: int, db: Session = Depends(get_db), auth: TokenData = Depends(auth_user)):
+    tournament = tournaments_crud.get_tournament(tournament_id, db)
+    is_registered = tournaments_crud.is_users_in_tournament(tournament.id, auth.email, db)
+    return {'is_registered': is_registered}
+
+
+@router.get("/in_active_stage", response_model=dict)
+def is_user_in_active_stage(tournament_id: int, db: Session = Depends(get_db), auth: TokenData = Depends(auth_user)):
+    return {"is_in_stage": tournaments_service.is_user_in_active_stage(tournament_id, auth.email, db)}
+
+
 @router.get("/by_id", response_model=Tournament)
-def get_tournament(tournament_id: int, db: Session = Depends(get_db), auth: TokenData = Depends(try_auth_user)):
-    tournament: Tournament = tournaments_crud.get_tournament(tournament_id, db)
-    if auth is not None:
-        tournament.is_player_registered = tournaments_crud.is_users_in_tournament(tournament.id, auth.email, db)
+def get_tournament(tournament_id: int, db: Session = Depends(get_db), _=Depends(try_auth_user)):
+    tournament: Tournament = Tournament.from_orm(tournaments_crud.get_tournament(tournament_id, db))
+    for user in tournament.users:
+        user.squad = get_user_squad_by_team(user.team_name, tournament.game, db)
     return tournament
 
 
@@ -58,13 +83,15 @@ def delete_tournament(tournament_id: int, db: Session = Depends(get_db), _=Depen
 
 
 @router.get("/register", response_model=dict)
-def register_in__tournament(tournament_id: int, db: Session = Depends(get_db), user_data: TokenData = Depends(auth_user)):
+def register_in_tournament(tournament_id: int, db: Session = Depends(get_db),
+                           user_data: TokenData = Depends(auth_user)):
     tournaments_service.register_in_tournament(user_data.email, tournament_id, db)
     return Response(status_code=200)
 
 
 @router.get("/unregister", response_model=dict)
-def unregister_in_tournament(tournament_id: int, db: Session = Depends(get_db), user_data: TokenData = Depends(auth_user)):
+def unregister_in_tournament(tournament_id: int, db: Session = Depends(get_db),
+                             user_data: TokenData = Depends(auth_user)):
     tournaments_service.kick_player_from_tournament(user_data.email, tournament_id, db)
     return Response(status_code=200)
 

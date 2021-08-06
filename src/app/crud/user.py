@@ -105,5 +105,9 @@ def update_refresh_token(email: str, new_token: str, db: Session):
     db.commit()
 
 
-def get_user_squad(user_email: str, game: Games, db) -> Squad:
+def get_user_squad_by_email(user_email: str, game: Games, db: Session) -> Squad:
     return db.query(Squad).join(User).filter(and_(User.email == user_email, Squad.game == game)).first()
+
+
+def get_user_squad_by_team(team: str, game: Games, db: Session) -> Squad:
+    return db.query(Squad).join(User).filter(and_(User.team_name == team, Squad.game == game)).first()

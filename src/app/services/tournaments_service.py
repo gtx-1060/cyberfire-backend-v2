@@ -8,10 +8,10 @@ from sqlalchemy.orm import Session
 from src.app.crud import tournaments as tournaments_crud
 from src.app.crud.stages import get_stages, get_stage_by_id, create_stages
 from src.app.crud.stats import create_match_stats_list, get_tournament_stats, edit_global_stats
-from src.app.crud.user import get_user_squad
+from src.app.crud.user import get_user_squad_by_email, get_user_by_email
 from src.app.database.db import SessionLocal
 from src.app.exceptions.tournament_exceptions import StageMustBeEmpty, TournamentAlreadyFinished, \
-    StatsOfNotParticipatedTeam, WrongTournamentDates, NotEnoughPlayersInSquad
+    StatsOfNotParticipatedTeam, WrongTournamentDates, NotEnoughPlayersInSquad, NotAllowedForTVT
 from src.app.models.games import Games, game_squad_sizes
 from src.app.models.stage import Stage
 from src.app.models.stats import MatchStats, TournamentStats
@@ -19,6 +19,7 @@ from src.app.models.tournament import Tournament
 from src.app.models.tournament_states import States
 from src.app.schemas.stats import GlobalStatsEdit
 from src.app.schemas.tournaments import TournamentCreate
+from src.app.schemas import stage as stage_schemas
 from src.app.schemas import stats as stats_schemas
 
 # list of all tvt games
@@ -40,9 +41,13 @@ def is_tournament_tvt(tournament: Tournament) -> bool:
     return tournament.game in tvt_games
 
 
-def is_stage_tvt(stage_id: int, db: Session) -> bool:
+def is_stage_tvt_by_id(stage_id: int, db: Session) -> bool:
     db_stage = get_stage_by_id(stage_id, db)
     return is_tournament_tvt(db_stage.tournament)
+
+
+def is_stage_tvt(stage: Stage) -> bool:
+    return is_tournament_tvt(stage.tournament)
 
 
 def set_tournament_dates(stages, tournament) -> Tournament:
@@ -107,10 +112,22 @@ def kick_player_from_tournament(user_email: str, tournament_id: int, db: Session
     tournaments_crud.remove_tournament_player(tournament_id, user_email, db)
 
 
+def is_user_team_in_stage(stage, email: str, db: Session):
+    user = get_user_by_email(email, db)
+    return user.team_name in stage.teams
+
+
+def is_user_in_active_stage(tournament_id: int, email: str, db: Session):
+    stage, _, _ = find_active_stage(tournament_id, db)
+    if stage is None:
+        return False
+    return is_user_team_in_stage(stage, email, db)
+
+
 def register_in_tournament(user_email: str, tournament_id: int, db: Session):
     tournaments = tournaments_crud.get_tournament(tournament_id, db)
-    squad = get_user_squad(user_email, tournaments.game, db)
-    players_count = reduce(lambda a, x: a + (x != ''), squad.players, 0)
+    squad = get_user_squad_by_email(user_email, tournaments.game, db)
+    players_count = reduce(lambda a, x: a + (x.replace(" ", "") != ''), squad.players, 0)
     if players_count < game_squad_sizes[tournaments.game.value]:
         raise NotEnoughPlayersInSquad()
     tournaments_crud.add_user_to_tournament(tournament_id, user_email, db)
@@ -226,6 +243,8 @@ def fill_next_stage_battleroyale(tournament_id: int, db: Session = None):
 def end_active_stage_battleroyale(tournament_id: int, db: Session):
     """BATTLEROYALE GAMES ONLY!"""
     stage, _, last = find_active_stage(tournament_id, db)
+    if is_stage_tvt(stage):
+        raise NotAllowedForTVT()
     if stage is None:
         raise TournamentAlreadyFinished(tournament_id)
     stage.finished = True
@@ -237,9 +256,3 @@ def end_active_stage_battleroyale(tournament_id: int, db: Session):
     db.commit()
     fill_next_stage_battleroyale(tournament_id, db)
 
-
-# ---------------------- TVT ONLY -----------------------
-def start_next_stage_tvt(tournament_id):
-    """TVT GAMES ONLY!"""
-    db = SessionLocal()
-    tournament = tournaments_crud.get_tournament(tournament_id, db)

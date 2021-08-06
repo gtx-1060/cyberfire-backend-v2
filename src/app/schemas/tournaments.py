@@ -4,11 +4,13 @@ from pydantic import BaseModel, Field
 
 from src.app.models.games import Games
 from src.app.models.tournament_states import States
+from src.app.schemas.squad import Squad
 from src.app.schemas.stage import StageCreate, StagePreview
 
 
 class UserData(BaseModel):
     team_name: str
+    squad: Optional[Squad]
 
     class Config:
         orm_mode = True
@@ -32,6 +34,11 @@ class TournamentEdit(BaseModel):
     stream_url: Optional[str]
     max_squads: Optional[int]
     rewards: Optional[List[str]]
+
+
+class TournamentRegistered(BaseModel):
+    id: int
+    registered: bool
 
 
 class TournamentPreview(BaseModel):
