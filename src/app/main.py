@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import FastAPI
 import uvicorn
 from starlette.middleware.cors import CORSMiddleware
@@ -37,6 +39,7 @@ async def startup_event():
 
 
 def start():
+    logging
     uvicorn.run("src.app.main:app", host="127.0.0.1", port=3010)
 
 

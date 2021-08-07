@@ -2,7 +2,7 @@ from sqlalchemy import Column, PickleType, Integer, UnicodeText, ForeignKey, Sma
     TIMESTAMP
 from sqlalchemy.ext.mutable import MutableList
 from datetime import datetime
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 
 from .games import Games
 from ..database.db import Base
@@ -22,7 +22,7 @@ class Tournament(Base):
     description = Column(UnicodeText)
     state = Column(Enum(States))
     rewards = Column(MutableList.as_mutable(PickleType))
-    stages = relationship("Stage", back_populates="tournament", cascade="all,delete")
+    stages = relationship("Stage", backref=backref("tournament", cascade="all, delete"))
     users = relationship("User", secondary=association_table, backref="tournaments")
     stages_count = Column(SmallInteger)
     stream_url = Column(String)

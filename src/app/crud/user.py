@@ -111,3 +111,10 @@ def get_user_squad_by_email(user_email: str, game: Games, db: Session) -> Squad:
 
 def get_user_squad_by_team(team: str, game: Games, db: Session) -> Squad:
     return db.query(Squad).join(User).filter(and_(User.team_name == team, Squad.game == game)).first()
+
+
+def update_user_role(user_email: str, role: Roles, db: Session):
+    db.query(User).filter(User.email == user_email).update({
+        User.role: role
+    })
+    db.commit()
