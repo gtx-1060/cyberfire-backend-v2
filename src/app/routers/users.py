@@ -38,7 +38,7 @@ async def get_user_status(data: TokenData = Depends(auth_user), db: Session = De
 @router.put("")
 def update_user(user_edit: UserEdit, data: TokenData = Depends(auth_user), db: Session = Depends(get_db)):
     edit_user(user_edit, data.email, db)
-    return Response(status_code=202)
+    return Response(status_code=200)
 
 
 @router.get("/refresh", response_model=Tokens)

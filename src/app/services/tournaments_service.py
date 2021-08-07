@@ -227,7 +227,7 @@ def fill_next_stage_battleroyale(tournament_id: int, db: Session = None):
         raise TournamentAlreadyFinished(tournament_id)
     if len(stage.matches) > 0:
         raise StageMustBeEmpty(stage.id)
-    if previous_stage in None:
+    if previous_stage is None:
         tournament = tournaments_crud.get_tournament(tournament_id, db)
         for user in tournament.users:
             stage.teams.append(user.team_name)
