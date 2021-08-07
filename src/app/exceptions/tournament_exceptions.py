@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from .base import MyException
 
 
@@ -42,8 +44,8 @@ class WrongTournamentState(MyException):
 
 
 class WrongTournamentDates(MyException):
-    def __init__(self):
-        super().__init__(400, "date of tournament calculated from stage dates are wrong")
+    def __init__(self, date: datetime):
+        super().__init__(400, f"date of tournament ({date}) calculated from stage dates are wrong")
 
 
 class NotEnoughPlayersInSquad(MyException):

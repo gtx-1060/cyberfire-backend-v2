@@ -75,7 +75,7 @@ def create_tournament(tournament_create: TournamentCreate, db: Session) -> dict:
     tournament_create = set_tournament_dates(tournament_create.stages, tournament_create)
     now_moscow = datetime.now(pytz.timezone('Europe/Moscow'))
     if tournament_create.start_date < now_moscow or tournament_create.end_date < tournament_create.start_date:
-        raise WrongTournamentDates()
+        raise WrongTournamentDates(tournament_create.start_date)
     db_tournament = tournaments_crud.create_tournament(tournament_create, db)
     create_stages(tournament_create.stages, db_tournament.id, db)
     if not is_tournament_tvt(db_tournament):
@@ -162,7 +162,7 @@ def start_battleroyale_tournament(tournament_id: int):
     db = SessionLocal()
     tournament = tournaments_crud.get_tournament(tournament_id, db)
     if len(tournament.users) < tournament.max_squads:
-        tournaments_crud.update_tournament_state(States.PAUSED, tournament_id, db)
+        pause_tournament(tournament_id, db)
         print("the number of registered players is less than required, the tournament is paused")
         db.close()
         return
