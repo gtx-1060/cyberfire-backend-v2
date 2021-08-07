@@ -41,6 +41,9 @@ class MatchStats(BaseModel):
     index: int
     user_id: int
 
+    class Config:
+        orm_mode = True
+
 
 class BattleRoyaleStats(MatchStats):
     kills_count: int

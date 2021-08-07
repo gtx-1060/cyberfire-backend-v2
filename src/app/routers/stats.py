@@ -1,5 +1,4 @@
 from typing import List
-
 from fastapi import APIRouter
 from fastapi.params import Depends
 from sqlalchemy.orm import Session
