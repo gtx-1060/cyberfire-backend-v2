@@ -98,13 +98,17 @@ def find_active_stage(tournament_id: int, db: Session) -> Tuple[Optional[Stage],
     return None, None, False
 
 
-def pause_tournament(tournament_id: int, db: Session):
+def remove_tournament_jobs(tournament_id):
     tstart_task_id = get_tournament_task_id(TournamentEvents.START_TOURNAMENT, tournament_id)
     sstart_task_id = get_tournament_task_id(TournamentEvents.START_STAGE, tournament_id)
     if myscheduler.task_exists(tstart_task_id):
         myscheduler.remove_task(tstart_task_id)
     if myscheduler.task_exists(sstart_task_id):
         myscheduler.remove_task(sstart_task_id)
+
+
+def pause_tournament(tournament_id: int, db: Session):
+    remove_tournament_jobs(tournament_id)
     tournaments_crud.update_tournament_state(States.PAUSED, tournament_id, db)
 
 
@@ -187,8 +191,6 @@ def create_empty_tournament_stats(tournament, db):
     for user in tournament.users:
         stats = TournamentStats(
             game=tournament.game,
-            kills_count=0,
-            score=0,
             user_id=user.id,
             tournament_id=tournament.id
         )
@@ -238,6 +240,7 @@ def fill_next_stage_battleroyale(tournament_id: int, db: Session = None):
     db.add(previous_stage)
     db.commit()
     db.close()
+    remove_tournament_jobs(tournament_id)
 
 
 def end_active_stage_battleroyale(tournament_id: int, db: Session):

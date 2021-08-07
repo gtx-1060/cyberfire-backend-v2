@@ -12,11 +12,11 @@ class StatsMixin(object):
 
     @declared_attr
     def kills_count(cls):
-        return Column(Integer)
+        return Column(Integer, default=0)
 
     @declared_attr
     def score(cls):
-        return Column(Integer)
+        return Column(Integer, default=0)
 
     @declared_attr
     def user_id(cls):
@@ -31,7 +31,7 @@ class MatchStats(StatsMixin, Base):
     __tablename__ = 'match_stats'
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    map = Column(String(50))
+    map = Column(String(50), default="")
     stage_id = Column(Integer, ForeignKey('stages.id'))
     rival_id = Column(Integer)
     attended = Column(Boolean, default=True)
@@ -44,11 +44,11 @@ class TournamentStats(StatsMixin, Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     tournament_id = Column(Integer, ForeignKey('tournaments.id'))
-    wins_count = Column(Integer)
+    wins_count = Column(Integer, default=0)
 
 
 class GlobalStats(StatsMixin, Base):
     __tablename__ = 'global_stats'
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    wins_count = Column(Integer)
+    wins_count = Column(Integer, default=0)
