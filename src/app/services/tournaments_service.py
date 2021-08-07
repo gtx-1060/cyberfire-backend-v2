@@ -241,7 +241,8 @@ def fill_next_stage_battleroyale(tournament_id: int, db: Session = None):
         previous_stage.finished = True
 
     db.add(stage)
-    db.add(previous_stage)
+    if previous_stage is not None:
+        db.add(previous_stage)
     db.commit()
     db.close()
     remove_tournament_jobs(tournament_id)
