@@ -1,4 +1,4 @@
-from sqlalchemy import Column, PickleType, Integer, UnicodeText, ForeignKey, SmallInteger, Enum, Table, String, Text,\
+from sqlalchemy import Column, PickleType, Integer, UnicodeText, ForeignKey, SmallInteger, Enum, Table, String, Text, \
     TIMESTAMP
 from sqlalchemy.ext.mutable import MutableList
 from datetime import datetime
@@ -9,8 +9,8 @@ from ..database.db import Base
 from .tournament_states import States
 
 association_table = Table('tournament_association', Base.metadata,
-                          Column('tournaments_id', ForeignKey('tournaments.id'), primary_key=True),
-                          Column('users_id', ForeignKey('users.id'), primary_key=True)
+                          Column('tournaments_id', Integer, ForeignKey('tournaments.id', ondelete="CASCADE")),
+                          Column('users_id', Integer, ForeignKey('users.id', ondelete="CASCADE"))
                           )
 
 

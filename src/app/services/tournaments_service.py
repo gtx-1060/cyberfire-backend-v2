@@ -78,11 +78,15 @@ def create_tournament(tournament_create: TournamentCreate, db: Session) -> dict:
         raise WrongTournamentDates(tournament_create.start_date)
     db_tournament = tournaments_crud.create_tournament(tournament_create, db)
     create_stages(tournament_create.stages, db_tournament.id, db)
-    if not is_tournament_tvt(db_tournament):
-        myscheduler.plan_task(get_tournament_task_id(TournamentEvents.START_TOURNAMENT, db_tournament.id),
-                              db_tournament.start_date, start_battleroyale_tournament, [db_tournament.id])
-        myscheduler.plan_task(get_tournament_task_id(TournamentEvents.START_STAGE, db_tournament.id),
-                              db_tournament.start_date+timedelta(seconds=10), fill_next_stage_battleroyale, [db_tournament.id])
+    try:
+        if not is_tournament_tvt(db_tournament):
+            myscheduler.plan_task(get_tournament_task_id(TournamentEvents.START_TOURNAMENT, db_tournament.id),
+                                  db_tournament.start_date, start_battleroyale_tournament, [db_tournament.id])
+            myscheduler.plan_task(get_tournament_task_id(TournamentEvents.START_STAGE, db_tournament.id),
+                                  db_tournament.start_date+timedelta(seconds=10), fill_next_stage_battleroyale, [db_tournament.id])
+    except Exception as e:
+        tournaments_crud.remove_tournament(db_tournament.id, db)
+        raise Exception()
     return {"tournament_id": db_tournament.id}
 
 

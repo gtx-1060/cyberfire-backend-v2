@@ -28,10 +28,6 @@ router = APIRouter(
 @router.get("", response_model=List[TournamentPreview])
 def get_tournaments_previews(game: Optional[Games] = None, db: Session = Depends(get_db), count=20, offset=0):
     tournaments: List[TournamentPreview] = tournaments_crud.get_tournaments(game, offset, count, db)
-    # if auth is not None:
-    #     print(auth.email)
-    #     for tournament in tournaments:
-    #         tournament.is_player_registered = tournaments_crud.is_users_in_tournament(tournament.id, auth.email, db)
     return tournaments
 
 
