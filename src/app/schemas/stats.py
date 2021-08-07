@@ -39,7 +39,7 @@ class MatchStats(BaseModel):
     kills_count: int
     user_data: UserData = Field(..., alias='user')
     index: int
-    squad_id: int
+    user_id: int
 
 
 class BattleRoyaleStats(MatchStats):
