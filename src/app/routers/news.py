@@ -17,20 +17,20 @@ router = APIRouter(
 )
 
 
-@router.post('')
-def create_news(news: NewsCreate, data=Depends(auth_admin), db: Session = Depends(get_db)):
-    news_crud.create_news(news, db)
-    return Response(status_code=202)
+@router.post('/', response_model=dict)
+def create_news(news: NewsCreate, _=Depends(auth_admin), db: Session = Depends(get_db)):
+    news_id = news_crud.create_news(news, db).id
+    return {'id': news_id}
 
 
-@router.put('')
-def edit_news(news: NewsEdit, news_id: int, data=Depends(auth_admin), db: Session = Depends(get_db)):
+@router.put('/')
+def edit_news(news: NewsEdit, news_id: int, _=Depends(auth_admin), db: Session = Depends(get_db)):
     news_crud.edit_news(news, news_id, db)
     return Response(status_code=202)
 
 
 @router.post('/upload_image')
-def upload_news_image(news_id: int, image: UploadFile = File(...), data=Depends(auth_admin),
+def upload_news_image(news_id: int, image: UploadFile = File(...), _=Depends(auth_admin),
                       db: Session = Depends(get_db)):
     old_web_path = news_crud.get_news_by_id(news_id, db).img_path
     web_path = save_image(NEWS_STATIC_PATH, image.file.read())
@@ -46,11 +46,17 @@ def get_news(offset=0, count=20, db: Session = Depends(get_db)):
     return news_crud.get_news(offset, count, db)
 
 
-@router.get('/by_id', response_model=List[News])
-def get_news(news_id: int, db: Session = Depends(get_db)):
+@router.get('/by_id', response_model=News)
+def get_one_news(news_id: int, db: Session = Depends(get_db)):
     return news_crud.get_news_by_id(news_id, db)
 
 
 @router.get('/count', response_model=int)
 def get_news_count(db: Session = Depends(get_db)):
     return news_crud.get_news_count(db)
+
+
+@router.delete('/')
+def remove_news(news_id: int, db: Session = Depends(get_db)):
+    news_crud.remove_news(news_id, db)
+    return Response(status_code=204)

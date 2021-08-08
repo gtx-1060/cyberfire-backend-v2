@@ -25,13 +25,15 @@ def get_news_count(db: Session) -> int:
     return db.query(News).count()
 
 
-def create_news(news: news_schemas.NewsCreate, db: Session):
+def create_news(news: news_schemas.NewsCreate, db: Session) -> News:
     db_news = News(
         title=news.title,
         text=news.text,
     )
     db.add(db_news)
     db.commit()
+    db.refresh(db_news)
+    return db_news
 
 
 def edit_news(news: news_schemas.NewsEdit, news_id: int, db: Session):
