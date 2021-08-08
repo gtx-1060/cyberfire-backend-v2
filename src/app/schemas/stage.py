@@ -2,7 +2,7 @@ from typing import Optional, List
 from pydantic import BaseModel, Field
 from datetime import datetime
 
-from src.app.schemas.stats import MatchStats
+from src.app.models.tournament_states import StageStates
 
 
 class TournamentData(BaseModel):
@@ -16,7 +16,8 @@ class StageCreate(BaseModel):
     title: str
     description: str
     stage_datetime: datetime
-    matches_count: int
+    lobbies_count: int
+    # LOBBY INFO?
 
 
 class StageEdit(BaseModel):
@@ -25,7 +26,6 @@ class StageEdit(BaseModel):
     stage_datetime: Optional[datetime]
     kill_leaders: Optional[List[str]]
     damage_leaders: Optional[List[str]]
-    keys: Optional[List[str]]
 
 
 class Stage(StageCreate):
@@ -33,9 +33,8 @@ class Stage(StageCreate):
     kill_leaders: List[str]
     damage_leaders: List[str]
     tournament_data: TournamentData = Field(..., alias='tournament')
-    teams: List[str]
-    finished: bool
-    keys: List[str]
+    state: StageStates
+    key: Optional[str]
     
     class Config:
         orm_mode = True

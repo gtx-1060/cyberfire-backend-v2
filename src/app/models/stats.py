@@ -31,10 +31,7 @@ class MatchStats(StatsMixin, Base):
     __tablename__ = 'match_stats'
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    map = Column(String(50), default="")
-    stage_id = Column(Integer, ForeignKey('stages.id'))
-    rival_id = Column(Integer)
-    attended = Column(Boolean, default=True)
+    lobby_id = Column(Integer, ForeignKey('lobbies.id'))
     placement = Column(SmallInteger, default=999)
     index = Column(SmallInteger)
 

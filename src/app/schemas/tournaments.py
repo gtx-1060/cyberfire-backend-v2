@@ -3,7 +3,7 @@ from typing import Optional, List
 from pydantic import BaseModel, Field
 
 from src.app.models.games import Games
-from src.app.models.tournament_states import States
+from src.app.models.tournament_states import TournamentStates
 from src.app.schemas.squad import Squad
 from src.app.schemas.stage import StageCreate, StagePreview
 
@@ -51,7 +51,7 @@ class TournamentPreview(BaseModel):
     game: Games
     is_player_registered: bool = Field(default=False)
     img_path: str
-    state: States
+    state: TournamentStates
 
     class Config:
         orm_mode = True

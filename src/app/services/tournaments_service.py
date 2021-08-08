@@ -16,7 +16,7 @@ from src.app.models.games import Games, game_squad_sizes
 from src.app.models.stage import Stage
 from src.app.models.stats import MatchStats, TournamentStats
 from src.app.models.tournament import Tournament
-from src.app.models.tournament_states import States
+from src.app.models.tournament_states import TournamentStates
 from src.app.schemas.stats import GlobalStatsEdit
 from src.app.schemas.tournaments import TournamentCreate
 from src.app.schemas import stage as stage_schemas
@@ -113,7 +113,7 @@ def remove_tournament_jobs(tournament_id):
 
 def pause_tournament(tournament_id: int, db: Session):
     remove_tournament_jobs(tournament_id)
-    tournaments_crud.update_tournament_state(States.PAUSED, tournament_id, db)
+    tournaments_crud.update_tournament_state(TournamentStates.PAUSED, tournament_id, db)
 
 
 def kick_player_from_tournament(user_email: str, tournament_id: int, db: Session):
@@ -174,13 +174,13 @@ def start_battleroyale_tournament(tournament_id: int):
         print("the number of registered players is less than required, the tournament is paused")
         db.close()
         return
-    tournaments_crud.update_tournament_state(States.IS_ON, tournament_id, db)
+    tournaments_crud.update_tournament_state(TournamentStates.IS_ON, tournament_id, db)
     create_empty_tournament_stats(tournament, db)
     db.close()
 
 
 def end_battleroyale_tournament(tournament_id: int, last_stage: Stage, db: Session):
-    tournaments_crud.update_tournament_state(States.FINISHED, tournament_id, db)
+    tournaments_crud.update_tournament_state(TournamentStates.FINISHED, tournament_id, db)
     _, summary_score = match_players_stats(last_stage.matches, False)
     save_tournament_stats(summary_score, tournament_id, db, False)
     db.commit()

@@ -10,7 +10,7 @@ from src.app.crud import tournaments as tournaments_crud
 from src.app.crud.user import get_user_squad_by_team
 from src.app.exceptions.tournament_exceptions import NotAllowedForTVT
 from src.app.models.games import Games
-from src.app.models.tournament_states import States
+from src.app.models.tournament_states import TournamentStates
 from src.app.schemas.token_data import TokenData
 from src.app.schemas.tournaments import TournamentCreate, TournamentPreview, Tournament, TournamentEdit, \
     TournamentRegistered
@@ -94,7 +94,7 @@ def unregister_in_tournament(tournament_id: int, db: Session = Depends(get_db),
 
 @router.get("/pause")
 def pause_tournament(tournament_id: int, db: Session = Depends(get_db), _=Depends(auth_admin)):
-    tournaments_crud.update_tournament_state(States.PAUSED, tournament_id, db)
+    tournaments_crud.update_tournament_state(TournamentStates.PAUSED, tournament_id, db)
     return Response(status_code=200)
 
 

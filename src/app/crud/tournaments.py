@@ -11,7 +11,7 @@ from ..exceptions.tournament_exceptions import MaxSquadsCount, UserAlreadyRegist
 from ..models.games import Games
 from ..models.tournament import Tournament
 from ..exceptions.base import ItemNotFound
-from ..models.tournament_states import States
+from ..models.tournament_states import TournamentStates
 from ..models.user import User
 from ..schemas.tournaments import TournamentCreate, TournamentEdit
 
@@ -47,7 +47,7 @@ def create_tournament(tournament: TournamentCreate, db: Session) -> Tournament:
     db_tournament = Tournament(
         title=tournament.title,
         description=tournament.description,
-        state=States.REGISTRATION,
+        state=TournamentStates.REGISTRATION,
         rewards=tournament.rewards,
         stream_url=tournament.stream_url,
         stages_count=len(tournament.stages),
@@ -77,7 +77,7 @@ def edit_tournament(tournament: TournamentEdit, tournament_id: int, db: Session)
     if tournament.max_squads is not None:
         if count_users_in_tournament(tournament_id, db) > tournament.max_squads:
             raise FieldCouldntBeEdited("max_squads", "the tournament have more registered users")
-        if db_tournament.state == States.IS_ON:
+        if db_tournament.state == TournamentStates.IS_ON:
             raise FieldCouldntBeEdited("max_squads", "the tournament is on")
         db_tournament.max_squads = tournament.max_squads
     db.add(db_tournament)
@@ -98,7 +98,7 @@ def is_users_in_tournament(tournament_id: int, user_email: str, db: Session) -> 
             .filter(and_(Tournament.id == tournament_id, User.email == user_email)).first()) is not None
 
 
-def update_tournament_state(new_state: States, tournament_id: int, db: Session):
+def update_tournament_state(new_state: TournamentStates, tournament_id: int, db: Session):
     db.query(Tournament).filter(Tournament.id == tournament_id).update({
         Tournament.state: new_state
     })
@@ -108,7 +108,7 @@ def update_tournament_state(new_state: States, tournament_id: int, db: Session):
 def add_user_to_tournament(tournament_id: int, user_email: str, db: Session):
     user = get_user_by_email(user_email, db)
     tournament = get_tournament(tournament_id, db)
-    if tournament.state != States.REGISTRATION:
+    if tournament.state != TournamentStates.REGISTRATION:
         raise WrongTournamentState()
     if user in tournament.users:
         raise UserAlreadyRegistered(user_email)
@@ -123,7 +123,7 @@ def add_user_to_tournament(tournament_id: int, user_email: str, db: Session):
 def remove_tournament_player(tournament_id: int, user_email: str, db: Session):
     user = get_user_by_email(user_email, db)
     tournament = get_tournament(tournament_id, db)
-    if tournament.state != States.REGISTRATION:
+    if tournament.state != TournamentStates.REGISTRATION:
         raise WrongTournamentState()
     if user in tournament.users:
         tournament.users.remove(user)
