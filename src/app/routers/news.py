@@ -41,7 +41,7 @@ def upload_news_image(news_id: int, image: UploadFile = File(...), _=Depends(aut
     return Response(status_code=202)
 
 
-@router.get('/', response_model=List[News])
+@router.get('', response_model=List[News])
 def get_news(offset=0, count=20, db: Session = Depends(get_db)):
     return news_crud.get_news(offset, count, db)
 

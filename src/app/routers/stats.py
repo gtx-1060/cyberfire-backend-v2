@@ -1,5 +1,4 @@
 from typing import List
-
 from fastapi import APIRouter
 from fastapi.params import Depends
 from sqlalchemy.orm import Session
@@ -28,7 +27,7 @@ def get_tournament_stats(tournament_id: int, db: Session = Depends(get_db)):
     return stats_crud.get_tournament_stats(tournament_id, db)
 
 
-@router.get('/', response_model=List[GlobalStats])
+@router.get('', response_model=List[GlobalStats])
 def get_global_stats(game: Games, offset=0, count=20, db: Session = Depends(get_db)):
     db_stats = stats_crud.get_global_stats(game, offset, count, db)
     stats: GlobalStats = db_stats[0]
@@ -37,8 +36,6 @@ def get_global_stats(game: Games, offset=0, count=20, db: Session = Depends(get_
 
 @router.post('/match')
 def create_match_stats(stats_list: List[MatchStatsCreate], stage_id: int, db: Session = Depends(get_db),
-                       auth_data=Depends(auth_admin)):
-    for stats in stats_list:
-        stats_crud.create_match_stats(stats, stage_id, db, False)
-    db.commit()
+                       _=Depends(auth_admin)):
+    stats_crud.create_match_stats_list(stats_list, stage_id, db)
     return Response(status_code=202)

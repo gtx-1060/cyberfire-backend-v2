@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from typing import List
 
+from .tournaments import get_tournament, is_tournament_exists
 from ..models.stage import Stage
 from ..exceptions.base import ItemNotFound
 from ..schemas.stage import StageCreate, StageEdit
@@ -21,13 +22,13 @@ def get_stage_by_id(stage_id: int, db: Session) -> Stage:
 
 
 def create_stages(stages: List[StageCreate], tournament_id: int, db: Session):
-
-    # TODO: CHECK IF TOURNAMENT EXISTS
-
+    # get_tournament(tournament_id, db)
+    if not is_tournament_exists(tournament_id, db):
+        raise ItemNotFound()
     for stage in stages:
         db_stage = Stage(
             title=stage.title,
-            descriprion=stage.description,
+            description=stage.description,
             tournament_id=tournament_id,
             matches_count=stage.matches_count,
             stage_datetime=stage.stage_datetime
@@ -51,4 +52,11 @@ def edit_stage(stage: StageEdit, stage_id: int, db: Session):
     if stage.keys is not None:
         db_stage.keys = stage.keys
     db.add(db_stage)
+    db.commit()
+
+
+def remove_team_from_stage(stage_id: int, team_name: str, db: Session):
+    db_stage = get_stage_by_id(stage_id, db)
+    if team_name in db_stage.teams:
+        db_stage.teams.remove(team_name)
     db.commit()

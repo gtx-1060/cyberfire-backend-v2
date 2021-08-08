@@ -4,27 +4,11 @@ from fastapi import Request
 from uuid import uuid1
 from pathlib import Path
 from os import remove
-from sqlalchemy.orm import Session
 
 from src.app.config import ABSOLUTE_PATH
-from src.app.crud.stages import get_stage_by_id
 from src.app.exceptions.base import WrongFilePath, FileSaveException, FileRemoveException
-from src.app.exceptions.tournament_exceptions import NotAllowedForTVT
-from src.app.models.games import Games
-from src.app.models.tournament import Tournament
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-tvt_games = {Games.CSGO, Games.VALORANT}
-
-
-def is_tournament_tvt(tournament: Tournament) -> bool:
-    return tournament.game in tvt_games
-
-
-def is_stage_tvt(stage_id: int, db: Session) -> bool:
-    db_stage = get_stage_by_id(stage_id, db)
-    return is_tournament_tvt(db_stage.tournament)
 
 
 def get_password_hash(password: str) -> str:

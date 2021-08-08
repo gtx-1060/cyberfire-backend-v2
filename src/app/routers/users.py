@@ -5,10 +5,11 @@ from sqlalchemy.orm import Session
 from starlette.responses import Response
 
 from src.app.config import AVATARS_STATIC_PATH
-from src.app.crud.user import get_user_by_email, edit_user
+from src.app.crud.user import get_user_by_email, edit_user, update_user_role
+from src.app.models.roles import Roles
 from src.app.schemas.token_data import Tokens, TokenData
 from src.app.schemas.user import UserCreate, User, UserEdit
-from src.app.services.auth import auth_user, register, log_in, authorize_using_refresh
+from src.app.services.auth import auth_user, register, log_in, authorize_using_refresh, change_user_password
 from src.app.utils import get_db, save_image, delete_image_by_web_path
 
 router = APIRouter(
@@ -30,19 +31,25 @@ def authorize_user(form: OAuth2PasswordRequestForm = Depends(), db: Session = De
 
 
 @router.get("/me", response_model=User)
-def get_user_status(data: TokenData = Depends(auth_user), db: Session = Depends(get_db)):
+async def get_user_status(data: TokenData = Depends(auth_user), db: Session = Depends(get_db)):
     return get_user_by_email(data.email, db)
 
 
-@router.put("/")
+@router.put("")
 def update_user(user_edit: UserEdit, data: TokenData = Depends(auth_user), db: Session = Depends(get_db)):
     edit_user(user_edit, data.email, db)
-    return Response(status_code=202)
+    return Response(status_code=200)
 
 
 @router.get("/refresh", response_model=Tokens)
 def refresh_tokens(refresh_token: str, db: Session = Depends(get_db)):
     return authorize_using_refresh(refresh_token, db)
+
+
+@router.get("/change_password")
+def change_password(old_password: str, new_password: str, user_data=Depends(auth_user), db: Session = Depends(get_db)):
+    change_user_password(old_password, new_password, user_data.email, db)
+    return Response(status_code=200)
 
 
 @router.post("/upload_avatar")
@@ -56,7 +63,11 @@ def upload_avatar(image: UploadFile = File(...), data=Depends(auth_user), db: Se
     return Response(status_code=202)
 
 
-
+@router.get("/be_admin")
+def give_admin_rights(user_data=Depends(auth_user), db: Session = Depends(get_db)):
+    """WARNING: ONLY FOR TESTS!!!"""
+    update_user_role(user_data.email, Roles.ADMIN, db)
+    return Response(status_code=200)
 
 
 

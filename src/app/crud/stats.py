@@ -11,7 +11,7 @@ from ..exceptions.base import ItemNotFound
 
 
 def get_match_stats(stage_id: int, db: Session) -> List[MatchStats]:
-    matches = db.query(MatchStats).filter(MatchStats.stage_id == stage_id).order_by(MatchStats.score.desc()).all()
+    matches = db.query(MatchStats).filter(MatchStats.stage_id == stage_id).order_by(MatchStats.placement).all()
     if matches is None:
         return []
     return matches
@@ -35,11 +35,18 @@ def create_match_stats(stats: stats_schemas.MatchStatsCreate, stage_id: int, db:
         map=stats.map,
         stage_id=stage_id,
         index=stats.index,
-        rival_id=stats.rival_id
+        rival_id=stats.rival_id,
+        placement=stats.placement
     )
     db.add(db_stats)
     if commit:
         db.commit()
+
+
+def create_match_stats_list(stats_list: List[stats_schemas.MatchStatsCreate], stage_id: int, db: Session):
+    for stats in stats_list:
+        create_match_stats(stats, stage_id, db, False)
+    db.commit()
 
 
 def edit_match_stats(stats: stats_schemas.MatchStatsEdit, stats_id: int, db: Session):
@@ -58,12 +65,15 @@ def edit_match_stats(stats: stats_schemas.MatchStatsEdit, stats_id: int, db: Ses
         db_stats.rival_id = stats.rival_id
     if stats.attended is not None:
         db_stats.attended = stats.attended
+    if stats.placement is not None:
+        db_stats.placement = stats.placement
     db.add(db_stats)
     db.commit()
 
 
 def delete_match_stats(stats_id: int, db: Session):
     db.query(MatchStats).filter(MatchStats.id == stats_id).delete()
+    db.commit()
 
 
 def delete_match_by_stage(team_name: str, stage_id: int, db: Session):
@@ -72,6 +82,7 @@ def delete_match_by_stage(team_name: str, stage_id: int, db: Session):
     if match is None:
         raise ItemNotFound()
     db.query(MatchStats).filter(MatchStats.id == match.id).delete()
+    db.commit()
 
 
 def get_tournament_stats(tournament_id: int, db: Session) -> List[TournamentStats]:
@@ -89,6 +100,7 @@ def create_tournament_stats(stats: stats_schemas.TournamentStatsCreate, tourname
         kills_count=stats.kills_count,
         score=stats.score,
         user_id=user.id,
+        wins_count=stats.wins_count,
         tournament_id=tournament_id
     )
     db.add(db_stats)
@@ -104,6 +116,8 @@ def edit_tournament_stats(stats: stats_schemas.TournamentStatsEdit, stats_id: in
         db_stats.score = stats.score
     if stats.kills_count is not None:
         db_stats.kills_count = stats.kills_count
+    if stats.wins_count is not None:
+        db_stats.wins_count = stats.wins_count
     db.add(db_stats)
     if commit:
         db.commit()
@@ -144,16 +158,16 @@ def create_global_stats(stats: stats_schemas.GlobalStatsCreate, db: Session):
     db.commit()
 
 
-def edit_global_stats(stats: stats_schemas.GlobalStatsEdit, user_id: int, db: Session, commit=True):
+def edit_global_stats(added_stats: stats_schemas.GlobalStatsEdit, user_id: int, db: Session, commit=True):
     db_stats = db.query(GlobalStats).filter(GlobalStats.user_id == user_id).first()
     if db_stats is None:
         raise ItemNotFound()
-    if stats.score is not None:
-        db_stats.score = stats.score
-    if stats.kills_count is not None:
-        db_stats.kills_count = stats.kills_count
-    if stats.wins_count is not None:
-        db_stats.wins_count = stats.wins_count
+    if added_stats.score is not None:
+        db_stats.score += added_stats.score
+    if added_stats.kills_count is not None:
+        db_stats.kills_count += added_stats.kills_count
+    if added_stats.wins_count is not None:
+        db_stats.wins_count += added_stats.wins_count
     db.add(db_stats)
     if commit:
         db.commit()

@@ -1,6 +1,6 @@
 from sqlalchemy import Column, PickleType, Integer, Boolean, UnicodeText, ForeignKey, SmallInteger, TIMESTAMP
 from sqlalchemy.ext.mutable import MutableList
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 
 from ..database.db import Base
 
@@ -12,11 +12,11 @@ class Stage(Base):
     finished = Column(Boolean, default=False)
     title = Column(UnicodeText)
     description = Column(UnicodeText)
-    kill_leaders = Column(MutableList.as_mutable(PickleType))
-    damage_leaders = Column(MutableList.as_mutable(PickleType))
-    keys = Column(MutableList.as_mutable(PickleType))
-    tournament_id = Column(Integer, ForeignKey('tournaments.id'))
-    tournament = relationship("Tournament", back_populates="stages")
+    kill_leaders = Column(MutableList.as_mutable(PickleType), default=[])
+    damage_leaders = Column(MutableList.as_mutable(PickleType), default=[])
+    keys = Column(MutableList.as_mutable(PickleType), default=[])
+    teams = Column(MutableList.as_mutable(PickleType), default=[])
+    tournament_id = Column(Integer, ForeignKey('tournaments.id', ondelete='CASCADE'))
     matches_count = Column(SmallInteger, default=-1)
-    matches = relationship("MatchStats")
+    matches = relationship("MatchStats", cascade="all,delete")
     stage_datetime = Column(TIMESTAMP)

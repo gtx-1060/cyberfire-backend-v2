@@ -38,6 +38,13 @@ def user_by_team(team_name: str, db: Session) -> User:
     return user
 
 
+def user_id_by_team(team_name: str, db: Session) -> int:
+    user_id = db.query(User.id).filter(User.team_name == team_name).first()
+    if not user_id:
+        raise user_exceptions.UserNotFound()
+    return user_id
+
+
 def create_user(user: user_schemas.UserCreate, db: Session):
     __check_team_unique(user.team_name, db)
     __check_email_unique(user.email, db)
@@ -77,11 +84,17 @@ def edit_user(user: user_schemas.UserEdit, email: str, db: Session):
             if squad is None:
                 # TODO: LOG SOMETHING
                 continue
-            db_squad = db.query(Squad).filter(and_(Squad.user_id == db_user.id,
-                                                   Squad.game == squad.game))
-            db_squad.players = squad.players
+            db_squad = db.query(Squad).filter(and_(Squad.user_id == db_user.id, Squad.game == squad.game)).first()
+            db_squad.players = squad.players.copy()
             db.add(db_squad)
     db.add(db_user)
+    db.commit()
+
+
+def update_user_password(user_email: str, new_password_hash: str, db: Session):
+    db.query(User).filter(User.email == user_email).update({
+        User.hashed_password: new_password_hash
+    })
     db.commit()
 
 
@@ -89,4 +102,19 @@ def update_refresh_token(email: str, new_token: str, db: Session):
     db_user = get_user_by_email(email, db)
     db_user.refresh_token = new_token
     db.add(db_user)
+    db.commit()
+
+
+def get_user_squad_by_email(user_email: str, game: Games, db: Session) -> Squad:
+    return db.query(Squad).join(User).filter(and_(User.email == user_email, Squad.game == game)).first()
+
+
+def get_user_squad_by_team(team: str, game: Games, db: Session) -> Squad:
+    return db.query(Squad).join(User).filter(and_(User.team_name == team, Squad.game == game)).first()
+
+
+def update_user_role(user_email: str, role: Roles, db: Session):
+    db.query(User).filter(User.email == user_email).update({
+        User.role: role
+    })
     db.commit()
