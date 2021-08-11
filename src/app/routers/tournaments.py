@@ -14,7 +14,7 @@ from src.app.models.tournament_states import TournamentStates
 from src.app.schemas.token_data import TokenData
 from src.app.schemas.tournaments import TournamentCreate, TournamentPreview, Tournament, TournamentEdit, \
     TournamentRegistered
-from src.app.services.auth import auth_admin, try_auth_user, auth_user
+from src.app.services.auth_service import auth_admin, try_auth_user, auth_user
 from src.app.utils import get_db, save_image, delete_image_by_web_path
 from src.app.services import tournaments_service
 

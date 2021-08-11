@@ -6,7 +6,7 @@ from starlette.responses import Response
 
 from src.app.crud import lobbies as lobbies_crud
 from src.app.schemas.lobbies import Lobby, LobbyCreate
-from src.app.services.auth import auth_admin
+from src.app.services.auth_service import auth_admin
 
 from src.app.utils import get_db
 

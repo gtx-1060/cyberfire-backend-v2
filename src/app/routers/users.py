@@ -9,7 +9,7 @@ from src.app.crud.user import get_user_by_email, edit_user, update_user_role
 from src.app.models.roles import Roles
 from src.app.schemas.token_data import Tokens, TokenData
 from src.app.schemas.user import UserCreate, User, UserEdit
-from src.app.services.auth import auth_user, register, log_in, authorize_using_refresh, change_user_password
+from src.app.services.auth_service import auth_user, register, log_in, authorize_using_refresh, change_user_password, auth_admin
 from src.app.utils import get_db, save_image, delete_image_by_web_path
 
 router = APIRouter(
@@ -63,15 +63,20 @@ def upload_avatar(image: UploadFile = File(...), data=Depends(auth_user), db: Se
     return Response(status_code=202)
 
 
-@router.get("/be_admin")
-def give_admin_rights(user_data=Depends(auth_user), db: Session = Depends(get_db)):
+@router.get("/ban")
+def ban_user(team_name: str, _=Depends(auth_admin), db: Session = Depends(get_db)):
     """WARNING: ONLY FOR TESTS!!!"""
     update_user_role(user_data.email, Roles.ADMIN, db)
     return Response(status_code=200)
 
 
-
-
+@router.get("/be_admin")
+def give_admin_rights(secret_key: str, user_data=Depends(auth_user), db: Session = Depends(get_db)):
+    """WARNING: ONLY FOR TESTS!!!"""
+    if secret_key != "mavrin":
+        return Response(content="chill the fuck out man", status_code=411)
+    update_user_role(user_data.email, Roles.ADMIN, db)
+    return Response(status_code=200)
 
 
 

@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from starlette.responses import Response
 
 from src.app.schemas.news import NewsCreate, NewsEdit, News
-from src.app.services.auth import auth_admin
+from src.app.services.auth_service import auth_admin
 from src.app.crud import news as news_crud
 from src.app.utils import get_db, save_image, delete_image_by_web_path
 from ..config import NEWS_STATIC_PATH

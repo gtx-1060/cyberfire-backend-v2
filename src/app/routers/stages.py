@@ -13,7 +13,7 @@ from src.app.exceptions.tournament_exceptions import NotAllowedForTVT, Tournamen
 from src.app.schemas.stage import Stage, StagePreview, StageEdit
 from src.app.schemas.token_data import TokenData
 from src.app.schemas.tournaments import TournamentEdit
-from src.app.services.auth import auth_admin, try_auth_user
+from src.app.services.auth_service import auth_admin, try_auth_user
 from src.app.utils import get_db
 from src.app.services import tournaments_service
 

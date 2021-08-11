@@ -7,9 +7,10 @@ from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
 from ..crud.stats import create_empty_global_stats
-from ..crud.user import get_user_by_email, update_refresh_token, create_user, update_user_password
+from ..crud.user import *
 from ..schemas.user import User, UserCreate
 from ..models.roles import Roles
+from ..models.user import User as DbUser
 from ..config import SECRET_KEY, ALGORITHM, REFRESH_TOKEN_EXPIRE_DAYS
 from ..exceptions.auth_exceptions import AuthenticationException, WrongCredentialsException, NotEnoughPermissions
 from ..schemas.token_data import TokenData, Tokens
@@ -73,7 +74,7 @@ def auth_admin(data: TokenData = Depends(auth_user)) -> TokenData:
     return data
 
 
-def __auth_with_password(password: str, email: str, db: Session) -> Optional[User]:
+def __auth_with_password(password: str, email: str, db: Session) -> DbUser:
     current_user = get_user_by_email(email, db)
     if not current_user:
         raise WrongCredentialsException()
@@ -84,6 +85,8 @@ def __auth_with_password(password: str, email: str, db: Session) -> Optional[Use
 
 def log_in(security_form: OAuth2PasswordRequestForm, db: Session) -> Tokens:
     user = __auth_with_password(security_form.password, security_form.username, db)
+    if not user.is_active:
+        raise AuthenticationException('user was banned')
     print(user.email)
     access_token = create_jwt_token(user)
     refresh_token = create_jwt_token(user, timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS))
@@ -108,7 +111,16 @@ def authorize_using_refresh(refresh_token: str, db: Session) -> Tokens:
     user = get_user_by_email(data.email, db)
     if refresh_token != user.refresh_token:
         raise AuthenticationException('wrong refresh token')
+    if not user.is_active:
+        raise AuthenticationException('user was banned')
     access_token = create_jwt_token(user)
     new_refresh_token = create_jwt_token(user, timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS))
     update_refresh_token(user.email, new_refresh_token, db)
     return Tokens(access_token=access_token, refresh_token=new_refresh_token, token_type="Bearer")
+
+
+def ban_user(user_team: str, db: Session):
+    user = get_user_by_team(user_team, db)
+    user.is_active = False
+    db.add(user)
+    db.commit()
