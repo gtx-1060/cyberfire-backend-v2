@@ -9,7 +9,8 @@ from src.app.crud.user import get_user_by_email, edit_user, update_user_role
 from src.app.models.roles import Roles
 from src.app.schemas.token_data import Tokens, TokenData
 from src.app.schemas.user import UserCreate, User, UserEdit
-from src.app.services.auth_service import auth_user, register, log_in, authorize_using_refresh, change_user_password, auth_admin
+from src.app.services import auth_service
+from src.app.services.auth_service import auth_admin, auth_user, try_auth_user
 from src.app.utils import get_db, save_image, delete_image_by_web_path
 
 router = APIRouter(
@@ -21,13 +22,13 @@ router = APIRouter(
 
 @router.post('/register')
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
-    register(user, db)
+    auth_service.register(user, db)
     return Response(status_code=202)
 
 
 @router.post('/login', response_model=Tokens)
 def authorize_user(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    return log_in(form, db)
+    return auth_service.log_in(form, db)
 
 
 @router.get("/me", response_model=User)
@@ -43,12 +44,12 @@ def update_user(user_edit: UserEdit, data: TokenData = Depends(auth_user), db: S
 
 @router.get("/refresh", response_model=Tokens)
 def refresh_tokens(refresh_token: str, db: Session = Depends(get_db)):
-    return authorize_using_refresh(refresh_token, db)
+    return auth_service.authorize_using_refresh(refresh_token, db)
 
 
 @router.get("/change_password")
 def change_password(old_password: str, new_password: str, user_data=Depends(auth_user), db: Session = Depends(get_db)):
-    change_user_password(old_password, new_password, user_data.email, db)
+    auth_service.change_user_password(old_password, new_password, user_data.email, db)
     return Response(status_code=200)
 
 
@@ -65,8 +66,7 @@ def upload_avatar(image: UploadFile = File(...), data=Depends(auth_user), db: Se
 
 @router.get("/ban")
 def ban_user(team_name: str, _=Depends(auth_admin), db: Session = Depends(get_db)):
-    """WARNING: ONLY FOR TESTS!!!"""
-    update_user_role(user_data.email, Roles.ADMIN, db)
+    auth_service.ban_user(team_name, db)
     return Response(status_code=200)
 
 
