@@ -1,9 +1,10 @@
 from sqlalchemy.orm import Session
 from typing import List
 
-from .tournaments import get_tournament, is_tournament_exists
+from .tournaments import is_tournament_exists
 from ..models.stage import Stage
 from ..exceptions.base import ItemNotFound
+from ..models.tournament_states import StageStates
 from ..schemas.stage import StageCreate, StageEdit
 
 
@@ -22,7 +23,6 @@ def get_stage_by_id(stage_id: int, db: Session) -> Stage:
 
 
 def create_stages(stages: List[StageCreate], tournament_id: int, db: Session):
-    # get_tournament(tournament_id, db)
     if not is_tournament_exists(tournament_id, db):
         raise ItemNotFound()
     for stage in stages:
@@ -30,8 +30,8 @@ def create_stages(stages: List[StageCreate], tournament_id: int, db: Session):
             title=stage.title,
             description=stage.description,
             tournament_id=tournament_id,
-            matches_count=stage.matches_count,
-            stage_datetime=stage.stage_datetime
+            stage_datetime=stage.stage_datetime,
+            lobbies_count=stage.lobbies_count
         )
         db.add(db_stage)
     db.commit()
@@ -49,14 +49,14 @@ def edit_stage(stage: StageEdit, stage_id: int, db: Session):
         db_stage.damage_leaders = stage.damage_leaders
     if stage.kill_leaders is not None:
         db_stage.kill_leaders = stage.kill_leaders
-    if stage.keys is not None:
-        db_stage.keys = stage.keys
+    if stage.lobbies_count is not None:
+        db_stage.lobbies_count = stage.lobbies_count
     db.add(db_stage)
     db.commit()
 
 
-def remove_team_from_stage(stage_id: int, team_name: str, db: Session):
-    db_stage = get_stage_by_id(stage_id, db)
-    if team_name in db_stage.teams:
-        db_stage.teams.remove(team_name)
+def update_stage_state(stage_id: int, state: StageStates, db: Session):
+    db.query(Stage).filter(Stage.id == stage_id).update({
+        state: state
+    })
     db.commit()

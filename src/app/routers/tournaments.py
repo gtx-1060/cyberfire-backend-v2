@@ -49,11 +49,6 @@ def is_user_tournament_registered(tournament_id: int, db: Session = Depends(get_
     return {'is_registered': is_registered}
 
 
-@router.get("/in_active_stage", response_model=dict)
-def is_user_in_active_stage(tournament_id: int, db: Session = Depends(get_db), auth: TokenData = Depends(auth_user)):
-    return {"is_in_stage": tournaments_service.is_user_in_active_stage(tournament_id, auth.email, db)}
-
-
 @router.get("/by_id", response_model=Tournament)
 def get_tournament(tournament_id: int, db: Session = Depends(get_db), _=Depends(try_auth_user)):
     tournament: Tournament = Tournament.from_orm(tournaments_crud.get_tournament(tournament_id, db))
@@ -115,3 +110,8 @@ def edit_tournament(tournament: TournamentEdit, tournament_id: int, _=Depends(au
                     db: Session = Depends(get_db)):
     tournaments_crud.edit_tournament(tournament, tournament_id, db)
     return Response(status_code=200)
+
+
+@router.get('/finish')
+def finish_tournament(tournament_id: int, _=Depends(auth_admin), db: Session = Depends(get_db)):
+    tournaments_service.end_battleroyale_tournament(tournament_id, )
