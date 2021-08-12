@@ -8,9 +8,10 @@ from src.app.models.news import News
 from src.app.models.stage import Stage
 from src.app.models.tournament import Tournament, association_table
 from src.app.models.stats import MatchStats, TournamentStats, GlobalStats
+from src.app.models.lobbies import Lobby
 
-my_tables = [User.__table__, Squad.__table__, News.__table__, Stage.__table__, Tournament.__table__,
-             MatchStats.__table__, TournamentStats.__table__, GlobalStats.__table__, association_table]
+my_tables = [User.__table__, Squad.__table__, News.__table__, Stage.__table__, Tournament.__table__, MatchStats.__table__,
+             TournamentStats.__table__, GlobalStats.__table__, association_table, Lobby.__table__]
 
 
 def create_tables():
