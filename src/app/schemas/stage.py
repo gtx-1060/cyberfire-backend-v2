@@ -30,12 +30,16 @@ class StageEdit(BaseModel):
     lobbies_count: Optional[int]
 
 
-class Stage(StageCreate):
+class Stage(BaseModel):
     id: int
+    title: str
+    description: str
+    stage_datetime: datetime
     kill_leaders: List[str]
     damage_leaders: List[str]
     tournament_data: TournamentData = Field(..., alias='tournament')
     state: StageStates
+    lobbies: List[Lobby]
     lobbies_count: int
 
     key: Optional[str]
