@@ -31,7 +31,7 @@ def create_stages(stages: List[StageCreate], tournament_id: int, db: Session):
             description=stage.description,
             tournament_id=tournament_id,
             stage_datetime=stage.stage_datetime,
-            lobbies_count=stage.lobbies_count
+            lobbies_count=len(stage.lobbies)
         )
         db.add(db_stage)
     db.commit()

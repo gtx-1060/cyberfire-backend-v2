@@ -122,5 +122,6 @@ def authorize_using_refresh(refresh_token: str, db: Session) -> Tokens:
 def ban_user(user_team: str, db: Session):
     user = get_user_by_team(user_team, db)
     user.is_active = False
+    # TODO: REMOVE FROM ALL TOURNAMENTS
     db.add(user)
     db.commit()
