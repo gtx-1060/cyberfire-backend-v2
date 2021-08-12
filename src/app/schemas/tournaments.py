@@ -36,9 +36,10 @@ class TournamentEdit(BaseModel):
     rewards: Optional[List[str]]
 
 
-class TournamentRegistered(BaseModel):
+class TournamentAdvancedData(BaseModel):
     id: int
     registered: bool
+    can_register: bool
 
 
 class TournamentPreview(BaseModel):

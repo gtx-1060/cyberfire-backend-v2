@@ -13,7 +13,7 @@ from src.app.models.games import Games
 from src.app.models.tournament_states import TournamentStates
 from src.app.schemas.token_data import TokenData
 from src.app.schemas.tournaments import TournamentCreate, TournamentPreview, Tournament, TournamentEdit, \
-    TournamentRegistered
+    TournamentAdvancedData
 from src.app.services.auth_service import auth_admin, try_auth_user, auth_user
 from src.app.utils import get_db, save_image, delete_image_by_web_path
 from src.app.services import tournaments_service
@@ -31,22 +31,25 @@ def get_tournaments_previews(game: Optional[Games] = None, db: Session = Depends
     return tournaments
 
 
-@router.get("/registered_list", response_model=List[TournamentRegistered])
+@router.get("/advanced_data_list", response_model=List[TournamentAdvancedData])
 def is_user_tournaments_registered(game: Optional[Games] = None, count=20, offset=0, db: Session = Depends(get_db),
                                    auth: TokenData = Depends(auth_user)):
     tournaments = tournaments_crud.get_tournaments(game, offset, count, db)
-    tournaments_registered: List[TournamentRegistered] = []
+    tournaments_registered: List[TournamentAdvancedData] = []
     for tournament in tournaments:
         registered = tournaments_crud.is_users_in_tournament(tournament.id, auth.email, db)
-        tournaments_registered.append(TournamentRegistered(registered=registered, id=tournament.id))
+        register_access = tournaments_crud.count_users_in_tournament(tournament.id, db) < tournament.max_squads
+        tournaments_registered.append(TournamentAdvancedData(registered=registered,
+                                                             id=tournament.id, can_register=register_access))
     return tournaments_registered
 
 
-@router.get("/registered", response_model=dict)
-def is_user_tournament_registered(tournament_id: int, db: Session = Depends(get_db), auth: TokenData = Depends(auth_user)):
+@router.get("/advanced_data", response_model=dict)
+def get_tournament_advanced_data(tournament_id: int, db: Session = Depends(get_db), auth: TokenData = Depends(auth_user)):
     tournament = tournaments_crud.get_tournament(tournament_id, db)
     is_registered = tournaments_crud.is_users_in_tournament(tournament.id, auth.email, db)
-    return {'is_registered': is_registered}
+    register_access = tournaments_crud.count_users_in_tournament(tournament_id, db) < tournament.max_squads
+    return {'is_registered': is_registered, 'can_register': register_access}
 
 
 @router.get("/by_id", response_model=Tournament)
