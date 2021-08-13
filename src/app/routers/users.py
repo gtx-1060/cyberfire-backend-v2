@@ -81,4 +81,3 @@ def give_admin_rights(secret_key: str, user_data=Depends(auth_user), db: Session
 
 
 
-

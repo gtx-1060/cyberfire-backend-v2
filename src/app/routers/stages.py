@@ -8,11 +8,7 @@ from starlette.responses import Response
 from src.app.crud.lobbies import remove_team
 from src.app.crud.stats import delete_match_by_lobby
 from src.app.crud import stages as stages_crud
-from src.app.crud.user import get_user_by_email
-from src.app.exceptions.tournament_exceptions import NotAllowedForTVT, TournamentAlreadyFinished
 from src.app.schemas.stage import Stage, StagePreview, StageEdit
-from src.app.schemas.token_data import TokenData
-from src.app.schemas.tournaments import TournamentEdit
 from src.app.services.auth_service import auth_admin, try_auth_user
 from src.app.utils import get_db
 from src.app.services import tournaments_service

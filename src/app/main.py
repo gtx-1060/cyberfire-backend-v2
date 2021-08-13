@@ -20,7 +20,7 @@ app.add_middleware(
 )
 app.middleware("http")(DatabaseSessionMiddleware())
 
-app.mount("/static", StaticFiles(directory=STATIC_FILES_PATH), name="static")
+app.mount("/api/v2/static", StaticFiles(directory=STATIC_FILES_PATH), name="static")
 app.include_router(news.router)
 app.include_router(users.router)
 app.include_router(stats.router)

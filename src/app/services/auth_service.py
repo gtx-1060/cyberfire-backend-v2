@@ -12,7 +12,8 @@ from ..schemas.user import User, UserCreate
 from ..models.roles import Roles
 from ..models.user import User as DbUser
 from ..config import SECRET_KEY, ALGORITHM, REFRESH_TOKEN_EXPIRE_DAYS
-from ..exceptions.auth_exceptions import AuthenticationException, WrongCredentialsException, NotEnoughPermissions
+from ..exceptions.auth_exceptions import AuthenticationException, WrongCredentialsException, NotEnoughPermissions, \
+    UserWasBannedException
 from ..schemas.token_data import TokenData, Tokens
 from ..middleware.auth_middleware import MyOAuth2PasswordBearer
 from ..utils import verify_password
@@ -114,7 +115,7 @@ def authorize_using_refresh(refresh_token: str, db: Session) -> Tokens:
     if refresh_token != user.refresh_token:
         raise AuthenticationException('wrong refresh token')
     if not user.is_active:
-        raise AuthenticationException('user was banned')
+        raise UserWasBannedException(user.username)
     access_token = create_jwt_token(user)
     new_refresh_token = create_jwt_token(user, timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS))
     update_refresh_token(user.email, new_refresh_token, db)

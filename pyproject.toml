@@ -29,6 +29,7 @@ pytest = "^6.2.4"
 server = "src.app.main:start"
 create_tables = "src.app.database.init:create_tables"
 drop_tables = "src.app.database.init:run_drop_tables"
+test_tournaments = "src.tests.tournaments_tests:test_tournament"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

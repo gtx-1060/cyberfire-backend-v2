@@ -5,7 +5,6 @@ import pytz
 from fastapi.testclient import TestClient
 from uuid import uuid4, uuid1
 
-
 from src.app.main import app
 from src.app.models.games import Games
 from src.app.schemas.lobbies import LobbyCreate
@@ -25,13 +24,13 @@ tournament = {
         {
             "title": "s1",
             "description": "string",
-            "stage_datetime": datetime.now(pytz.timezone('Europe/Moscow'))+timedelta(seconds=30),
+            "stage_datetime": datetime.now(pytz.timezone('Europe/Moscow')) + timedelta(seconds=30),
             "lobbies": []
         },
         {
             "title": "s2",
             "description": "string",
-            "stage_datetime": datetime.now(pytz.timezone('Europe/Moscow'))+timedelta(minutes=10),
+            "stage_datetime": datetime.now(pytz.timezone('Europe/Moscow')) + timedelta(minutes=10),
             "lobbies": []
         }
     ],
@@ -44,14 +43,14 @@ tournament = {
 
 
 def register(cl: TestClient) -> UserCreate:
-    data = UserCreate(password=uuid1(), email=uuid4(), username=uuid1(), team_name=uuid4())
-    r = cl.post('/api/v2/users', json=data.json())
-    assert r.status_code == 202
+    data = UserCreate(password=str(uuid1()), email=str(uuid4()), username=str(uuid1()), team_name=str(uuid4()))
+    r = cl.post('/api/v2/users/register', data=data.json())
+    assert r.status_code == 202 or r.status_code == 200
     return data
 
 
 def login(cl: TestClient, user: UserCreate) -> str:
-    data = {'username': user.email, 'password': user.email}
+    data = {'username': user.email, 'password': user.password}
     r = cl.post('/api/v2/users/login', data=data)
     assert r.status_code == 200
     assert 'access_token' in r.json()
@@ -60,7 +59,7 @@ def login(cl: TestClient, user: UserCreate) -> str:
 
 def create_tournament(cl: TestClient, token: str) -> int:
     headers = {'Authorization': f"bearer {token}"}
-    r = cl.post(json=tournament, headers=headers)
+    r = cl.post("/api/v2/tournaments", json=tournament, headers=headers)
     assert r.status_code == 200 or r.status_code == 202
     assert 'id' in r.json()
     return r.json()['id']
@@ -79,7 +78,7 @@ def create_lobby(cl: TestClient, token: str, s_id: int):
     assert r.status_code == 200 or r.status_code == 202
 
 
-def create_stats(cl: TestClient, token: str, team_name: str,  l_id: int):
+def create_stats(cl: TestClient, token: str, team_name: str, l_id: int):
     headers = {'Authorization': f"bearer {token}"}
     stats = MatchStatsCreate(
         kills_count=123,
@@ -111,4 +110,3 @@ def test_tournament():
     for i in range(players_count):
         user_dataset += register(client)
         tokens += login(client, user_dataset[i])
-

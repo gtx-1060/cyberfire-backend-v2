@@ -6,6 +6,11 @@ class AuthenticationException(MyException):
         super().__init__(401, name)
 
 
+class UserWasBannedException(MyException):
+    def __init__(self, name):
+        super().__init__(423, f"user {name} was banned")
+
+
 class WrongCredentialsException(MyException):
     def __init__(self):
         super().__init__(400, "Auth failed: wrong credentials")
