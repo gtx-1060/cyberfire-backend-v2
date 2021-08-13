@@ -104,7 +104,7 @@ def change_user_password(old_password: str, new_password: str, email: str, db: S
     user = get_user_by_email(email, db)
     if not verify_password(user.hashed_password, old_password):
         WrongCredentialsException()
-    phash = utils.get_password_hash(user.password)
+    phash = utils.get_password_hash(new_password)
     update_user_password(email, phash, db)
 
 
