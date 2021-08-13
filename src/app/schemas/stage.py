@@ -27,7 +27,6 @@ class StageEdit(BaseModel):
     stage_datetime: Optional[datetime]
     kill_leaders: Optional[List[str]]
     damage_leaders: Optional[List[str]]
-    lobbies_count: Optional[int]
 
 
 class Stage(BaseModel):
@@ -40,7 +39,6 @@ class Stage(BaseModel):
     tournament_data: TournamentData = Field(..., alias='tournament')
     state: StageStates
     lobbies: List[Lobby]
-    lobbies_count: int
 
     key: Optional[str]
     

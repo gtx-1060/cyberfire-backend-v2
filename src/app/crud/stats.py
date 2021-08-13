@@ -41,9 +41,9 @@ def create_match_stats(stats: stats_schemas.MatchStatsCreate, lobby_id: int, db:
         db.commit()
 
 
-def create_match_stats_list(stats_list: List[stats_schemas.MatchStatsCreate], stage_id: int, db: Session):
+def create_match_stats_list(stats_list: List[stats_schemas.MatchStatsCreate], lobby_id: int, db: Session):
     for stats in stats_list:
-        create_match_stats(stats, stage_id, db, False)
+        create_match_stats(stats, lobby_id, db, False)
     db.commit()
 
 

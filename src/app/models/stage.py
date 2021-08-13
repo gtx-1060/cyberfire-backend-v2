@@ -16,6 +16,5 @@ class Stage(Base):
     kill_leaders = Column(MutableList.as_mutable(PickleType), default=[])
     damage_leaders = Column(MutableList.as_mutable(PickleType), default=[])
     tournament_id = Column(Integer, ForeignKey('tournaments.id', ondelete='CASCADE'))
-    lobbies_count = Column(SmallInteger, default=0)
     lobbies = relationship("Lobby", backref=backref("stage", cascade="all, delete"))
     stage_datetime = Column(TIMESTAMP)

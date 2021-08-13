@@ -16,6 +16,7 @@ from ..exceptions.auth_exceptions import AuthenticationException, WrongCredentia
 from ..schemas.token_data import TokenData, Tokens
 from ..middleware.auth_middleware import MyOAuth2PasswordBearer
 from ..utils import verify_password
+from src.app.models.tournament import association_table as tournament_associations
 
 oauth2_scheme = MyOAuth2PasswordBearer(tokenUrl='/api/v2/users/login')
 
@@ -103,7 +104,8 @@ def change_user_password(old_password: str, new_password: str, email: str, db: S
     user = get_user_by_email(email, db)
     if not verify_password(user.hashed_password, old_password):
         WrongCredentialsException()
-    update_user_password(email, new_password, db)
+    phash = utils.get_password_hash(user.password)
+    update_user_password(email, phash, db)
 
 
 def authorize_using_refresh(refresh_token: str, db: Session) -> Tokens:
@@ -122,6 +124,6 @@ def authorize_using_refresh(refresh_token: str, db: Session) -> Tokens:
 def ban_user(user_team: str, db: Session):
     user = get_user_by_team(user_team, db)
     user.is_active = False
-    # TODO: REMOVE FROM ALL TOURNAMENTS
+    db.query(tournament_associations).filter(tournament_associations.user_id == user.id).delete()
     db.add(user)
     db.commit()

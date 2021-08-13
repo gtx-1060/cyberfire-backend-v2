@@ -31,7 +31,6 @@ def create_stages(stages: List[StageCreate], tournament_id: int, db: Session):
             description=stage.description,
             tournament_id=tournament_id,
             stage_datetime=stage.stage_datetime,
-            lobbies_count=len(stage.lobbies)
         )
         db.add(db_stage)
     db.commit()
@@ -49,8 +48,6 @@ def edit_stage(stage: StageEdit, stage_id: int, db: Session):
         db_stage.damage_leaders = stage.damage_leaders
     if stage.kill_leaders is not None:
         db_stage.kill_leaders = stage.kill_leaders
-    if stage.lobbies_count is not None:
-        db_stage.lobbies_count = stage.lobbies_count
     db.add(db_stage)
     db.commit()
 

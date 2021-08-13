@@ -17,10 +17,8 @@ class MatchStatsCreate(BaseModel):
     score: int
     team_name: str
     index: int
-    map: str
     placement: int
     game: Games
-    rival_id: int
 
 
 class MatchStatsEdit(BaseModel):
@@ -34,6 +32,7 @@ class MatchStats(BaseModel):
     id: int
     score: int
     kills_count: int
+    placement: int
     user_data: UserData = Field(..., alias='user')
     index: int
     user_id: int
