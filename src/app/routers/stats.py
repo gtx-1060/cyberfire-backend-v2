@@ -11,7 +11,7 @@ from src.app.crud.user import get_user_by_email
 from src.app.models.games import Games
 from src.app.models.tournament_states import StageStates
 from src.app.routers.stages import get_stage
-from src.app.schemas.stats import MatchStats, TournamentStats, GlobalStats, MatchStatsCreate
+from src.app.schemas.stats import MatchStats, TournamentStats, GlobalStats, MatchStatsCreate, MatchStatsEdit
 from src.app.schemas.token_data import TokenData
 from src.app.services.auth_service import auth_admin, try_auth_user
 from src.app.services.lobby_service import convert_lobbies_to_frontend_ready, convert_lobby_to_frontend_ready
@@ -69,3 +69,10 @@ def create_match_stats(stats: MatchStatsCreate, lobby_id: int, db: Session = Dep
                        _=Depends(auth_admin)):
     stats_crud.create_match_stats(stats, lobby_id, db)
     return Response(status_code=202)
+
+
+@router.put('/match')
+def edit_match_stats(match: MatchStatsEdit, match_id: int, db: Session = Depends(get_db),
+                     _=Depends(auth_admin)):
+    stats_crud.edit_match_stats(match, match_id, db)
+    return Response(status_code=200)

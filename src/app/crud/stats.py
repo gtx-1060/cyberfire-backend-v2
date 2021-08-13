@@ -53,8 +53,6 @@ def edit_match_stats(stats: stats_schemas.MatchStatsEdit, stats_id: int, db: Ses
         raise ItemNotFound()
     if stats.score is not None:
         db_stats.score = stats.score
-    if stats.index is not None:
-        db_stats.index = stats.index
     if stats.kills_count is not None:
         db_stats.kills_count = stats.kills_count
     if stats.placement is not None:

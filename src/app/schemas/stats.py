@@ -24,7 +24,6 @@ class MatchStatsCreate(BaseModel):
 class MatchStatsEdit(BaseModel):
     kills_count: Optional[int]
     score: Optional[int]
-    index: Optional[int]
     placement: Optional[int]
 
 
