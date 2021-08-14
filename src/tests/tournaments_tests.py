@@ -8,11 +8,12 @@ from uuid import uuid4, uuid1
 from src.app.main import app
 from src.app.models.games import Games
 from src.app.schemas.lobbies import LobbyCreate
+from src.app.schemas.squad import Squad
 from src.app.schemas.stats import MatchStatsCreate
-from src.app.schemas.user import UserCreate
+from src.app.schemas.user import UserCreate, UserEdit
 
 client = TestClient(app)
-players_count = 30
+players_count = 10
 
 tournament = {
     "title": "string",
@@ -24,13 +25,13 @@ tournament = {
         {
             "title": "s1",
             "description": "string",
-            "stage_datetime": datetime.now(pytz.timezone('Europe/Moscow')) + timedelta(seconds=30),
+            "stage_datetime": str(datetime.now(pytz.timezone('Europe/Moscow')) + timedelta(seconds=30)),
             "lobbies": []
         },
         {
             "title": "s2",
             "description": "string",
-            "stage_datetime": datetime.now(pytz.timezone('Europe/Moscow')) + timedelta(minutes=10),
+            "stage_datetime": str(datetime.now(pytz.timezone('Europe/Moscow')) + timedelta(minutes=10)),
             "lobbies": []
         }
     ],
@@ -57,12 +58,19 @@ def login(cl: TestClient, user: UserCreate) -> str:
     return r.json()['access_token']
 
 
+def fill_squad(cl: TestClient, token: str):
+    headers = {'Authorization': f"bearer {token}"}
+    user = UserEdit(squads=[Squad(game=Games.APEX, players=['12', '12', '12'])])
+    r = cl.put('/api/v2/users', data=user.json(), headers=headers)
+    assert r.status_code == 200
+
+
 def create_tournament(cl: TestClient, token: str) -> int:
     headers = {'Authorization': f"bearer {token}"}
     r = cl.post("/api/v2/tournaments", json=tournament, headers=headers)
     assert r.status_code == 200 or r.status_code == 202
-    assert 'id' in r.json()
-    return r.json()['id']
+    assert 'tournament_id' in r.json()
+    return r.json()['tournament_id']
 
 
 def register_to_tournament(cl: TestClient, token: str, t_id: int):
@@ -74,7 +82,7 @@ def register_to_tournament(cl: TestClient, token: str, t_id: int):
 def create_lobby(cl: TestClient, token: str, s_id: int):
     headers = {'Authorization': f"bearer {token}"}
     lobby = LobbyCreate(matches_count=3, stage_id=s_id)
-    r = cl.post(f'/api/v2/tournaments/lobbies', headers=headers, json=lobby.json())
+    r = cl.post(f'/api/v2/lobbies', headers=headers, data=lobby.json())
     assert r.status_code == 200 or r.status_code == 202
 
 
@@ -88,7 +96,7 @@ def create_stats(cl: TestClient, token: str, team_name: str, l_id: int):
         placement=1,
         game=Games.CSGO
     )
-    r = cl.post(f'/api/v2/stats/match?lobby_id={l_id}', headers=headers, json=stats.json())
+    r = cl.post(f'/api/v2/stats/match?lobby_id={l_id}', headers=headers, data=stats.json())
     assert r.status_code == 200 or r.status_code == 202
 
 
@@ -108,5 +116,22 @@ def test_tournament():
     user_dataset = []
     tokens = []
     for i in range(players_count):
-        user_dataset += register(client)
-        tokens += login(client, user_dataset[i])
+        user_dataset.append(register(client))
+        tokens.append(login(client, user_dataset[i]))
+    admin = UserCreate(password='string', email='string', username='', team_name='')
+    admin_token = login(client, admin)
+    t_id = create_tournament(client, admin_token)
+
+    r = client.get(f'/api/v2/tournaments/by_id?tournament_id={t_id}')
+    assert r.status_code == 200
+    stage_id = r.json()['stages'][0]['id']
+    assert stage_id is not None
+    print(stage_id)
+
+    create_lobby(client, admin_token, stage_id)
+
+    for token in tokens:
+        fill_squad(client, token)
+        register_to_tournament(client, token, t_id)
+    for user in user_dataset:
+        create_stats(client, admin_token, user.team_name, 1)

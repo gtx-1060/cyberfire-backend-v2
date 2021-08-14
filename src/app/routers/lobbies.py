@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from starlette.responses import Response
 
 from src.app.crud import lobbies as lobbies_crud
-from src.app.schemas.lobbies import Lobby, LobbyCreate
+from src.app.schemas.lobbies import Lobby, LobbyCreate, LobbyEdit
 from src.app.services.auth_service import auth_admin
 
 from src.app.utils import get_db
@@ -25,6 +25,12 @@ def get_lobby(lobby_id: int, db: Session = Depends(get_db)):
 @router.post('', response_model=dict)
 def add_lobby(lobby: LobbyCreate, db: Session = Depends(get_db), _=Depends(auth_admin)):
     db_lobby = lobbies_crud.create_lobby(lobby, db)
+    return {"id": db_lobby.id}
+
+
+@router.put('', response_model=dict)
+def edit_lobby(lobby: LobbyEdit, lobby_id: int, db: Session = Depends(get_db), _=Depends(auth_admin)):
+    db_lobby = lobbies_crud.edit_lobby(lobby, lobby_id, db)
     return {"id": db_lobby.id}
 
 

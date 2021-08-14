@@ -9,7 +9,7 @@ from ..exceptions.db_exceptions import FieldCouldntBeEdited
 from ..exceptions.tournament_exceptions import MaxSquadsCount, UserAlreadyRegistered, UserNotRegistered, \
     WrongTournamentState
 from ..models.games import Games
-from ..models.tournament import Tournament
+from ..models.tournament import Tournament, association_table as tournament_associations
 from ..exceptions.base import ItemNotFound
 from ..models.tournament_states import TournamentStates
 from ..models.user import User
@@ -84,7 +84,19 @@ def edit_tournament(tournament: TournamentEdit, tournament_id: int, db: Session)
     db.commit()
 
 
+def remove_user_from_tournaments(user_id: int, db: Session):
+    db.query(tournament_associations).filter(tournament_associations.c.users_id == user_id).delete()
+    db.commit()
+
+
+def remove_user_from_tournament(user_id: int, tournament_id: int, db: Session):
+    db.query(tournament_associations).filter(and_(tournament_associations.c.users_id == user_id,
+                                                  tournament_associations.c.tournaments_id == tournament_id)).delete()
+    db.commit()
+
+
 def remove_tournament(tournament_id: int, db: Session):
+    db.query(tournament_associations).filter(tournament_associations.c.tournaments_id == tournament_id).delete()
     db.query(Tournament).filter(Tournament.id == tournament_id).delete()
     db.commit()
 

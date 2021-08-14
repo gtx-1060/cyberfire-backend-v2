@@ -2,7 +2,7 @@ from typing import List, Dict, Tuple
 
 from sqlalchemy.orm import Session
 
-from src.app.schemas.lobbies import Lobby
+from src.app.models.lobbies import Lobby
 from src.app.schemas.stats import LiteMatchStats
 from src.app.crud import lobbies as lobbies_crud
 
@@ -10,7 +10,7 @@ from src.app.crud import lobbies as lobbies_crud
 def convert_lobby_to_frontend_ready(lobby: Lobby) -> Dict[str, dict]:
     teams = {}
     for match in lobby.stats:
-        team_name = match.user_data.team_name
+        team_name = match.user.team_name
         if team_name in teams:
             teams[team_name]["sum"] += match.score
             teams[team_name]["matches"].append(LiteMatchStats.from_orm(match))

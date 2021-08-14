@@ -18,6 +18,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
+# app.middleware("http")(LoggingMiddleware())
 app.middleware("http")(DatabaseSessionMiddleware())
 
 app.mount("/api/v2/static", StaticFiles(directory=STATIC_FILES_PATH), name="static")
@@ -40,7 +41,6 @@ async def startup_event():
 
 
 def start():
-    logging
     uvicorn.run("src.app.main:app", host="127.0.0.1", port=3010)
 
 

@@ -42,12 +42,12 @@ def create_lobbies(lobbies: List[LobbyCreate], db: Session):
     db.commit()
 
 
-def edit_lobby(lobby_create: lobbies_schemas.LobbyEdit, lobby_id: int, db: Session):
+def edit_lobby(lobby_edit: lobbies_schemas.LobbyEdit, lobby_id: int, db: Session):
     db_lobby = get_lobby(lobby_id, db)
-    if lobby_create.matches_count is not None:
-        db_lobby.matches_count = lobby_create.matches_count
-    if lobby_create.key is not None:
-        db_lobby.key = lobby_create.key
+    if lobby_edit.matches_count is not None:
+        db_lobby.matches_count = lobby_edit.matches_count
+    if lobby_edit.key is not None:
+        db_lobby.key = lobby_edit.key
     db.add(db_lobby)
     db.commit()
 

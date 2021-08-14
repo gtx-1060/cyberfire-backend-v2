@@ -7,6 +7,7 @@ from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
 from ..crud.stats import create_empty_global_stats
+from ..crud.tournaments import remove_user_from_tournaments
 from ..crud.user import *
 from ..schemas.user import User, UserCreate
 from ..models.roles import Roles
@@ -125,6 +126,4 @@ def authorize_using_refresh(refresh_token: str, db: Session) -> Tokens:
 def ban_user(user_team: str, db: Session):
     user = get_user_by_team(user_team, db)
     user.is_active = False
-    db.query(tournament_associations).filter(tournament_associations.user_id == user.id).delete()
-    db.add(user)
-    db.commit()
+    remove_user_from_tournaments(user.id, db)
