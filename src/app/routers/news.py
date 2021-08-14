@@ -17,13 +17,13 @@ router = APIRouter(
 )
 
 
-@router.post('/', response_model=dict)
+@router.post('', response_model=dict)
 def create_news(news: NewsCreate, _=Depends(auth_admin), db: Session = Depends(get_db)):
     news_id = news_crud.create_news(news, db).id
     return {'id': news_id}
 
 
-@router.put('/')
+@router.put('')
 def edit_news(news: NewsEdit, news_id: int, _=Depends(auth_admin), db: Session = Depends(get_db)):
     news_crud.edit_news(news, news_id, db)
     return Response(status_code=202)
@@ -56,7 +56,7 @@ def get_news_count(db: Session = Depends(get_db)):
     return news_crud.get_news_count(db)
 
 
-@router.delete('/')
+@router.delete('')
 def remove_news(news_id: int, db: Session = Depends(get_db)):
     news_crud.remove_news(news_id, db)
     return Response(status_code=204)

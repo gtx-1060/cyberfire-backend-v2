@@ -54,9 +54,9 @@ def set_tournament_dates(stages, tournament) -> Tournament:
     start_date = datetime(year=9999, month=1, day=1, tzinfo=pytz.UTC)
     end_date = datetime(year=1, month=1, day=1, tzinfo=pytz.UTC)
     for stage in stages:
-        if start_date > stage.stage_datetime:
+        if start_date.timestamp() > stage.stage_datetime.timestamp():
             start_date = stage.stage_datetime
-        if end_date < stage.stage_datetime:
+        if end_date.timestamp() < stage.stage_datetime.timestamp():
             end_date = stage.stage_datetime
     tournament.start_date = start_date
     tournament.end_date = end_date
@@ -67,6 +67,10 @@ def update_db_tournament_date(stage_id: int, db: Session):
     tournament_id = get_stage_by_id(stage_id, db).tournament_id
     tournament = tournaments_crud.get_tournament(tournament_id, db)
     tournament = set_tournament_dates(get_stages(tournament_id, db), tournament)
+    now_moscow = datetime.now(pytz.timezone('Europe/Moscow'))
+    if tournament.start_date.timestamp() > now_moscow.timestamp():
+        tournament.state = TournamentStates.REGISTRATION
+        schedule_tournament(tournament, db, False)
     db.add(tournament)
     db.commit()
 
@@ -80,13 +84,19 @@ def create_tournament(tournament_create: TournamentCreate, db: Session) -> dict:
     create_stages(tournament_create.stages, db_tournament.id, db)
     for stage in tournament_create.stages:
         create_lobbies(stage.lobbies, db)
+    schedule_tournament(db_tournament, db)
+    return {"tournament_id": db_tournament.id}
+
+
+def schedule_tournament(db_tournament: Tournament, db: Session, autoremove=True):
     try:
+        remove_tournament_jobs(db_tournament.id)
         myscheduler.plan_task(get_tournament_task_id(TournamentEvents.START_TOURNAMENT, db_tournament.id),
                               db_tournament.start_date, start_battleroyale_tournament, [db_tournament.id])
     except Exception as e:
-        tournaments_crud.remove_tournament(db_tournament.id, db)
+        if autoremove:
+            tournaments_crud.remove_tournament(db_tournament.id, db)
         raise e
-    return {"tournament_id": db_tournament.id}
 
 
 def remove_tournament_jobs(tournament_id):

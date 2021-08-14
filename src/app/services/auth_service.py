@@ -94,6 +94,7 @@ def log_in(security_form: OAuth2PasswordRequestForm, db: Session) -> Tokens:
     access_token = create_jwt_token(user)
     refresh_token = create_jwt_token(user, timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS))
     update_refresh_token(user.email, refresh_token, db)
+    print(refresh_token)
     return Tokens(access_token=access_token, refresh_token=refresh_token, token_type="Bearer")
 
 
@@ -120,6 +121,7 @@ def authorize_using_refresh(refresh_token: str, db: Session) -> Tokens:
     access_token = create_jwt_token(user)
     new_refresh_token = create_jwt_token(user, timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS))
     update_refresh_token(user.email, new_refresh_token, db)
+    print(new_refresh_token)
     return Tokens(access_token=access_token, refresh_token=new_refresh_token, token_type="Bearer")
 
 

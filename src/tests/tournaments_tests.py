@@ -81,7 +81,7 @@ def register_to_tournament(cl: TestClient, token: str, t_id: int):
 
 def create_lobby(cl: TestClient, token: str, s_id: int):
     headers = {'Authorization': f"bearer {token}"}
-    lobby = LobbyCreate(matches_count=3, stage_id=s_id)
+    lobby = LobbyCreate(matches_count=3, stage_id=s_id, key="13131")
     r = cl.post(f'/api/v2/lobbies', headers=headers, data=lobby.json())
     assert r.status_code == 200 or r.status_code == 202
 
@@ -112,26 +112,30 @@ def test_tournament():
     8 повторить 5-7 \n
     9 завершить турнир \n
     """
-
+    # admin = UserCreate(password='string', email='string', username='', team_name='')
+    # admin_token = login(client, admin)
+    # t_id = create_tournament(client, admin_token)
     user_dataset = []
     tokens = []
     for i in range(players_count):
         user_dataset.append(register(client))
         tokens.append(login(client, user_dataset[i]))
-    admin = UserCreate(password='string', email='string', username='', team_name='')
-    admin_token = login(client, admin)
-    t_id = create_tournament(client, admin_token)
 
+    t_id = 7
     r = client.get(f'/api/v2/tournaments/by_id?tournament_id={t_id}')
     assert r.status_code == 200
     stage_id = r.json()['stages'][0]['id']
     assert stage_id is not None
     print(stage_id)
 
-    create_lobby(client, admin_token, stage_id)
-
     for token in tokens:
         fill_squad(client, token)
         register_to_tournament(client, token, t_id)
+
+    # lobby_tests(admin_token, stage_id, t_id, tokens, user_dataset)
+
+
+def lobby_tests(admin_token, stage_id, user_dataset):
+    create_lobby(client, admin_token, stage_id)
     for user in user_dataset:
         create_stats(client, admin_token, user.team_name, 1)

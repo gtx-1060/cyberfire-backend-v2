@@ -15,8 +15,17 @@ class LobbyEdit(BaseModel):
     key: Optional[str]
 
 
-class Lobby(LobbyCreate):
+class LobbyPreview(BaseModel):
+    matches_count: int = Field(default=1)
     id: int
+
+    class Config:
+        orm_mode = True
+
+
+class Lobby(LobbyPreview):
+    stage_id: int
+    key: str
     stats: List[MatchStats]
 
     class Config:

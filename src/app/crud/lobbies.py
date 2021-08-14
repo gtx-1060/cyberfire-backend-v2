@@ -2,6 +2,7 @@ from sqlalchemy import and_
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
+from .stages import get_stage_by_id
 from .user import get_user_by_team
 from ..models.stats import MatchStats
 from ..schemas import lobbies as lobbies_schemas
@@ -25,6 +26,7 @@ def get_lobbies(stage_id: int, db: Session) -> List[Lobby]:
 
 
 def create_lobby(lobby_create: lobbies_schemas.LobbyCreate, db: Session, commit=True) -> Optional[Lobby]:
+    get_stage_by_id(lobby_create.stage_id, db)
     db_lobby = Lobby(
         matches_count=lobby_create.matches_count,
         stage_id=lobby_create.stage_id

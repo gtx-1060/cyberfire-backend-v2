@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 from datetime import datetime
 
 from src.app.models.tournament_states import StageStates
-from src.app.schemas.lobbies import Lobby, LobbyCreate
+from src.app.schemas.lobbies import Lobby, LobbyCreate, LobbyPreview
 
 
 class TournamentData(BaseModel):
@@ -38,9 +38,7 @@ class Stage(BaseModel):
     damage_leaders: List[str]
     tournament_data: TournamentData = Field(..., alias='tournament')
     state: StageStates
-    lobbies: List[Lobby]
-
-    key: Optional[str]
+    lobbies: List[LobbyPreview]
     
     class Config:
         orm_mode = True
