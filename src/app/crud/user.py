@@ -1,10 +1,8 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
 
-from .tournaments import remove_user_from_tournaments
 from ..schemas import user as user_schemas
 from ..models.user import User
-from ..models.tournament import association_table as tournament_associations
 from ..models.squad import Squad
 from ..models.roles import Roles
 from ..models.games import Games
@@ -128,9 +126,3 @@ def update_user_role(user_email: str, role: Roles, db: Session):
     })
     db.commit()
 
-
-def remove_user(user_team: str, db: Session):
-    user = get_user_by_team(user_team, db)
-    remove_user_from_tournaments(user.id, db)
-    db.query(User).filter(User.id == user.id).delete()
-    db.commit()

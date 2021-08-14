@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from starlette.responses import Response
 
 from src.app.config import AVATARS_STATIC_PATH
-from src.app.crud.user import get_user_by_email, edit_user, update_user_role, remove_user
+from src.app.crud.user import get_user_by_email, edit_user, update_user_role
 from src.app.models.roles import Roles
 from src.app.schemas.token_data import Tokens, TokenData
 from src.app.schemas.user import UserCreate, User, UserEdit
@@ -72,7 +72,7 @@ def ban_user(team_name: str, _=Depends(auth_admin), db: Session = Depends(get_db
 
 @router.delete("")
 def delete_user(team_name: str, _=Depends(auth_admin), db: Session = Depends(get_db)):
-    remove_user(team_name, db)
+    auth_service.remove_user(team_name, db)
     return Response(status_code=200)
 
 

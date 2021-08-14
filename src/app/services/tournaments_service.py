@@ -12,7 +12,8 @@ from src.app.crud.stats import create_match_stats_list, get_tournament_stats, ed
 from src.app.crud.user import get_user_squad_by_email, get_user_by_email
 from src.app.database.db import SessionLocal
 from src.app.exceptions.tournament_exceptions import StageMustBeEmpty, TournamentAlreadyFinished, \
-    StatsOfNotParticipatedTeam, WrongTournamentDates, NotEnoughPlayersInSquad, NotAllowedForTVT, AllStageMustBeFinished
+    StatsOfNotParticipatedTeam, WrongTournamentDates, NotEnoughPlayersInSquad, NotAllowedForTVT, AllStageMustBeFinished, \
+    WrongTournamentState, UserNotRegistered, MaxSquadsCount, UserAlreadyRegistered
 from src.app.models.games import Games, game_squad_sizes
 from src.app.models.stage import Stage
 from src.app.models.stats import MatchStats, TournamentStats
@@ -99,8 +100,36 @@ def pause_tournament(tournament_id: int, db: Session):
     tournaments_crud.update_tournament_state(TournamentStates.PAUSED, tournament_id, db)
 
 
+def __add_user_to_tournament(tournament_id: int, user_email: str, db: Session):
+    user = get_user_by_email(user_email, db)
+    tournament = tournaments_crud.get_tournament(tournament_id, db)
+    if tournament.state != TournamentStates.REGISTRATION:
+        raise WrongTournamentState()
+    if user in tournament.users:
+        raise UserAlreadyRegistered(user_email)
+    if len(tournament.users) < tournament.max_squads:
+        tournament.users.append(user)
+    else:
+        raise MaxSquadsCount()
+    db.add(tournament)
+    db.commit()
+
+
+def __remove_tournament_player(tournament_id: int, user_email: str, db: Session):
+    user = get_user_by_email(user_email, db)
+    tournament = tournaments_crud.get_tournament(tournament_id, db)
+    if tournament.state != TournamentStates.REGISTRATION:
+        raise WrongTournamentState()
+    if user in tournament.users:
+        tournament.users.remove(user)
+    else:
+        raise UserNotRegistered(user_email)
+    db.add(tournament)
+    db.commit()
+
+
 def kick_player_from_tournament(user_email: str, tournament_id: int, db: Session):
-    tournaments_crud.remove_tournament_player(tournament_id, user_email, db)
+    __remove_tournament_player(tournament_id, user_email, db)
 
 
 def register_in_tournament(user_email: str, tournament_id: int, db: Session):
@@ -109,7 +138,7 @@ def register_in_tournament(user_email: str, tournament_id: int, db: Session):
     players_count = reduce(lambda a, x: a + (x.replace(" ", "") != ''), squad.players, 0)
     if players_count < game_squad_sizes[tournaments.game.value]:
         raise NotEnoughPlayersInSquad()
-    tournaments_crud.add_user_to_tournament(tournament_id, user_email, db)
+    __add_user_to_tournament(tournament_id, user_email, db)
 
 
 def update_tournament_stats(stats: Dict[str, Tuple[int, int, int]], tournament_id: int, db: Session, commit=True):

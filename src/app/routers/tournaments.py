@@ -117,4 +117,4 @@ def edit_tournament(tournament: TournamentEdit, tournament_id: int, _=Depends(au
 
 @router.get('/finish')
 def finish_tournament(tournament_id: int, _=Depends(auth_admin), db: Session = Depends(get_db)):
-    tournaments_service.end_battleroyale_tournament(tournament_id, )
+    tournaments_service.end_battleroyale_tournament(tournament_id, db)

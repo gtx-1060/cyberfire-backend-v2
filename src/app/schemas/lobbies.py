@@ -6,6 +6,7 @@ from src.app.schemas.stats import MatchStats
 
 class LobbyCreate(BaseModel):
     matches_count: int = Field(default=1)
+    key: str
     stage_id: int
 
 
