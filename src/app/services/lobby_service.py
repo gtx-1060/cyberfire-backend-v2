@@ -1,13 +1,12 @@
 from typing import List, Dict
 from src.app.models.lobbies import Lobby
-from src.app.schemas.stats import LiteMatchStats
+from src.app.schemas.stats import LiteMatchStats, MatchStatsFrontend
 
 
 def convert_to_array(data: Dict[str, dict]):
     result = []
     for team in data.keys():
-        item = "{"+f'"name": {team}, "overallScore": {data[team]["sum"]}, "matches": {data[team]["matches"]}'+"}"
-        result.append(item)
+        result.append(MatchStatsFrontend(name=team, overallScore=data[team]["sum"], matches=data[team]["matches"]))
     return result
 
 

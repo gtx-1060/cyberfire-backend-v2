@@ -5,12 +5,11 @@ from sqlalchemy.orm import Session
 from starlette.responses import Response
 
 from src.app.crud import stats as stats_crud
-from src.app.crud.lobbies import get_lobbies, get_lobby
+from src.app.crud.lobbies import get_lobby
 from src.app.crud.stages import get_stage_by_id
 from src.app.crud.user import get_user_by_email
 from src.app.models.games import Games
-from src.app.models.tournament_states import StageStates
-from src.app.schemas.stats import MatchStats, TournamentStats, GlobalStats, MatchStatsCreate, MatchStatsEdit
+from src.app.schemas.stats import TournamentStats, GlobalStats, MatchStatsCreate, MatchStatsEdit
 from src.app.schemas.token_data import TokenData
 from src.app.services.auth_service import auth_admin, try_auth_user
 from src.app.services.lobby_service import convert_lobbies_to_frontend_ready, convert_lobby_to_frontend_ready

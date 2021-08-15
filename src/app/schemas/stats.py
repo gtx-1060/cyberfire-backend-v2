@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel, Field
 
 from ..models.games import Games
@@ -38,6 +38,13 @@ class MatchStats(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class MatchStatsFrontend(BaseModel):
+    name: str
+    overallScore: int
+    matches: List[MatchStats]
+
 
 
 class LiteMatchStats(BaseModel):
