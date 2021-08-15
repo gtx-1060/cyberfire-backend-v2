@@ -6,7 +6,7 @@ import pytz
 from sqlalchemy.orm import Session
 
 from src.app.crud import tournaments as tournaments_crud
-from src.app.crud.lobbies import create_lobbies
+from src.app.crud.lobbies import create_lobbies, get_lobby
 from src.app.crud.stages import get_stages, get_stage_by_id, create_stages, update_stage_state
 from src.app.crud.stats import create_match_stats_list, get_tournament_stats, edit_global_stats
 from src.app.crud.user import get_user_squad_by_email, get_user_by_email
@@ -231,6 +231,7 @@ def start_stage(stage_id: int, db: Session):
 
 
 def save_row_stats(stats_schemas: List[MatchStatsCreate], lobby_id: int, db: Session):
+    get_lobby(lobby_id, db)
     db.query(MatchStats).filter(MatchStats.lobby_id == lobby_id).delete()
     create_match_stats_list(stats_schemas, lobby_id, db)
 

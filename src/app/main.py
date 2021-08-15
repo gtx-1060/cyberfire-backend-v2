@@ -7,6 +7,7 @@ from starlette.staticfiles import StaticFiles
 
 from src.app.middleware.db_session_middleware import DatabaseSessionMiddleware
 from src.app.config import STATIC_FILES_PATH
+from src.app.middleware.log_middleware import LoggingMiddleware
 from src.app.routers import news, users, stats, stages, tournaments, lobbies
 from src.app.services.schedule_service import myscheduler
 
@@ -18,7 +19,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
-# app.middleware("http")(LoggingMiddleware())
+app.middleware("http")(LoggingMiddleware())
 app.middleware("http")(DatabaseSessionMiddleware())
 
 app.mount("/api/v2/static", StaticFiles(directory=STATIC_FILES_PATH), name="static")
