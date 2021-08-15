@@ -15,6 +15,7 @@ from src.app.schemas.stats import MatchStats, TournamentStats, GlobalStats, Matc
 from src.app.schemas.token_data import TokenData
 from src.app.services.auth_service import auth_admin, try_auth_user
 from src.app.services.lobby_service import convert_lobbies_to_frontend_ready, convert_lobby_to_frontend_ready
+from src.app.services.tournaments_service import save_row_stats
 from src.app.utils import get_db
 
 router = APIRouter(
@@ -59,7 +60,7 @@ def get_global_stats(game: Games, offset=0, count=20, db: Session = Depends(get_
 @router.post('/matches')
 def create_multiple_match_stats(stats_list: List[MatchStatsCreate], lobby_id: int, db: Session = Depends(get_db),
                                 _=Depends(auth_admin)):
-    stats_crud.create_match_stats_list(stats_list, lobby_id, db)
+    save_row_stats(stats_list, lobby_id, db)
     return Response(status_code=202)
 
 

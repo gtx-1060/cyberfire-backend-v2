@@ -1,8 +1,10 @@
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from typing import List
 from sqlalchemy import and_
 
 from .user import user_by_team, get_user_by_email
+from ..exceptions.db_exceptions import SameItemAlreadyExists
 from ..models.games import Games
 from ..models.user import User
 from ..schemas import stats as stats_schemas
@@ -36,7 +38,10 @@ def create_match_stats(stats: stats_schemas.MatchStatsCreate, lobby_id: int, db:
         index=stats.index,
         placement=stats.placement
     )
-    db.add(db_stats)
+    try:
+        db.add(db_stats)
+    except IntegrityError:
+        raise SameItemAlreadyExists()
     if commit:
         db.commit()
 
@@ -93,7 +98,10 @@ def create_tournament_stats(stats: stats_schemas.TournamentStatsCreate, tourname
         wins_count=stats.wins_count,
         tournament_id=tournament_id
     )
-    db.add(db_stats)
+    try:
+        db.add(db_stats)
+    except IntegrityError:
+        raise SameItemAlreadyExists()
     if commit:
         db.commit()
 
@@ -131,7 +139,10 @@ def create_empty_global_stats(user_email: str, db: Session):
             user_id=user.id,
             game=game
         )
-        db.add(stats)
+        try:
+            db.add(stats)
+        except IntegrityError:
+            raise SameItemAlreadyExists()
     db.commit()
 
 
@@ -144,7 +155,10 @@ def create_global_stats(stats: stats_schemas.GlobalStatsCreate, db: Session):
         user_id=user.id,
         wins_count=stats.wins_count
     )
-    db.add(db_stats)
+    try:
+        db.add(db_stats)
+    except IntegrityError:
+        raise SameItemAlreadyExists()
     db.commit()
 
 

@@ -19,7 +19,7 @@ from src.app.models.stage import Stage
 from src.app.models.stats import MatchStats, TournamentStats
 from src.app.models.tournament import Tournament
 from src.app.models.tournament_states import TournamentStates, StageStates
-from src.app.schemas.stats import GlobalStatsEdit
+from src.app.schemas.stats import GlobalStatsEdit, MatchStatsCreate
 from src.app.schemas.tournaments import TournamentCreate
 
 # list of all tvt games
@@ -229,5 +229,10 @@ def start_stage(stage_id: int, db: Session):
     if stage.state == StageStates.FINISHED:
         raise StageAlreadyFinished(stage.id)
     update_stage_state(stage_id, StageStates.IS_ON, db)
+
+
+def save_row_stats(stats_schemas: List[MatchStatsCreate], lobby_id: int, db: Session):
+    db.query(MatchStats).filter(MatchStats.lobby_id == lobby_id).delete()
+    create_match_stats_list(stats_schemas, lobby_id, db)
 
 
