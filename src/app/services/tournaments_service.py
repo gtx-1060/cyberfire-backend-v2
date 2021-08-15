@@ -13,7 +13,7 @@ from src.app.crud.user import get_user_squad_by_email, get_user_by_email
 from src.app.database.db import SessionLocal
 from src.app.exceptions.tournament_exceptions import StageMustBeEmpty, TournamentAlreadyFinished, \
     StatsOfNotParticipatedTeam, WrongTournamentDates, NotEnoughPlayersInSquad, NotAllowedForTVT, AllStageMustBeFinished, \
-    WrongTournamentState, UserNotRegistered, MaxSquadsCount, UserAlreadyRegistered
+    WrongTournamentState, UserNotRegistered, MaxSquadsCount, UserAlreadyRegistered, StageAlreadyFinished
 from src.app.models.games import Games, game_squad_sizes
 from src.app.models.stage import Stage
 from src.app.models.stats import MatchStats, TournamentStats
@@ -225,4 +225,9 @@ def end_stage(stage_id: int, db: Session):
 
 
 def start_stage(stage_id: int, db: Session):
+    stage = get_stage_by_id(stage_id, db)
+    if stage.state == StageStates.FINISHED:
+        raise StageAlreadyFinished(stage.id)
     update_stage_state(stage_id, StageStates.IS_ON, db)
+
+

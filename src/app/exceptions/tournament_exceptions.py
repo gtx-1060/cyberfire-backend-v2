@@ -18,6 +18,11 @@ class TournamentAlreadyFinished(MyException):
         super().__init__(400, f"tournament {t_id} already finished, but starting next stage task was executed")
 
 
+class StageAlreadyFinished(MyException):
+    def __init__(self, s_id: int):
+        super().__init__(400, f"stage {s_id} already finished, but starting next stage task was executed")
+
+
 class StatsOfNotParticipatedTeam(MyException):
     def __init__(self):
         super().__init__(400, "all stats haven't upload because of wrong 'team' field")

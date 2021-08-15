@@ -48,3 +48,15 @@ def remove_match_stats(lobby_id: int, team_name: str, db: Session = Depends(get_
 def kick_team_from_stage(lobby_id: int, team_name: str, db: Session = Depends(get_db), _=Depends(auth_admin)):
     remove_team(lobby_id, team_name, db)
     return Response(status_code=200)
+
+
+@router.get('/start')
+def start_stage(stage_id: int, _=Depends(try_auth_user), db: Session = Depends(get_db)):
+    tournaments_service.start_stage(stage_id, db)
+    return Response(status_code=202)
+
+
+@router.get('/finish')
+def finish_stage(stage_id: int, _=Depends(try_auth_user), db: Session = Depends(get_db)):
+    tournaments_service.end_stage(stage_id, db)
+    return Response(status_code=202)
