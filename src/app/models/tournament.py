@@ -22,7 +22,7 @@ class Tournament(Base):
     description = Column(UnicodeText)
     state = Column(Enum(TournamentStates))
     rewards = Column(MutableList.as_mutable(PickleType))
-    stages = relationship("Stage", backref=backref("tournament", cascade="all, delete"))
+    stages = relationship("Stage", backref=backref("tournament", cascade="all, delete"), passive_deletes=True)
     users = relationship("User", secondary=association_table, backref="tournaments")
     stages_count = Column(SmallInteger)
     stream_url = Column(String)

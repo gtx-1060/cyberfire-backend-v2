@@ -9,6 +9,6 @@ class Lobby(Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     matches_count = Column(SmallInteger)
-    stats = relationship("MatchStats", cascade="all, delete")
+    stats = relationship("MatchStats", cascade="all, delete", passive_deletes=True)
     key = Column(String(100), default="")
     stage_id = Column(Integer, ForeignKey('stages.id', ondelete='CASCADE'))
