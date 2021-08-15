@@ -33,6 +33,7 @@ class TournamentEdit(BaseModel):
     description: Optional[str]
     stream_url: Optional[str]
     max_squads: Optional[int]
+    img_path: Optional[str]
     rewards: Optional[List[str]]
 
 

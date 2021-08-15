@@ -71,6 +71,8 @@ def edit_tournament(tournament: TournamentEdit, tournament_id: int, db: Session)
         db_tournament.rewards = tournament.rewards
     if tournament.stream_url is not None:
         db_tournament.stream_url = tournament.stream_url
+    if tournament.img_path is not None:
+        db_tournament.img_path = tournament.img_path
     if tournament.max_squads is not None:
         if count_users_in_tournament(tournament_id, db) > tournament.max_squads:
             raise FieldCouldntBeEdited("max_squads", "the tournament have more registered users")
