@@ -40,13 +40,6 @@ class MatchStats(BaseModel):
         orm_mode = True
 
 
-class MatchStatsFrontend(BaseModel):
-    name: str
-    overallScore: int
-    matches: List[MatchStats]
-
-
-
 class LiteMatchStats(BaseModel):
     id: int
     kills_count: int
@@ -56,6 +49,12 @@ class LiteMatchStats(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class MatchStatsLobbyTable(BaseModel):
+    name: str
+    overallScore: int
+    matches: List[LiteMatchStats]
 
 
 class TournamentStatsCreate(BaseModel):
