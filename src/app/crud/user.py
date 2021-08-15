@@ -70,6 +70,13 @@ def get_user_by_email(email: str, db: Session) -> User:
     return user
 
 
+def get_user_by_team(team_name: str, db: Session) -> User:
+    user = db.query(User).filter(User.team_name == team_name).first()
+    if user is None:
+        raise user_exceptions.UserNotFound()
+    return user
+
+
 def edit_user(user: user_schemas.UserEdit, email: str, db: Session):
     db_user = get_user_by_email(email, db)
     if user.username is not None:
@@ -118,3 +125,4 @@ def update_user_role(user_email: str, role: Roles, db: Session):
         User.role: role
     })
     db.commit()
+

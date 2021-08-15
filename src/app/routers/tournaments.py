@@ -10,11 +10,11 @@ from src.app.crud import tournaments as tournaments_crud
 from src.app.crud.user import get_user_squad_by_team
 from src.app.exceptions.tournament_exceptions import NotAllowedForTVT
 from src.app.models.games import Games
-from src.app.models.tournament_states import States
+from src.app.models.tournament_states import TournamentStates
 from src.app.schemas.token_data import TokenData
 from src.app.schemas.tournaments import TournamentCreate, TournamentPreview, Tournament, TournamentEdit, \
-    TournamentRegistered
-from src.app.services.auth import auth_admin, try_auth_user, auth_user
+    TournamentAdvancedData
+from src.app.services.auth_service import auth_admin, try_auth_user, auth_user
 from src.app.utils import get_db, save_image, delete_image_by_web_path
 from src.app.services import tournaments_service
 
@@ -31,27 +31,25 @@ def get_tournaments_previews(game: Optional[Games] = None, db: Session = Depends
     return tournaments
 
 
-@router.get("/registered_list", response_model=List[TournamentRegistered])
+@router.get("/advanced_data_list", response_model=List[TournamentAdvancedData])
 def is_user_tournaments_registered(game: Optional[Games] = None, count=20, offset=0, db: Session = Depends(get_db),
                                    auth: TokenData = Depends(auth_user)):
     tournaments = tournaments_crud.get_tournaments(game, offset, count, db)
-    tournaments_registered: List[TournamentRegistered] = []
+    tournaments_registered: List[TournamentAdvancedData] = []
     for tournament in tournaments:
         registered = tournaments_crud.is_users_in_tournament(tournament.id, auth.email, db)
-        tournaments_registered.append(TournamentRegistered(registered=registered, id=tournament.id))
+        register_access = tournaments_crud.count_users_in_tournament(tournament.id, db) < tournament.max_squads
+        tournaments_registered.append(TournamentAdvancedData(registered=registered,
+                                                             id=tournament.id, can_register=register_access))
     return tournaments_registered
 
 
-@router.get("/registered", response_model=dict)
-def is_user_tournament_registered(tournament_id: int, db: Session = Depends(get_db), auth: TokenData = Depends(auth_user)):
+@router.get("/advanced_data", response_model=dict)
+def get_tournament_advanced_data(tournament_id: int, db: Session = Depends(get_db), auth: TokenData = Depends(auth_user)):
     tournament = tournaments_crud.get_tournament(tournament_id, db)
     is_registered = tournaments_crud.is_users_in_tournament(tournament.id, auth.email, db)
-    return {'is_registered': is_registered}
-
-
-@router.get("/in_active_stage", response_model=dict)
-def is_user_in_active_stage(tournament_id: int, db: Session = Depends(get_db), auth: TokenData = Depends(auth_user)):
-    return {"is_in_stage": tournaments_service.is_user_in_active_stage(tournament_id, auth.email, db)}
+    register_access = tournaments_crud.count_users_in_tournament(tournament_id, db) < tournament.max_squads
+    return {'is_registered': is_registered, 'can_register': register_access}
 
 
 @router.get("/by_id", response_model=Tournament)
@@ -94,7 +92,7 @@ def unregister_in_tournament(tournament_id: int, db: Session = Depends(get_db),
 
 @router.get("/pause")
 def pause_tournament(tournament_id: int, db: Session = Depends(get_db), _=Depends(auth_admin)):
-    tournaments_crud.update_tournament_state(States.PAUSED, tournament_id, db)
+    tournaments_crud.update_tournament_state(TournamentStates.PAUSED, tournament_id, db)
     return Response(status_code=200)
 
 
@@ -115,3 +113,8 @@ def edit_tournament(tournament: TournamentEdit, tournament_id: int, _=Depends(au
                     db: Session = Depends(get_db)):
     tournaments_crud.edit_tournament(tournament, tournament_id, db)
     return Response(status_code=200)
+
+
+@router.get('/finish')
+def finish_tournament(tournament_id: int, _=Depends(auth_admin), db: Session = Depends(get_db)):
+    tournaments_service.end_battleroyale_tournament(tournament_id, db)

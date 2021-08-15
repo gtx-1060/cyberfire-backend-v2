@@ -10,8 +10,8 @@ from ..models.stats import MatchStats, TournamentStats, GlobalStats
 from ..exceptions.base import ItemNotFound
 
 
-def get_match_stats(stage_id: int, db: Session) -> List[MatchStats]:
-    matches = db.query(MatchStats).filter(MatchStats.stage_id == stage_id).order_by(MatchStats.placement).all()
+def get_match_stats(lobby_id: int, db: Session) -> List[MatchStats]:
+    matches = db.query(MatchStats).filter(MatchStats.stage_id == lobby_id).order_by(MatchStats.score.desc()).all()
     if matches is None:
         return []
     return matches
@@ -25,17 +25,15 @@ def get_match_by_team(stage_id: int, team_name: str, db: Session) -> MatchStats:
     return stats
 
 
-def create_match_stats(stats: stats_schemas.MatchStatsCreate, stage_id: int, db: Session, commit=True):
+def create_match_stats(stats: stats_schemas.MatchStatsCreate, lobby_id: int, db: Session, commit=True):
     user = user_by_team(stats.team_name, db)
     db_stats = MatchStats(
         game=stats.game,
         kills_count=stats.kills_count,
         score=stats.score,
         user_id=user.id,
-        map=stats.map,
-        stage_id=stage_id,
+        lobby_id=lobby_id,
         index=stats.index,
-        rival_id=stats.rival_id,
         placement=stats.placement
     )
     db.add(db_stats)
@@ -43,9 +41,9 @@ def create_match_stats(stats: stats_schemas.MatchStatsCreate, stage_id: int, db:
         db.commit()
 
 
-def create_match_stats_list(stats_list: List[stats_schemas.MatchStatsCreate], stage_id: int, db: Session):
+def create_match_stats_list(stats_list: List[stats_schemas.MatchStatsCreate], lobby_id: int, db: Session):
     for stats in stats_list:
-        create_match_stats(stats, stage_id, db, False)
+        create_match_stats(stats, lobby_id, db, False)
     db.commit()
 
 
@@ -55,16 +53,8 @@ def edit_match_stats(stats: stats_schemas.MatchStatsEdit, stats_id: int, db: Ses
         raise ItemNotFound()
     if stats.score is not None:
         db_stats.score = stats.score
-    if stats.map is not None:
-        db_stats.map = stats.map
-    if stats.index is not None:
-        db_stats.index = stats.index
     if stats.kills_count is not None:
         db_stats.kills_count = stats.kills_count
-    if stats.rival_id is not None:
-        db_stats.rival_id = stats.rival_id
-    if stats.attended is not None:
-        db_stats.attended = stats.attended
     if stats.placement is not None:
         db_stats.placement = stats.placement
     db.add(db_stats)
@@ -76,9 +66,9 @@ def delete_match_stats(stats_id: int, db: Session):
     db.commit()
 
 
-def delete_match_by_stage(team_name: str, stage_id: int, db: Session):
+def delete_match_by_lobby(team_name: str, lobby_id: int, db: Session):
     match = db.query(MatchStats).join(User)\
-        .filter(and_(MatchStats.stage_id == stage_id, User.team_name == team_name)).first()
+        .filter(and_(MatchStats.lobby_id == lobby_id, User.team_name == team_name)).first()
     if match is None:
         raise ItemNotFound()
     db.query(MatchStats).filter(MatchStats.id == match.id).delete()

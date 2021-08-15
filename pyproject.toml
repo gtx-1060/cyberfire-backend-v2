@@ -18,6 +18,8 @@ python-jose = "^3.3.0"
 aiofiles = "^0.7.0"
 python-multipart = "^0.0.5"
 APScheduler = "^3.7.0"
+requests = "^2.26.0"
+pytest = "^6.2.4"
 psycopg2-binary = "^2.9.1"
 gunicorn = "^20.1.0"
 websockets = "^9.1"
@@ -30,6 +32,7 @@ server = "src.app.main:start"
 gunicorn_server = "gunicorn -w 4 -k uvicorn.workers.UvicornWorker src.app.main:app"
 create_tables = "src.app.database.init:create_tables"
 drop_tables = "src.app.database.init:run_drop_tables"
+test_tournaments = "src.tests.tournaments_tests:test_tournament"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

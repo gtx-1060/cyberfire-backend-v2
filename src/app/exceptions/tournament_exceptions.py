@@ -51,3 +51,8 @@ class WrongTournamentDates(MyException):
 class NotEnoughPlayersInSquad(MyException):
     def __init__(self):
         super().__init__(400, "not enough players in user's squad")
+
+
+class AllStageMustBeFinished(MyException):
+    def __init__(self):
+        super().__init__(400, "all stage must be finished")

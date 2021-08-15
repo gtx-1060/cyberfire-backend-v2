@@ -7,14 +7,18 @@ from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
 from ..crud.stats import create_empty_global_stats
-from ..crud.user import get_user_by_email, update_refresh_token, create_user, update_user_password
+from ..crud.tournaments import remove_user_from_tournaments
+from ..crud.user import *
 from ..schemas.user import User, UserCreate
 from ..models.roles import Roles
+from ..models.user import User as DbUser
 from ..config import SECRET_KEY, ALGORITHM, REFRESH_TOKEN_EXPIRE_DAYS
-from ..exceptions.auth_exceptions import AuthenticationException, WrongCredentialsException, NotEnoughPermissions
+from ..exceptions.auth_exceptions import AuthenticationException, WrongCredentialsException, NotEnoughPermissions, \
+    UserWasBannedException
 from ..schemas.token_data import TokenData, Tokens
 from ..middleware.auth_middleware import MyOAuth2PasswordBearer
 from ..utils import verify_password
+from src.app.models.tournament import association_table as tournament_associations
 
 oauth2_scheme = MyOAuth2PasswordBearer(tokenUrl='/api/v2/users/login')
 
@@ -73,7 +77,7 @@ def auth_admin(data: TokenData = Depends(auth_user)) -> TokenData:
     return data
 
 
-def __auth_with_password(password: str, email: str, db: Session) -> Optional[User]:
+def __auth_with_password(password: str, email: str, db: Session) -> DbUser:
     current_user = get_user_by_email(email, db)
     if not current_user:
         raise WrongCredentialsException()
@@ -84,10 +88,13 @@ def __auth_with_password(password: str, email: str, db: Session) -> Optional[Use
 
 def log_in(security_form: OAuth2PasswordRequestForm, db: Session) -> Tokens:
     user = __auth_with_password(security_form.password, security_form.username, db)
+    if not user.is_active:
+        raise AuthenticationException('user was banned')
     print(user.email)
     access_token = create_jwt_token(user)
     refresh_token = create_jwt_token(user, timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS))
     update_refresh_token(user.email, refresh_token, db)
+    print(refresh_token)
     return Tokens(access_token=access_token, refresh_token=refresh_token, token_type="Bearer")
 
 
@@ -100,7 +107,8 @@ def change_user_password(old_password: str, new_password: str, email: str, db: S
     user = get_user_by_email(email, db)
     if not verify_password(user.hashed_password, old_password):
         WrongCredentialsException()
-    update_user_password(email, new_password, db)
+    phash = utils.get_password_hash(new_password)
+    update_user_password(email, phash, db)
 
 
 def authorize_using_refresh(refresh_token: str, db: Session) -> Tokens:
@@ -108,7 +116,23 @@ def authorize_using_refresh(refresh_token: str, db: Session) -> Tokens:
     user = get_user_by_email(data.email, db)
     if refresh_token != user.refresh_token:
         raise AuthenticationException('wrong refresh token')
+    if not user.is_active:
+        raise UserWasBannedException(user.username)
     access_token = create_jwt_token(user)
     new_refresh_token = create_jwt_token(user, timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS))
     update_refresh_token(user.email, new_refresh_token, db)
+    print(new_refresh_token)
     return Tokens(access_token=access_token, refresh_token=new_refresh_token, token_type="Bearer")
+
+
+def ban_user(user_team: str, db: Session):
+    user = get_user_by_team(user_team, db)
+    user.is_active = False
+    remove_user_from_tournaments(user.id, db)
+
+
+def remove_user(user_team: str, db: Session):
+    user = get_user_by_team(user_team, db)
+    remove_user_from_tournaments(user.id, db)
+    db.query(User).filter(User.id == user.id).delete()
+    db.commit()
