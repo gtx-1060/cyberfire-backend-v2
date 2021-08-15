@@ -10,5 +10,5 @@ class Squad(Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     game = Column(Enum(Games))
-    user_id = Column(Integer, ForeignKey('users.id'))
+    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'))
     players = Column(MutableList.as_mutable(PickleType))

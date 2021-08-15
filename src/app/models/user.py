@@ -17,7 +17,7 @@ class User(Base):
     team_name = Column(String(100), unique=True, index=True)
     refresh_token = Column(Text)
     username = Column(Unicode(50))
-    squads = relationship('Squad', cascade="all,delete")
+    squads = relationship('Squad', cascade="all,delete", passive_deletes=True)
     avatar_path = Column(Text, default=DEFAULT_AVATAR_PATH)  # default value needed
     hashed_password = Column(Unicode(200))
     is_active = Column(Boolean, default=True)

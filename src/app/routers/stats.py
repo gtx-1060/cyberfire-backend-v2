@@ -58,8 +58,8 @@ def get_global_stats(game: Games, offset=0, count=20, db: Session = Depends(get_
 
 
 @router.post('/matches')
-def create_multiple_match_stats(stats_list: List[MatchStatsCreate], lobby_id: int, db: Session = Depends(get_db),
-                                _=Depends(auth_admin)):
+def create_new_multiple_match_stats(stats_list: List[MatchStatsCreate], lobby_id: int,
+                                    db: Session = Depends(get_db), _=Depends(auth_admin)):
     save_row_stats(stats_list, lobby_id, db)
     return Response(status_code=202)
 
