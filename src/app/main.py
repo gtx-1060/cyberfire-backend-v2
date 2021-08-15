@@ -1,5 +1,3 @@
-import logging
-
 from fastapi import FastAPI
 import uvicorn
 from starlette.middleware.cors import CORSMiddleware

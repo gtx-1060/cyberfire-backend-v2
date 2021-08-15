@@ -10,7 +10,6 @@ from src.app.crud.stages import get_stage_by_id
 from src.app.crud.user import get_user_by_email
 from src.app.models.games import Games
 from src.app.models.tournament_states import StageStates
-from src.app.routers.stages import get_stage
 from src.app.schemas.stats import MatchStats, TournamentStats, GlobalStats, MatchStatsCreate, MatchStatsEdit
 from src.app.schemas.token_data import TokenData
 from src.app.services.auth_service import auth_admin, try_auth_user
@@ -28,22 +27,19 @@ router = APIRouter(
 @router.get('/stage', response_model=dict)
 def get_math_stats(stage_id: int, user_data: TokenData = Depends(try_auth_user), db: Session = Depends(get_db)):
     stage = get_stage_by_id(stage_id, db)
-    key_needed = stage.state == StageStates.IS_ON
-    if user_data is not None:
-        user_team = get_user_by_email(user_data.email, db).team_name
-    else:
-        user_team = ''
-    data, key = convert_lobbies_to_frontend_ready(stage.lobbies, user_team, key_needed, db)
-    return {"lobbies": data, "lobby_key": key}
+    user = get_user_by_email(user_data.email, db)
+    data, lobby_key = convert_lobbies_to_frontend_ready(stage.lobbies, user.team_name)
+    return {'lobbies': data, "key": lobby_key}
 
 
 @router.get('/lobby', response_model=dict)
-def get_math_stats(lobby_id: int, db: Session = Depends(get_db)):
+def get_math_stats(lobby_id: int, user_data: TokenData = Depends(try_auth_user), db: Session = Depends(get_db)):
     lobby = get_lobby(lobby_id, db)
-    data = convert_lobby_to_frontend_ready(lobby)
+    user = get_user_by_email(user_data.email, db)
+    data, key = convert_lobby_to_frontend_ready(lobby, user.team_name)
     if data is None:
-        return {}
-    return data
+        return {'lobby': [], "key": ''}
+    return {'lobby': data, "key": key}
 
 
 @router.get('/tournament', response_model=List[TournamentStats])

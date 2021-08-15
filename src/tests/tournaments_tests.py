@@ -16,7 +16,7 @@ client = TestClient(app)
 players_count = 10
 
 tournament = {
-    "title": "string",
+    "title": "hi",
     "description": "string",
     "rewards": [
         "string"
@@ -112,16 +112,15 @@ def test_tournament():
     8 повторить 5-7 \n
     9 завершить турнир \n
     """
-    # admin = UserCreate(password='string', email='string', username='', team_name='')
-    # admin_token = login(client, admin)
-    # t_id = create_tournament(client, admin_token)
+    admin = UserCreate(password='string', email='string', username='', team_name='')
+    admin_token = login(client, admin)
+    t_id = create_tournament(client, admin_token)
     user_dataset = []
     tokens = []
     for i in range(players_count):
         user_dataset.append(register(client))
         tokens.append(login(client, user_dataset[i]))
 
-    t_id = 7
     r = client.get(f'/api/v2/tournaments/by_id?tournament_id={t_id}')
     assert r.status_code == 200
     stage_id = r.json()['stages'][0]['id']
@@ -135,7 +134,7 @@ def test_tournament():
     # lobby_tests(admin_token, stage_id, t_id, tokens, user_dataset)
 
 
-def lobby_tests(admin_token, stage_id, user_dataset):
-    create_lobby(client, admin_token, stage_id)
-    for user in user_dataset:
-        create_stats(client, admin_token, user.team_name, 1)
+# def lobby_tests(admin_token, stage_id, user_dataset):
+#     create_lobby(client, admin_token, stage_id)
+#     for user in user_dataset:
+#         create_stats(client, admin_token, user.team_name, 1)

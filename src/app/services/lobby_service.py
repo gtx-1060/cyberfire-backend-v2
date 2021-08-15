@@ -1,14 +1,19 @@
-from typing import List, Dict, Tuple
-
-from sqlalchemy.orm import Session
-
+from typing import List, Dict
 from src.app.models.lobbies import Lobby
 from src.app.schemas.stats import LiteMatchStats
-from src.app.crud import lobbies as lobbies_crud
 
 
-def convert_lobby_to_frontend_ready(lobby: Lobby) -> Dict[str, dict]:
+def convert_to_array(data: Dict[str, dict]):
+    result = []
+    for team in data.keys():
+        item = "{"+f'"name": {team}, "overallScore": {data[team]["sum"]}, "matches": {data[team]["matches"]}'+"}"
+        result.append(item)
+    return result
+
+
+def convert_lobby_to_frontend_ready(lobby: Lobby, team_name: str):
     teams = {}
+    lobby_key = ''
     for match in lobby.stats:
         team_name = match.user.team_name
         if team_name in teams:
@@ -17,18 +22,19 @@ def convert_lobby_to_frontend_ready(lobby: Lobby) -> Dict[str, dict]:
         else:
             ready_stat = {"sum": match.score, "matches": [LiteMatchStats.from_orm(match)]}
             teams[team_name] = ready_stat
-    return teams
+    if team_name in teams:
+        lobby_key = lobby.key
+    return convert_to_array(teams), lobby_key
 
 
-def convert_lobbies_to_frontend_ready(lobbies: List[Lobby], user_team_name: str, get_key: bool, db: Session) \
-        -> Tuple[List[Dict[str, dict]], str]:
+def convert_lobbies_to_frontend_ready(lobbies: List[Lobby], team_name: str):
     if lobbies is None:
-        return [], ''
+        return [], -1
     ready_lobbies = []
-    key = ''
+    final_lobby_key = ''
     for lobby in lobbies:
-        ready_lobby = convert_lobby_to_frontend_ready(lobby)
-        ready_lobbies.append(ready_lobby)
-        if get_key and key == '' and user_team_name != '' and user_team_name in ready_lobby:
-            key = lobbies_crud.get_lobby(lobby.id, db).key
-    return ready_lobbies, key
+        ready_lobby, lobby_key = convert_lobby_to_frontend_ready(lobby, team_name)
+        ready_lobbies.append({'id': lobby.id, 'teams': ready_lobby})
+        if lobby_key != '':
+            final_lobby_key = lobby_key
+    return ready_lobbies, final_lobby_key

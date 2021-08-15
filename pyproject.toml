@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cyberfire"
-version = "1.0.1"
+version = "1.0.3"
 description = ""
 authors = ["Vlad Nenov <xrapovva@mail.ru>"]
 packages = [

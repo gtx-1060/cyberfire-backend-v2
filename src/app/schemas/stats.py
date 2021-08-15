@@ -44,6 +44,8 @@ class LiteMatchStats(BaseModel):
     id: int
     kills_count: int
     placement: int
+    game: Games
+    index: int
 
     class Config:
         orm_mode = True
