@@ -17,7 +17,6 @@ class StageCreate(BaseModel):
     title: str
     description: str
     stage_datetime: datetime
-    lobbies: List[LobbyCreate]
     # lobbies_count: int
 
 

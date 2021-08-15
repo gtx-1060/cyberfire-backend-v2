@@ -78,12 +78,11 @@ def update_db_tournament_date(stage_id: int, db: Session):
 def create_tournament(tournament_create: TournamentCreate, db: Session) -> dict:
     tournament_create = set_tournament_dates(tournament_create.stages, tournament_create)
     now_moscow = datetime.now(pytz.timezone('Europe/Moscow'))
-    if tournament_create.start_date < now_moscow or tournament_create.end_date < tournament_create.start_date:
+    if tournament_create.start_date.timestamp() < now_moscow.timestamp()\
+            or tournament_create.end_date.timestamp() < tournament_create.start_date.timestamp():
         raise WrongTournamentDates(tournament_create.start_date)
     db_tournament = tournaments_crud.create_tournament(tournament_create, db)
     create_stages(tournament_create.stages, db_tournament.id, db)
-    for stage in tournament_create.stages:
-        create_lobbies(stage.lobbies, db)
     schedule_tournament(db_tournament, db)
     return {"tournament_id": db_tournament.id}
 
