@@ -11,20 +11,23 @@ packages = [
 python = "^3.8"
 fastapi = "^0.67.0"
 SQLAlchemy = "^1.4.22"
-psycopg2 = "^2.9.1"
 bcrypt = "^3.2.0"
-uvicorn = "^0.14.0"
 loguru = "^0.5.3"
 passlib = "^1.7.4"
 python-jose = "^3.3.0"
 aiofiles = "^0.7.0"
 python-multipart = "^0.0.5"
 APScheduler = "^3.7.0"
+psycopg2-binary = "^2.9.1"
+gunicorn = "^20.1.0"
+websockets = "^9.1"
+uvicorn = {extras = ["standart"], version = "^0.15.0"}
 
 [tool.poetry.dev-dependencies]
 
 [tool.poetry.scripts]
 server = "src.app.main:start"
+gunicorn_server = "gunicorn -w 4 -k uvicorn.workers.UvicornWorker src.app.main:app"
 create_tables = "src.app.database.init:create_tables"
 drop_tables = "src.app.database.init:run_drop_tables"
 
