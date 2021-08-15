@@ -2,12 +2,14 @@ from typing import Optional, List
 from pydantic import BaseModel, Field
 from datetime import datetime
 
+from src.app.models.games import Games
 from src.app.models.tournament_states import StageStates
 from src.app.schemas.lobbies import Lobby, LobbyCreate, LobbyPreview
 
 
 class TournamentData(BaseModel):
     name: str = Field(..., alias='title')
+    game: Games
 
     class Config:
         orm_mode = True
