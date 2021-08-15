@@ -27,16 +27,20 @@ router = APIRouter(
 @router.get('/stage', response_model=dict)
 def get_math_stats(stage_id: int, user_data: TokenData = Depends(try_auth_user), db: Session = Depends(get_db)):
     stage = get_stage_by_id(stage_id, db)
-    user = get_user_by_email(user_data.email, db)
-    data, lobby_key = convert_lobbies_to_frontend_ready(stage.lobbies, user.team_name)
+    user_team = ''
+    if user_data is not None:
+        user_team = get_user_by_email(user_data.email, db).team_name
+    data, lobby_key = convert_lobbies_to_frontend_ready(stage.lobbies, user_team)
     return {'lobbies': data, "key": lobby_key}
 
 
 @router.get('/lobby', response_model=dict)
 def get_math_stats(lobby_id: int, user_data: TokenData = Depends(try_auth_user), db: Session = Depends(get_db)):
     lobby = get_lobby(lobby_id, db)
-    user = get_user_by_email(user_data.email, db)
-    data, key = convert_lobby_to_frontend_ready(lobby, user.team_name)
+    user_team = ''
+    if user_data is not None:
+        user_team = get_user_by_email(user_data.email, db).team_name
+    data, key = convert_lobby_to_frontend_ready(lobby, user_team)
     if data is None:
         return {'lobby': [], "key": ''}
     return {'lobby': data, "key": key}
