@@ -90,6 +90,12 @@ def unregister_in_tournament(tournament_id: int, db: Session = Depends(get_db),
     return Response(status_code=200)
 
 
+@router.get("/kick")
+def pause_tournament(tournament_id: int, user_id: int, db: Session = Depends(get_db), _=Depends(auth_admin)):
+    tournaments_crud.remove_user_from_tournament(user_id, tournament_id, db)
+    return Response(status_code=200)
+
+
 @router.get("/pause")
 def pause_tournament(tournament_id: int, db: Session = Depends(get_db), _=Depends(auth_admin)):
     tournaments_crud.update_tournament_state(TournamentStates.PAUSED, tournament_id, db)

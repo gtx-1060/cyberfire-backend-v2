@@ -9,3 +9,8 @@ class UserAlreadyExists(MyException):
 class UserNotFound(MyException):
     def __init__(self):
         super().__init__(404, "user with this email not found")
+
+
+class IncorrectUserDataException(MyException):
+    def __init__(self, text):
+        super().__init__(400, text)

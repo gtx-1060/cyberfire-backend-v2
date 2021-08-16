@@ -10,18 +10,18 @@ def convert_to_array(data: Dict[str, dict]):
     return result
 
 
-def convert_lobby_to_frontend_ready(lobby: Lobby, team_name: str):
+def convert_lobby_to_frontend_ready(lobby: Lobby, user_team: str):
     teams = {}
     lobby_key = ''
     for match in lobby.stats:
-        team_name = match.user.team_name
-        if team_name in teams:
-            teams[team_name]["sum"] += match.score
-            teams[team_name]["matches"].append(LiteMatchStats.from_orm(match))
+        user_team = match.user.team_name
+        if user_team in teams:
+            teams[user_team]["sum"] += match.score
+            teams[user_team]["matches"].append(LiteMatchStats.from_orm(match))
         else:
             ready_stat = {"sum": match.score, "matches": [LiteMatchStats.from_orm(match)]}
-            teams[team_name] = ready_stat
-    if team_name in teams:
+            teams[user_team] = ready_stat
+    if user_team in teams:
         lobby_key = lobby.key
     return convert_to_array(teams), lobby_key
 

@@ -51,12 +51,12 @@ def kick_team_from_stage(lobby_id: int, team_name: str, db: Session = Depends(ge
 
 
 @router.get('/start')
-def start_stage(stage_id: int, _=Depends(try_auth_user), db: Session = Depends(get_db)):
+def start_stage(stage_id: int, _=Depends(auth_admin), db: Session = Depends(get_db)):
     tournaments_service.start_stage(stage_id, db)
     return Response(status_code=202)
 
 
 @router.get('/finish')
-def finish_stage(stage_id: int, _=Depends(try_auth_user), db: Session = Depends(get_db)):
+def finish_stage(stage_id: int, _=Depends(auth_admin), db: Session = Depends(get_db)):
     tournaments_service.end_stage(stage_id, db)
     return Response(status_code=202)

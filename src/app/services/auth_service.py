@@ -18,7 +18,6 @@ from ..exceptions.auth_exceptions import AuthenticationException, WrongCredentia
 from ..schemas.token_data import TokenData, Tokens
 from ..middleware.auth_middleware import MyOAuth2PasswordBearer
 from ..utils import verify_password
-from src.app.models.tournament import association_table as tournament_associations
 
 oauth2_scheme = MyOAuth2PasswordBearer(tokenUrl='/api/v2/users/login')
 
