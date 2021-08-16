@@ -16,7 +16,7 @@ def __check_email_unique(email: str, db: Session):
 
 
 def __check_team_unique(team_name: str, db: Session):
-    if not db.query(User).filter(User.team_name == team_name).first() is None:
+    if not db.query(User).filter(User.team_name.lower() == team_name.lower()).first() is None:
         raise user_exceptions.UserAlreadyExists()
 
 
