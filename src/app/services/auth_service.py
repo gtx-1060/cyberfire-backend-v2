@@ -130,8 +130,7 @@ def ban_user(user_team: str, db: Session):
     remove_user_from_tournaments(user.id, db)
 
 
-def remove_user(user_team: str, db: Session):
+def remove_user_completely(user_team: str, db: Session):
     user = get_user_by_team(user_team, db)
     remove_user_from_tournaments(user.id, db)
-    db.query(User).filter(User.id == user.id).delete()
-    db.commit()
+    remove_user(user.id, db)

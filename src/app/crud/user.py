@@ -126,3 +126,7 @@ def update_user_role(user_email: str, role: Roles, db: Session):
     })
     db.commit()
 
+
+def remove_user(user_id: int, db: Session):
+    db.query(User).filter(User.id == user_id).delete()
+    db.commit()
