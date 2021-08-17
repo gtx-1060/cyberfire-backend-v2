@@ -9,8 +9,8 @@ class MyException(HTTPException):
 
 
 class ItemNotFound(MyException):
-    def __init__(self):
-        super().__init__(404, "item not found")
+    def __init__(self, item_class: object):
+        super().__init__(404, f"No such item of type '{item_class.__name__}' found")
 
 
 class WrongFilePath(MyException):

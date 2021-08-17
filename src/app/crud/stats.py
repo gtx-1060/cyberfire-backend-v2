@@ -23,7 +23,7 @@ def get_match_by_team(stage_id: int, team_name: str, db: Session) -> MatchStats:
     stats = db.query(MatchStats).filter(and_(MatchStats.stage_id == stage_id, MatchStats.user.team_name == team_name))\
         .first()
     if stats is None:
-        raise ItemNotFound()
+        raise ItemNotFound(MatchStats)
     return stats
 
 
@@ -55,7 +55,7 @@ def create_match_stats_list(stats_list: List[stats_schemas.MatchStatsCreate], lo
 def edit_match_stats(stats: stats_schemas.MatchStatsEdit, stats_id: int, db: Session):
     db_stats = db.query(MatchStats).filter(MatchStats.id == stats_id).first()
     if db_stats is None:
-        raise ItemNotFound()
+        raise ItemNotFound(MatchStats)
     if stats.score is not None:
         db_stats.score = stats.score
     if stats.kills_count is not None:
@@ -75,7 +75,7 @@ def delete_match_by_lobby(team_name: str, lobby_id: int, db: Session):
     match = db.query(MatchStats).join(User)\
         .filter(and_(MatchStats.lobby_id == lobby_id, User.team_name == team_name)).first()
     if match is None:
-        raise ItemNotFound()
+        raise ItemNotFound(MatchStats)
     db.query(MatchStats).filter(MatchStats.id == match.id).delete()
     db.commit()
 
@@ -109,7 +109,7 @@ def create_tournament_stats(stats: stats_schemas.TournamentStatsCreate, tourname
 def edit_tournament_stats(stats: stats_schemas.TournamentStatsEdit, stats_id: int, db: Session, commit=True):
     db_stats = db.query(TournamentStats).filter(TournamentStats.id == stats_id).first()
     if db_stats is None:
-        raise ItemNotFound()
+        raise ItemNotFound(TournamentStats)
     if stats.score is not None:
         db_stats.score = stats.score
     if stats.kills_count is not None:
@@ -165,7 +165,7 @@ def create_global_stats(stats: stats_schemas.GlobalStatsCreate, db: Session):
 def edit_global_stats(added_stats: stats_schemas.GlobalStatsEdit, user_id: int, db: Session, commit=True):
     db_stats = db.query(GlobalStats).filter(GlobalStats.user_id == user_id).first()
     if db_stats is None:
-        raise ItemNotFound()
+        raise ItemNotFound(GlobalStats)
     if added_stats.score is not None:
         db_stats.score += added_stats.score
     if added_stats.kills_count is not None:

@@ -9,7 +9,7 @@ from ..exceptions.base import ItemNotFound
 def get_news_by_id(news_id: int, db: Session) -> News:
     news = db.query(News).filter(News.id == news_id).first()
     if news is None:
-        raise ItemNotFound()
+        raise ItemNotFound(News)
     return news
 
 

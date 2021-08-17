@@ -4,6 +4,7 @@ from typing import List
 from .tournaments import is_tournament_exists
 from ..models.stage import Stage
 from ..exceptions.base import ItemNotFound
+from ..models.tournament import Tournament
 from ..models.tournament_states import StageStates
 from ..schemas.stage import StageCreate, StageEdit
 
@@ -18,13 +19,13 @@ def get_stages(tournament_id: int, db: Session) -> List[Stage]:
 def get_stage_by_id(stage_id: int, db: Session) -> Stage:
     stage = db.query(Stage).filter(Stage.id == stage_id).first()
     if stage is None:
-        raise ItemNotFound()
+        raise ItemNotFound(Stage)
     return stage
 
 
 def create_stages(stages: List[StageCreate], tournament_id: int, db: Session):
     if not is_tournament_exists(tournament_id, db):
-        raise ItemNotFound()
+        raise ItemNotFound(Tournament)
     for stage in stages:
         db_stage = Stage(
             title=stage.title,

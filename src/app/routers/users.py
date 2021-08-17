@@ -8,7 +8,7 @@ from src.app.config import AVATARS_STATIC_PATH
 from src.app.crud.user import get_user_by_email, edit_user, update_user_role
 from src.app.models.roles import Roles
 from src.app.schemas.token_data import Tokens, TokenData
-from src.app.schemas.user import UserCreate, User, UserEdit
+from src.app.schemas.user import UserCreate, User, UserEdit, UserPrivateEdit
 from src.app.services import auth_service
 from src.app.services.auth_service import auth_admin, auth_user, try_auth_user
 from src.app.utils import get_db, save_image, delete_image_by_web_path
@@ -47,9 +47,9 @@ def refresh_tokens(refresh_token: str, db: Session = Depends(get_db)):
     return auth_service.authorize_using_refresh(refresh_token, db)
 
 
-@router.get("/change_password")
-def change_password(old_password: str, new_password: str, user_data=Depends(auth_user), db: Session = Depends(get_db)):
-    auth_service.change_user_password(old_password, new_password, user_data.email, db)
+@router.put("/change_password")
+def change_password(user: UserPrivateEdit, user_data=Depends(auth_user), db: Session = Depends(get_db)):
+    auth_service.change_user_password(user.old_password, user.new_password, user_data.email, db)
     return Response(status_code=200)
 
 

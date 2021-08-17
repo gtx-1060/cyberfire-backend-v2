@@ -80,7 +80,7 @@ class UserEdit(BaseModel):
 
 
 class UserPrivateEdit(BaseModel):
-    password: str
+    old_password: str
     new_password: Optional[str]
     new_email: Optional[str]
 
@@ -88,7 +88,7 @@ class UserPrivateEdit(BaseModel):
     def base_password_validator(cls, v):
         if v is None:
             return v
-        return validate_team(v)
+        return validate_password(v)
 
     @validator('new_email')
     def base_mail_validator(cls, v):

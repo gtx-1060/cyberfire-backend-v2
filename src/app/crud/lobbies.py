@@ -14,7 +14,7 @@ from ..schemas.lobbies import LobbyCreate
 def get_lobby(lobby_id: int, db: Session) -> Lobby:
     lobby = db.query(Lobby).filter(Lobby.id == lobby_id).first()
     if lobby is None:
-        raise ItemNotFound()
+        raise ItemNotFound(Lobby)
     return lobby
 
 

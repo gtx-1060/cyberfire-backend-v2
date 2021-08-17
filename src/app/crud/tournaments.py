@@ -32,7 +32,7 @@ def get_tournaments(game: Optional[Games], offset: int, limit: int, db: Session)
 def get_tournament(tournament_id: int, db: Session) -> Tournament:
     tournament = db.query(Tournament).filter(Tournament.id == tournament_id).first()
     if tournament is None:
-        raise ItemNotFound()
+        raise ItemNotFound(Tournament)
     return tournament
 
 
