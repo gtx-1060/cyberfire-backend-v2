@@ -14,13 +14,13 @@ def convert_lobby_to_frontend_ready(lobby: Lobby, user_team: str):
     teams = {}
     lobby_key = ''
     for match in lobby.stats:
-        user_team = match.user.team_name
-        if user_team in teams:
-            teams[user_team]["sum"] += match.score
-            teams[user_team]["matches"].append(LiteMatchStats.from_orm(match))
+        team = match.user.team_name
+        if team in teams:
+            teams[team]["sum"] += match.score
+            teams[team]["matches"].append(LiteMatchStats.from_orm(match))
         else:
             ready_stat = {"sum": match.score, "matches": [LiteMatchStats.from_orm(match)]}
-            teams[user_team] = ready_stat
+            teams[team] = ready_stat
     if user_team in teams:
         lobby_key = lobby.key
     return convert_to_array(teams), lobby_key
