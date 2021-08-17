@@ -78,7 +78,7 @@ def update_db_tournament_date(stage_id: int, db: Session):
 def create_tournament(tournament_create: TournamentCreate, db: Session) -> dict:
     tournament_create = set_tournament_dates(tournament_create.stages, tournament_create)
     now_moscow = datetime.now(pytz.timezone('Europe/Moscow'))
-    if tournament_create.start_date.timestamp() < now_moscow.timestamp()\
+    if tournament_create.start_date.timestamp() < now_moscow.timestamp() \
             or tournament_create.end_date.timestamp() < tournament_create.start_date.timestamp():
         raise WrongTournamentDates(tournament_create.start_date)
     db_tournament = tournaments_crud.create_tournament(tournament_create, db)
@@ -236,3 +236,9 @@ def save_row_stats(stats_schemas: List[MatchStatsCreate], lobby_id: int, db: Ses
     create_match_stats_list(stats_schemas, lobby_id, db)
 
 
+def tournament_registrable_data(tournament_id: int, user_email: str, db: Session) -> Tuple[bool, bool]:
+    tournament = tournaments_crud.get_tournament(tournament_id, db)
+    is_registered = tournaments_crud.is_users_in_tournament(tournament.id, user_email, db)
+    register_access = tournaments_crud.count_users_in_tournament(tournament_id, db) < tournament.max_squads \
+                      and tournament.state == TournamentStates.REGISTRATION
+    return is_registered, register_access
