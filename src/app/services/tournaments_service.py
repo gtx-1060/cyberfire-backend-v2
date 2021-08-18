@@ -260,7 +260,7 @@ def update_stage_leaders(leaders: StageLeadersEdit, stage_id: int, db: Session):
             stage.kill_leaders.append(user)
     if leaders.damage_leaders is not None:
         stage.damage_leaders.clear()
-        for leader in leaders.kill_leaders:
+        for leader in leaders.damage_leaders:
             user = get_user_by_team(leader, db)
             stage.damage_leaders.append(user)
     db.add(stage)

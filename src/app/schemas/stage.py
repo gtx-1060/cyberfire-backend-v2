@@ -37,8 +37,8 @@ class StageEdit(BaseModel):
 
 
 class StageLeadersEdit(BaseModel):
-    damage_leaders: Optional[List[str]]
-    kill_leaders: Optional[List[str]]
+    damage_leaders: Optional[List[str]] = None
+    kill_leaders: Optional[List[str]] = None
 
 
 class Stage(BaseModel):
