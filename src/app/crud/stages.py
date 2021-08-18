@@ -51,7 +51,7 @@ def edit_stage(stage: StageEdit, stage_id: int, db: Session):
 
 def update_stage_state(stage_id: int, state: StageStates, db: Session):
     db.query(Stage).filter(Stage.id == stage_id).update({
-        state: state
+        Stage.state: state
     })
     db.commit()
 
