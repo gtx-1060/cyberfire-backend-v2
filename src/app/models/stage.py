@@ -6,12 +6,12 @@ from sqlalchemy.orm import relationship, backref
 from .tournament_states import StageStates
 from ..database.db import Base
 
-kills_association_table = Table('tournament_association', Base.metadata,
+kills_association_table = Table('kills_association_table', Base.metadata,
                                 Column('stage_id', Integer, ForeignKey('stages.id', ondelete="CASCADE")),
                                 Column('users_id', Integer, ForeignKey('users.id', ondelete="CASCADE"))
                                 )
 
-damagers_association_table = Table('tournament_association', Base.metadata,
+damagers_association_table = Table('damagers_association_table', Base.metadata,
                                    Column('stage_id', Integer, ForeignKey('stages.id', ondelete="CASCADE")),
                                    Column('users_id', Integer, ForeignKey('users.id', ondelete="CASCADE"))
                                    )
