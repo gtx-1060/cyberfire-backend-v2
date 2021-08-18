@@ -5,13 +5,14 @@ from .db import SQLALCHEMY_DATABASE_URL
 from src.app.models.user import User
 from src.app.models.squad import Squad
 from src.app.models.news import News
-from src.app.models.stage import Stage
+from src.app.models.stage import Stage, damagers_association_table, kills_association_table
 from src.app.models.tournament import Tournament, association_table
 from src.app.models.stats import MatchStats, TournamentStats, GlobalStats
 from src.app.models.lobbies import Lobby
 
 my_tables = [User.__table__, Squad.__table__, News.__table__, Stage.__table__, Lobby.__table__, Tournament.__table__,
-             MatchStats.__table__, TournamentStats.__table__, GlobalStats.__table__, association_table]
+             MatchStats.__table__, TournamentStats.__table__, GlobalStats.__table__, association_table,
+             kills_association_table, damagers_association_table]
 
 
 def create_tables():

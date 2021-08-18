@@ -7,6 +7,14 @@ from src.app.models.tournament_states import StageStates
 from src.app.schemas.lobbies import Lobby, LobbyCreate, LobbyPreview
 
 
+
+class StageUserData(BaseModel):
+    team_name: str
+
+    class Config:
+        orm_mode = True
+
+
 class TournamentData(BaseModel):
     name: str = Field(..., alias='title')
     game: Games
@@ -26,8 +34,11 @@ class StageEdit(BaseModel):
     title: Optional[str]
     description: Optional[str]
     stage_datetime: Optional[datetime]
-    kill_leaders: Optional[List[str]]
+
+
+class StageLeadersEdit(BaseModel):
     damage_leaders: Optional[List[str]]
+    kill_leaders: Optional[List[str]]
 
 
 class Stage(BaseModel):
@@ -35,8 +46,8 @@ class Stage(BaseModel):
     title: str
     description: str
     stage_datetime: datetime
-    kill_leaders: List[str]
-    damage_leaders: List[str]
+    kill_leaders: List[StageUserData]
+    damage_leaders: List[StageUserData]
     tournament_data: TournamentData = Field(..., alias='tournament')
     state: StageStates
     lobbies: List[LobbyPreview]

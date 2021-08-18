@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from .tournaments import is_tournament_exists
-from ..models.stage import Stage
+from ..models.stage import Stage, kills_association_table, damagers_association_table
 from ..exceptions.base import ItemNotFound
 from ..models.tournament import Tournament
 from ..models.tournament_states import StageStates
@@ -45,10 +45,6 @@ def edit_stage(stage: StageEdit, stage_id: int, db: Session):
         db_stage.title = stage.title
     if stage.description is not None:
         db_stage.description = stage.description
-    if stage.damage_leaders is not None:
-        db_stage.damage_leaders = stage.damage_leaders
-    if stage.kill_leaders is not None:
-        db_stage.kill_leaders = stage.kill_leaders
     db.add(db_stage)
     db.commit()
 
@@ -57,4 +53,10 @@ def update_stage_state(stage_id: int, state: StageStates, db: Session):
     db.query(Stage).filter(Stage.id == stage_id).update({
         state: state
     })
+    db.commit()
+
+
+def remove_user_from_stages_leaders(user_id: int, db: Session):
+    db.query(kills_association_table).filter(kills_association_table.c.users_id == user_id).delete()
+    db.query(damagers_association_table).filter(damagers_association_table.c.users_id == user_id).delete()
     db.commit()

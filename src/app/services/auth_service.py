@@ -6,6 +6,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
+from ..crud.stages import remove_user_from_stages_leaders
 from ..crud.stats import create_empty_global_stats
 from ..crud.tournaments import remove_user_from_tournaments
 from ..crud.user import *
@@ -133,4 +134,5 @@ def ban_user(user_team: str, db: Session):
 def remove_user_completely(user_team: str, db: Session):
     user = get_user_by_team(user_team, db)
     remove_user_from_tournaments(user.id, db)
+    remove_user_from_stages_leaders(user.id, db)
     remove_user(user.id, db)

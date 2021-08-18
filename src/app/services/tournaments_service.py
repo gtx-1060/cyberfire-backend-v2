@@ -9,7 +9,7 @@ from src.app.crud import tournaments as tournaments_crud
 from src.app.crud.lobbies import create_lobbies, get_lobby
 from src.app.crud.stages import get_stages, get_stage_by_id, create_stages, update_stage_state
 from src.app.crud.stats import create_match_stats_list, get_tournament_stats, edit_global_stats
-from src.app.crud.user import get_user_squad_by_email, get_user_by_email
+from src.app.crud.user import get_user_squad_by_email, get_user_by_email, get_user_by_team
 from src.app.database.db import SessionLocal
 from src.app.exceptions.tournament_exceptions import StageMustBeEmpty, TournamentAlreadyFinished, \
     StatsOfNotParticipatedTeam, WrongTournamentDates, NotEnoughPlayersInSquad, NotAllowedForTVT, AllStageMustBeFinished, \
@@ -19,6 +19,7 @@ from src.app.models.stage import Stage
 from src.app.models.stats import MatchStats, TournamentStats
 from src.app.models.tournament import Tournament
 from src.app.models.tournament_states import TournamentStates, StageStates
+from src.app.schemas.stage import StageLeadersEdit
 from src.app.schemas.stats import GlobalStatsEdit, MatchStatsCreate
 from src.app.schemas.tournaments import TournamentCreate
 
@@ -221,6 +222,12 @@ def end_stage(stage_id: int, db: Session):
         stats.append(lobby.stats)
     stats_sum = match_players_stats(stats)
     update_tournament_stats(stats_sum, stage.tournament_id, db, True)
+    stats_kills_sorted = sorted(stats_sum.items(), key=lambda x: x[1][1], reverse=True)
+    range_min = min(3, len(stats_kills_sorted))
+    leaders_for_save = StageLeadersEdit(kill_leaders=[])
+    for i in range(range_min):
+        leaders_for_save.kill_leaders.append(stats_kills_sorted[0])
+    update_stage_leaders(leaders_for_save, stage_id, db)
 
 
 def start_stage(stage_id: int, db: Session):
@@ -242,3 +249,19 @@ def tournament_registrable_data(tournament_id: int, user_email: str, db: Session
     register_access = tournaments_crud.count_users_in_tournament(tournament_id, db) < tournament.max_squads \
                       and tournament.state == TournamentStates.REGISTRATION
     return is_registered, register_access
+
+
+def update_stage_leaders(leaders: StageLeadersEdit, stage_id: int, db: Session):
+    stage = db.query(Stage).filter(Stage.id == stage_id).first()
+    if leaders.kill_leaders is not None:
+        stage.kill_leaders.clear()
+        for leader in leaders.kill_leaders:
+            user = get_user_by_team(leader, db)
+            stage.kill_leaders.append(user)
+    if leaders.damage_leaders is not None:
+        stage.damage_leaders.clear()
+        for leader in leaders.kill_leaders:
+            user = get_user_by_team(leader, db)
+            stage.damage_leaders.append(user)
+    db.add(stage)
+    db.commit()

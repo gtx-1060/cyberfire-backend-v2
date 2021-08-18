@@ -1,9 +1,20 @@
-from sqlalchemy import Column, PickleType, Integer, Boolean, UnicodeText, ForeignKey, SmallInteger, TIMESTAMP, Enum
+from sqlalchemy import Column, PickleType, Integer, Boolean, UnicodeText, ForeignKey, SmallInteger, TIMESTAMP, Enum, \
+    Table
 from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.orm import relationship, backref
 
 from .tournament_states import StageStates
 from ..database.db import Base
+
+kills_association_table = Table('tournament_association', Base.metadata,
+                                Column('stage_id', Integer, ForeignKey('stages.id', ondelete="CASCADE")),
+                                Column('users_id', Integer, ForeignKey('users.id', ondelete="CASCADE"))
+                                )
+
+damagers_association_table = Table('tournament_association', Base.metadata,
+                                   Column('stage_id', Integer, ForeignKey('stages.id', ondelete="CASCADE")),
+                                   Column('users_id', Integer, ForeignKey('users.id', ondelete="CASCADE"))
+                                   )
 
 
 class Stage(Base):
@@ -13,8 +24,8 @@ class Stage(Base):
     state = Column(Enum(StageStates), default=StageStates.WAITING)
     title = Column(UnicodeText)
     description = Column(UnicodeText)
-    kill_leaders = Column(MutableList.as_mutable(PickleType), default=[])
-    damage_leaders = Column(MutableList.as_mutable(PickleType), default=[])
+    kill_leaders = relationship("User", secondary=kills_association_table, passive_deletes=True)
+    damage_leaders = relationship("User", secondary=damagers_association_table, passive_deletes=True)
     tournament_id = Column(Integer, ForeignKey('tournaments.id', ondelete='CASCADE'))
     lobbies = relationship("Lobby", backref=backref("stage", cascade="all, delete"), passive_deletes=True)
     stage_datetime = Column(TIMESTAMP)

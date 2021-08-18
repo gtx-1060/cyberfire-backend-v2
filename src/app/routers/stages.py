@@ -8,7 +8,7 @@ from starlette.responses import Response
 from src.app.crud.lobbies import remove_team
 from src.app.crud.stats import delete_match_by_lobby
 from src.app.crud import stages as stages_crud
-from src.app.schemas.stage import Stage, StagePreview, StageEdit
+from src.app.schemas.stage import Stage, StagePreview, StageEdit, StageLeadersEdit
 from src.app.services.auth_service import auth_admin, try_auth_user
 from src.app.utils import get_db
 from src.app.services import tournaments_service
@@ -35,7 +35,13 @@ def edit_stage(stage: StageEdit, stage_id: int, db: Session = Depends(get_db), _
     stages_crud.edit_stage(stage, stage_id, db)
     if stage.stage_datetime is not None:
         tournaments_service.update_db_tournament_date(stage_id, db)
-    return Response(status_code=202)
+    return Response(status_code=200)
+
+
+@router.put('/leaders')
+def edit_leaders(leaders: StageLeadersEdit, stage_id: int, db: Session = Depends(get_db), _=Depends(auth_admin)):
+    tournaments_service.update_stage_leaders(leaders, stage_id, db)
+    return Response(status_code=200)
 
 
 @router.delete('/match')
