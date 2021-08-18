@@ -11,7 +11,7 @@ from src.app.schemas.squad import Squad
 from src.app.schemas.stats import MatchStatsCreate
 from src.app.schemas.user import UserCreate, UserEdit
 
-players_count = 10
+players_count = 40
 url_prefix = 'https://cyberfire.ru'
 
 tournament = {
@@ -24,7 +24,7 @@ tournament = {
         {
             "title": "s1",
             "description": "string",
-            "stage_datetime": str(datetime.now(pytz.timezone('Europe/Moscow')) + timedelta(seconds=50)),
+            "stage_datetime": str(datetime.now(pytz.timezone('Europe/Moscow')) + timedelta(seconds=180)),
             "lobbies": []
         },
         {
