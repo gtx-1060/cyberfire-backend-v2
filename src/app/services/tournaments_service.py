@@ -219,7 +219,7 @@ def end_stage(stage_id: int, db: Session):
     stats = []
     stage = get_stage_by_id(stage_id, db)
     for lobby in stage.lobbies:
-        stats.append(lobby.stats)
+        stats.extend(lobby.stats)
     stats_sum = match_players_stats(stats)
     update_tournament_stats(stats_sum, stage.tournament_id, db, True)
     stats_kills_sorted = sorted(stats_sum.items(), key=lambda x: x[1][1], reverse=True)
