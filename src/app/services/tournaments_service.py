@@ -226,7 +226,7 @@ def end_stage(stage_id: int, db: Session):
     range_min = min(3, len(stats_kills_sorted))
     leaders_for_save = StageLeadersEdit(kill_leaders=[])
     for i in range(range_min):
-        leaders_for_save.kill_leaders.append(stats_kills_sorted[0])
+        leaders_for_save.kill_leaders.append(stats_kills_sorted[i][0])
     update_stage_leaders(leaders_for_save, stage_id, db)
 
 

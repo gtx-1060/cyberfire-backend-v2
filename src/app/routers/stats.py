@@ -29,7 +29,6 @@ def get_math_stats(stage_id: int, user_data: TokenData = Depends(try_auth_user),
     user_team = ''
     if user_data is not None:
         user_team = get_user_by_email(user_data.email, db).team_name
-    print(f'name:{user_team}')
     data, lobby_key = convert_lobbies_to_frontend_ready(stage.lobbies, user_team)
     return {'lobbies': data, "key": lobby_key}
 

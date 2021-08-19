@@ -11,8 +11,8 @@ from src.app.schemas.squad import Squad
 from src.app.schemas.stats import MatchStatsCreate
 from src.app.schemas.user import UserCreate, UserEdit
 
-players_count = 40
-url_prefix = 'https://cyberfire.ru'
+players_count = 20
+url_prefix = 'http://127.0.0.1:3020'
 
 tournament = {
     "title": "hi",
@@ -111,12 +111,13 @@ def test_tournament():
     8 повторить 5-7 \n
     9 завершить турнир \n
     """
-    admin = UserCreate(password='nba2003nba', email='gtx1060@', username='dddddd', team_name='ddddddd')
+    # admin = UserCreate(password='nba2003nba', email='gtx1060@', username='dddddd', team_name='ddddddd')
+    admin = UserCreate(password='123456', email='123456@', username='123456', team_name='123456')
     admin_token = login(requests, admin)
     t_id = create_tournament(requests, admin_token)
     user_dataset = []
     tokens = []
-    for i in range(players_count):
+    for i in range(players_count-1):
         user_dataset.append(register(requests))
         tokens.append(login(requests, user_dataset[i]))
 

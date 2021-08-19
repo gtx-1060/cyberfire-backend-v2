@@ -29,7 +29,8 @@ def create_lobby(lobby_create: lobbies_schemas.LobbyCreate, db: Session, commit=
     get_stage_by_id(lobby_create.stage_id, db)
     db_lobby = Lobby(
         matches_count=lobby_create.matches_count,
-        stage_id=lobby_create.stage_id
+        stage_id=lobby_create.stage_id,
+        key=lobby_create.key
     )
     db.add(db_lobby)
     if commit:

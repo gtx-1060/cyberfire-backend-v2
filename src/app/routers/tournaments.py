@@ -46,7 +46,7 @@ def is_user_tournaments_registered(game: Optional[Games] = None, count=20, offse
 @router.get("/advanced_data", response_model=dict)
 def get_tournament_advanced_data(tournament_id: int, db: Session = Depends(get_db), auth: TokenData = Depends(auth_user)):
     is_registered, register_access = tournaments_service.tournament_registrable_data(tournament_id, auth.email, db)
-    return {'is_registered': is_registered, 'can_register': register_access}
+    return {'registered': is_registered, 'can_register': register_access}
 
 
 @router.get("/by_id", response_model=Tournament)

@@ -34,6 +34,6 @@ def convert_lobbies_to_frontend_ready(lobbies: List[Lobby], team_name: str):
     for lobby in lobbies:
         ready_lobby, lobby_key = convert_lobby_to_frontend_ready(lobby, team_name)
         ready_lobbies.append({'id': lobby.id, 'teams': ready_lobby})
-        if lobby_key != '':
+        if len(lobby_key) > 0:
             final_lobby_key = lobby_key
     return ready_lobbies, final_lobby_key

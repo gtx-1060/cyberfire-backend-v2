@@ -13,8 +13,8 @@ from src.app.schemas.stats import MatchStatsCreate
 from src.app.schemas.user import UserCreate, UserEdit
 
 client = TestClient(app)
-players_count = 10
-prefix = 'test1'
+players_count = 15
+prefix = 'test2'
 
 tournament = {
     "title": "hi",
@@ -26,7 +26,7 @@ tournament = {
         {
             "title": "s1",
             "description": "string",
-            "stage_datetime": str(datetime.now(pytz.timezone('Europe/Moscow')) + timedelta(seconds=30)),
+            "stage_datetime": str(datetime.now(pytz.timezone('Europe/Moscow')) + timedelta(seconds=120)),
             "lobbies": []
         },
         {
@@ -45,8 +45,8 @@ tournament = {
 
 
 def register(cl: TestClient, prefix: str, index: int) -> UserCreate:
-    data = UserCreate(password=f'{prefix}_pass_{index}', email=f'{prefix}_mail_{index}',
-                      username=str(uuid1()), team_name=str(uuid4()))
+    data = UserCreate(password=f'{prefix}_pass_{index}', email=f'{prefix}_mail@_{index}',
+                      username='bot', team_name=str(uuid4())[0:12])
     r = cl.post('/api/v2/users/register', data=data.json())
     assert r.status_code == 202 or r.status_code == 200
     return data
@@ -114,12 +114,12 @@ def test_tournament():
     8 повторить 5-7 \n
     9 завершить турнир \n
     """
-    admin = UserCreate(password='string', email='string', username='', team_name='')
+    admin = UserCreate(password='123456', email='123456@', username='123456', team_name='123456')
     admin_token = login(client, admin)
     t_id = create_tournament(client, admin_token)
     user_dataset = []
     tokens = []
-    for i in range(players_count):
+    for i in range(players_count-1):
         user_dataset.append(register(client, prefix, i))
         tokens.append(login(client, user_dataset[i]))
 
