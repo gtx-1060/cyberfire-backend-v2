@@ -11,8 +11,8 @@ from src.app.schemas.squad import Squad
 from src.app.schemas.stats import MatchStatsCreate
 from src.app.schemas.user import UserCreate, UserEdit
 
-players_count = 20
-url_prefix = 'http://127.0.0.1:3020'
+players_count = 100
+url_prefix = 'https://cyberfire.ru'
 
 tournament = {
     "title": "hi",
@@ -45,6 +45,7 @@ tournament = {
 def register(cl) -> UserCreate:
     data = UserCreate(password=str(uuid1()), email=str(uuid4())[::10]+'@', username='bot', team_name=str(uuid4())[::10])
     r = cl.post(url_prefix+'/api/v2/users/register', data=data.json())
+    print(data)
     assert r.status_code == 202 or r.status_code == 200
     return data
 
@@ -54,7 +55,9 @@ def login(cl, user: UserCreate) -> str:
     r = cl.post(url_prefix+'/api/v2/users/login', data=data)
     assert r.status_code == 200
     assert 'access_token' in r.json()
-    return r.json()['access_token']
+    token = r.json()['access_token']
+    print(token)
+    return token
 
 
 def fill_squad(cl, token: str):
@@ -112,15 +115,16 @@ def test_tournament():
     9 завершить турнир \n
     """
     # admin = UserCreate(password='nba2003nba', email='gtx1060@', username='dddddd', team_name='ddddddd')
-    admin = UserCreate(password='123456', email='123456@', username='123456', team_name='123456')
-    admin_token = login(requests, admin)
-    t_id = create_tournament(requests, admin_token)
+    # admin = UserCreate(password='123456', email='123456@', username='123456', team_name='123456')
+    # admin_token = login(requests, admin)
+    # t_id = create_tournament(requests, admin_token)
     user_dataset = []
     tokens = []
-    for i in range(players_count-1):
+    for i in range(players_count-2):
         user_dataset.append(register(requests))
         tokens.append(login(requests, user_dataset[i]))
 
+    return
     r = requests.get(url_prefix+f'/api/v2/tournaments/by_id?tournament_id={t_id}')
     assert r.status_code == 200
     stage_id = r.json()['stages'][0]['id']

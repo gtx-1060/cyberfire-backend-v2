@@ -202,15 +202,15 @@ def create_empty_tournament_stats(tournament, db):
     db.commit()
 
 
-def match_players_stats(stats_list: List[MatchStats]) -> Dict[str, Tuple[int, int, int]]:
+def match_players_stats(stats_list: List[MatchStats]) -> Dict[str, List[int]]:
     summary_score = {}
     for stats in stats_list:
-        if stats.user_id in summary_score:
+        if stats.user.team_name in summary_score:
             summary_score[stats.user.team_name][0] += stats.score
             summary_score[stats.user.team_name][1] += stats.kills_count
             summary_score[stats.user.team_name][2] += stats.placement == 1
         else:
-            summary_score[stats.user.team_name] = (stats.score, stats.kills_count, int(stats.placement == 1))
+            summary_score[stats.user.team_name] = [stats.score, stats.kills_count, int(stats.placement == 1)]
     return summary_score
 
 

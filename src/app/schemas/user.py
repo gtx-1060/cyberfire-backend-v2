@@ -9,7 +9,7 @@ from src.app.exceptions.formatter_exceptions import *
 def validate_email(v):
     if ('@' not in v) or len(v) > 50 or len(v) < 4:
         raise IncorrectUserDataException('Некорректная почта')
-    return v.lower()
+    return v
 
 
 def validate_username(v):
@@ -21,8 +21,8 @@ def validate_username(v):
 
 
 def validate_team(v):
-    if len(v) < 3 or len(v) > 20:
-        raise IncorrectUserDataException('Название команды должно быть длиннее 2 символов и короче 20')
+    if len(v) < 3 or len(v) > 15:
+        raise IncorrectUserDataException('Название команды должно быть длиннее 2 символов и короче 16')
     return v.lower()
 
 
@@ -31,7 +31,7 @@ def validate_password(v):
         raise IncorrectUserDataException('Пароль должен быть не короче 5 символов')
     if ' ' in v:
         raise IncorrectUserDataException('Пароль не должен содержать пробелы')
-    return v.lower()
+    return v
 
 
 class UserBase(BaseModel):
