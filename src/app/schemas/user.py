@@ -6,24 +6,37 @@ from ..models.roles import Roles
 from src.app.exceptions.formatter_exceptions import *
 
 
+def find_spec_symbols(v: str):
+    v = v.replace("_", '').replace("-", '').replace(" ", '').lower()
+    for symb in v:
+        if v.isdigit():
+            continue
+        if ord(symb) < 97 or ord(symb) > 122:
+            return True
+    return False
+
+
 def validate_email(v):
     if ('@' not in v) or len(v) > 50 or len(v) < 4:
         raise IncorrectUserDataException('Некорректная почта')
-    return v
+    return v.strip()
 
 
 def validate_username(v):
+    if find_spec_symbols(v):
+        raise IncorrectUserDataException('Нозвание команды должно состоять только из латинских символов, цифр также '
+                                         'допустимы "_", "-"')
     if len(v) < 3 or len(v) > 20:
         raise IncorrectUserDataException('Имя пользователя должно быть длиннее 2 символов и короче 20')
     if ' ' in v:
         raise IncorrectUserDataException('Имя пользователя не должно содержать пробелы')
-    return v.lower()
+    return v.lower().strip()
 
 
 def validate_team(v):
     if len(v) < 3 or len(v) > 15:
         raise IncorrectUserDataException('Название команды должно быть длиннее 2 символов и короче 16')
-    return v.lower()
+    return v.strip()
 
 
 def validate_password(v):
