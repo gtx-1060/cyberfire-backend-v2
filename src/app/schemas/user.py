@@ -34,6 +34,9 @@ def validate_username(v):
 
 
 def validate_team(v):
+    if find_spec_symbols(v):
+        raise IncorrectUserDataException('Нозвание команды должно состоять только из латинских символов, цифр также '
+                                         'допустимы "_", "-"')
     if len(v) < 3 or len(v) > 15:
         raise IncorrectUserDataException('Название команды должно быть длиннее 2 символов и короче 16')
     return v.strip()
