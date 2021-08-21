@@ -9,7 +9,7 @@ from src.app.exceptions.formatter_exceptions import *
 def find_spec_symbols(v: str):
     v = v.replace("_", '').replace("-", '').replace(" ", '').lower()
     for symb in v:
-        if v.isdigit():
+        if symb.isdigit():
             continue
         if ord(symb) < 97 or ord(symb) > 122:
             return True
