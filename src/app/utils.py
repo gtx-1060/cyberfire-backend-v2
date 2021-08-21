@@ -34,8 +34,8 @@ def save_image(path: str, content) -> str:
             f.close()
         return full_path[full_path.find('static')::].replace("\\", "/")
     except Exception as e:
-        error_logger.error(e)
-        raise FileSaveException()
+        error_logger.error(str(e))
+        raise FileSaveException(str(e))
 
 
 def delete_image_by_web_path(web_path: str):
@@ -45,5 +45,5 @@ def delete_image_by_web_path(web_path: str):
     try:
         remove(full_path)
     except Exception as e:
-        error_logger.error(e)
-        raise FileRemoveException()
+        error_logger.error(str(e))
+        raise FileRemoveException(str(e))

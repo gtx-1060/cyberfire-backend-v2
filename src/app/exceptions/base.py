@@ -19,10 +19,10 @@ class WrongFilePath(MyException):
 
 
 class FileSaveException(MyException):
-    def __init__(self):
-        super().__init__(400, "problem with saving file occurred")
+    def __init__(self, e):
+        super().__init__(400, f"problem with saving file occurred: {e}")
 
 
 class FileRemoveException(MyException):
-    def __init__(self):
-        super().__init__(400, "problem with removing file occurred")
+    def __init__(self, e):
+        super().__init__(400, f"problem with removing file occurred: {e}")
