@@ -58,5 +58,7 @@ def get_news_count(db: Session = Depends(get_db)):
 
 @router.delete('')
 def remove_news(news_id: int, db: Session = Depends(get_db)):
+    news = news_crud.get_news_by_id(news_id, db)
     news_crud.remove_news(news_id, db)
+    delete_image_by_web_path(news.img_path)
     return Response(status_code=204)

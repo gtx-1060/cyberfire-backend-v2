@@ -18,7 +18,7 @@ from ..exceptions.auth_exceptions import AuthenticationException, WrongCredentia
     UserWasBannedException
 from ..schemas.token_data import TokenData, Tokens
 from ..middleware.auth_middleware import MyOAuth2PasswordBearer
-from ..utils import verify_password
+from ..utils import verify_password, delete_image_by_web_path
 
 oauth2_scheme = MyOAuth2PasswordBearer(tokenUrl='/api/v2/users/login')
 
@@ -135,4 +135,5 @@ def remove_user_completely(user_team: str, db: Session):
     user = get_user_by_team(user_team, db)
     remove_user_from_tournaments(user.id, db)
     remove_user_from_stages_leaders(user.id, db)
+    delete_image_by_web_path(user.avatar_path)
     remove_user(user.id, db)

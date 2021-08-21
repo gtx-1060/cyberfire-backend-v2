@@ -73,6 +73,7 @@ def ban_user(team_name: str, _=Depends(auth_admin), db: Session = Depends(get_db
 @router.delete("")
 def delete_user(team_name: str, _=Depends(auth_admin), db: Session = Depends(get_db)):
     auth_service.remove_user_completely(team_name, db)
+
     return Response(status_code=200)
 
 

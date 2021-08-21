@@ -76,8 +76,6 @@ def edit_tournament(tournament: TournamentEdit, tournament_id: int, db: Session)
     if tournament.max_squads is not None:
         if count_users_in_tournament(tournament_id, db) > tournament.max_squads:
             raise FieldCouldntBeEdited("max_squads", "the tournament have more registered users")
-        if db_tournament.state == TournamentStates.IS_ON:
-            raise FieldCouldntBeEdited("max_squads", "the tournament is on")
         db_tournament.max_squads = tournament.max_squads
     db.add(db_tournament)
     db.commit()

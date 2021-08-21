@@ -69,7 +69,9 @@ def create_tournament(tournament: TournamentCreate, db: Session = Depends(get_db
 
 @router.delete("")
 def delete_tournament(tournament_id: int, db: Session = Depends(get_db), _=Depends(auth_admin)):
+    tournament = tournaments_crud.get_tournament(tournament_id, db)
     tournaments_crud.remove_tournament(tournament_id, db)
+    delete_image_by_web_path(tournament.img_path)
     return Response(status_code=200)
 
 
