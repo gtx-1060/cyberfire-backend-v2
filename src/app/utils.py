@@ -41,7 +41,7 @@ def save_image(path: str, content) -> str:
 def delete_image_by_web_path(web_path: str):
     if 'default' in web_path:
         return
-    full_path = join(Path(ABSOLUTE_PATH), web_path.replace('/', r'\\'))
+    full_path = join(Path(ABSOLUTE_PATH), web_path)
     try:
         remove(full_path)
     except Exception as e:
