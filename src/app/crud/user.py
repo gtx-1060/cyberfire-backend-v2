@@ -34,14 +34,14 @@ def __create_squads(user_id: int, db: Session):
 def user_by_team(team_name: str, db: Session) -> User:
     user = db.query(User).filter(User.team_name == team_name).first()
     if user is None:
-        raise user_exceptions.UserNotFound()
+        raise user_exceptions.UserNotFound(team_name)
     return user
 
 
 def user_id_by_team(team_name: str, db: Session) -> int:
     user_id = db.query(User.id).filter(User.team_name == team_name).first()
     if not user_id:
-        raise user_exceptions.UserNotFound()
+        raise user_exceptions.UserNotFound(user_id)
     return user_id
 
 
@@ -66,14 +66,14 @@ def create_user(user: user_schemas.UserCreate, db: Session):
 def get_user_by_email(email: str, db: Session) -> User:
     user = db.query(User).filter(User.email == email).first()
     if user is None:
-        raise user_exceptions.UserNotFound()
+        raise user_exceptions.UserNotFound(email)
     return user
 
 
 def get_user_by_team(team_name: str, db: Session) -> User:
     user = db.query(User).filter(User.team_name == team_name).first()
     if user is None:
-        raise user_exceptions.UserNotFound()
+        raise user_exceptions.UserNotFound(team_name)
     return user
 
 

@@ -7,5 +7,5 @@ class FieldCouldntBeEdited(MyException):
 
 
 class SameItemAlreadyExists(MyException):
-    def __init__(self):
-        super().__init__(400, f"Same item already exists in db table")
+    def __init__(self, item_id=''):
+        super().__init__(400, f"Same item {item_id} already exists in db table")

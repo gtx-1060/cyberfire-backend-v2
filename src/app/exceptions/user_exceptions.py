@@ -7,5 +7,5 @@ class UserAlreadyExists(MyException):
 
 
 class UserNotFound(MyException):
-    def __init__(self):
-        super().__init__(404, "Искомого пользователя не существует")
+    def __init__(self, name=''):
+        super().__init__(404, f"Искомого пользователя {name} не существует")

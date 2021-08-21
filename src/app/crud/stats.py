@@ -40,16 +40,20 @@ def create_match_stats(stats: stats_schemas.MatchStatsCreate, lobby_id: int, db:
     )
     try:
         db.add(db_stats)
+        if commit:
+            db.commit()
     except IntegrityError:
-        raise SameItemAlreadyExists()
-    if commit:
-        db.commit()
+        raise SameItemAlreadyExists(f'match stats {user.team_name}')
 
 
 def create_match_stats_list(stats_list: List[stats_schemas.MatchStatsCreate], lobby_id: int, db: Session):
     for stats in stats_list:
         create_match_stats(stats, lobby_id, db, False)
-    db.commit()
+
+    try:
+        db.commit()
+    except IntegrityError:
+        raise SameItemAlreadyExists()
 
 
 def edit_match_stats(stats: stats_schemas.MatchStatsEdit, stats_id: int, db: Session):
@@ -100,10 +104,10 @@ def create_tournament_stats(stats: stats_schemas.TournamentStatsCreate, tourname
     )
     try:
         db.add(db_stats)
+        if commit:
+            db.commit()
     except IntegrityError:
-        raise SameItemAlreadyExists()
-    if commit:
-        db.commit()
+        raise SameItemAlreadyExists(f'tournament stats {user.team_name}')
 
 
 def edit_tournament_stats(stats: stats_schemas.TournamentStatsEdit, stats_id: int, db: Session, commit=True):
@@ -141,9 +145,9 @@ def create_empty_global_stats(user_email: str, db: Session):
         )
         try:
             db.add(stats)
+            db.commit()
         except IntegrityError:
-            raise SameItemAlreadyExists()
-    db.commit()
+            raise SameItemAlreadyExists(f'global stats {user.team_name}')
 
 
 def create_global_stats(stats: stats_schemas.GlobalStatsCreate, db: Session):
@@ -157,9 +161,9 @@ def create_global_stats(stats: stats_schemas.GlobalStatsCreate, db: Session):
     )
     try:
         db.add(db_stats)
+        db.commit()
     except IntegrityError:
-        raise SameItemAlreadyExists()
-    db.commit()
+        raise SameItemAlreadyExists(f'global stats {user.team_name}')
 
 
 def edit_global_stats(added_stats: stats_schemas.GlobalStatsEdit, user_id: int, db: Session, commit=True):
