@@ -7,6 +7,7 @@ from os import remove
 
 from src.app.config import ABSOLUTE_PATH
 from src.app.exceptions.base import WrongFilePath, FileSaveException, FileRemoveException
+from src.app.middleware.log_middleware import error_logger
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -33,7 +34,7 @@ def save_image(path: str, content) -> str:
             f.close()
         return full_path[full_path.find('static')::].replace("\\", "/")
     except Exception as e:
-        print(e)
+        error_logger.error(e)
         raise FileSaveException()
 
 
@@ -44,5 +45,5 @@ def delete_image_by_web_path(web_path: str):
     try:
         remove(full_path)
     except Exception as e:
-        print(e)
+        error_logger.error(e)
         raise FileRemoveException()
