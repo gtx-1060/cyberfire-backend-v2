@@ -25,6 +25,8 @@ websockets = "^9.1"
 uvicorn = {extras = ["standart"], version = "^0.15.0"}
 gunicorn = "^20.1.0"
 alembic = "^1.6.5"
+fuzzywuzzy = "^0.18.0"
+python-Levenshtein = "^0.12.2"
 
 [tool.poetry.dev-dependencies]
 
@@ -34,6 +36,7 @@ create_tables = "src.app.database.init:create_tables"
 drop_tables = "src.app.database.init:run_drop_tables"
 test_tournaments = "src.tests.tournaments_tests:test_tournament"
 test_tournaments_prod = "src.tests.external_tournaments_tests:test_tournament"
+generate_banwords = "src.app.services.banword_service.banlist_generator:generate"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

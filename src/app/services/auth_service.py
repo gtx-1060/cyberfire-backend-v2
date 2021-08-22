@@ -4,7 +4,6 @@ from typing import Optional
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from jose import JWTError, jwt
-from sqlalchemy.orm import Session
 
 from ..crud.stages import remove_user_from_stages_leaders
 from ..crud.stats import create_empty_global_stats

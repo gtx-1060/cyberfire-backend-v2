@@ -4,6 +4,7 @@ from pydantic import BaseModel, validator
 from .squad import Squad
 from ..models.roles import Roles
 from src.app.exceptions.formatter_exceptions import *
+from src.app.services.banword_service.wordbanner import match_banword_percent
 
 
 def find_spec_symbols(v: str):
@@ -37,8 +38,12 @@ def validate_team(v):
     if find_spec_symbols(v):
         raise IncorrectUserDataException('Название команды должно состоять только из латинских символов, цифр, также '
                                          'допустимы "_", "-"')
-    if len(v) < 3 or len(v) > 15:
-        raise IncorrectUserDataException('Название команды должно быть длиннее 2 символов и короче 16')
+    if len(v) < 4 or len(v) > 15:
+        raise IncorrectUserDataException('Название команды должно быть длиннее 3 символов и короче 16')
+    banwords_result = match_banword_percent(v)
+    if banwords_result[0]:
+        raise IncorrectUserDataException('Похоже ваше название команды содержит нецензурные '
+                                         f'выражения, такие как {banwords_result[2]}. Вам придется исправить это.')
     return v.strip()
 
 
