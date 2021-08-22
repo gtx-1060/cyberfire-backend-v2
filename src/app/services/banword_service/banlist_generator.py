@@ -25,7 +25,7 @@ def row_words_to_dataset(words: list):
         for tword in generate_variations(bword):
             res_words.append(tword)
     with open('src/app/services/banword_service/banwords.json', 'w') as f:
-        f.write(json.dumps(res_words, ensure_ascii=False))
+        f.write(json.dumps(res_words))
         f.close()
 
 
