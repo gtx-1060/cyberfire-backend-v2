@@ -20,7 +20,7 @@ from src.app.services.royale import tournaments_service
 
 router = APIRouter(
     prefix="/api/v2/royale/tournaments",
-    tags=["tournaments", "battleroyale"],
+    tags=["tournaments battleroyale"],
     responses={404: {"description": "Not found"}},
 )
 

@@ -19,7 +19,7 @@ from src.app.services.tvt import tournaments_service
 
 router = APIRouter(
     prefix="/api/v2/tvt/tournaments",
-    tags=["tournaments", "team vs team"],
+    tags=["tournament team vs team"],
     responses={404: {"description": "Not found"}},
 )
 

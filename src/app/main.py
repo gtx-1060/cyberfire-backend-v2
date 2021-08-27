@@ -8,6 +8,7 @@ from src.app.config import STATIC_FILES_PATH
 from src.app.middleware.log_middleware import LoggingMiddleware
 from src.app.routers import news, users
 from src.app.routers.royale import tournaments, lobbies, stats, stages
+from src.app.routers.tvt import tournaments as tournaments_tvt
 from src.app.services.schedule_service import myscheduler
 
 app = FastAPI()
@@ -28,6 +29,7 @@ app.include_router(stats.router)
 app.include_router(stages.router)
 app.include_router(tournaments.router)
 app.include_router(lobbies.router)
+app.include_router(tournaments_tvt.router)
 
 
 @app.on_event("startup")
