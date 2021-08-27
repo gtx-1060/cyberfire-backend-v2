@@ -1,15 +1,14 @@
 from datetime import timedelta, datetime
-from typing import Tuple
 
 import pytz
 from fastapi.testclient import TestClient
-from uuid import uuid4, uuid1
+from uuid import uuid4
 
 from src.app.main import app
 from src.app.models.games import Games
-from src.app.schemas.lobbies import LobbyCreate
-from src.app.schemas.squad import Squad
-from src.app.schemas.stats import MatchStatsCreate
+from src.app.schemas.royale.lobbies import LobbyCreate
+from src.app.schemas.royale.squad import Squad
+from src.app.schemas.royale.stats import MatchStatsCreate
 from src.app.schemas.user import UserCreate, UserEdit
 
 client = TestClient(app)

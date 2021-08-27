@@ -5,9 +5,9 @@ from fastapi import Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 
-from ..crud.stages import remove_user_from_stages_leaders
-from ..crud.stats import create_empty_global_stats
-from ..crud.tournaments import remove_user_from_tournaments
+from src.app.crud.royale.stages import remove_user_from_stages_leaders
+from src.app.crud.royale.stats import create_empty_global_stats
+from src.app.crud.royale.tournaments import remove_user_from_tournaments_royale
 from ..crud.user import *
 from ..schemas.user import User, UserCreate
 from ..models.roles import Roles
@@ -127,12 +127,12 @@ def authorize_using_refresh(refresh_token: str, db: Session) -> Tokens:
 def ban_user(user_team: str, db: Session):
     user = get_user_by_team(user_team, db)
     user.is_active = False
-    remove_user_from_tournaments(user.id, db)
+    remove_user_from_tournaments_royale(user.id, db)
 
 
 def remove_user_completely(user_team: str, db: Session):
     user = get_user_by_team(user_team, db)
-    remove_user_from_tournaments(user.id, db)
+    remove_user_from_tournaments_royale(user.id, db)
     remove_user_from_stages_leaders(user.id, db)
     delete_image_by_web_path(user.avatar_path)
     remove_user(user.id, db)

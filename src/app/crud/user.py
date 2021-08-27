@@ -3,7 +3,7 @@ from sqlalchemy import and_
 
 from ..schemas import user as user_schemas
 from ..models.user import User
-from ..models.squad import Squad
+from src.app.models.royale.squad import Squad
 from ..models.roles import Roles
 from ..models.games import Games
 from ..exceptions import user_exceptions

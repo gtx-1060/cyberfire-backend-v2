@@ -1,7 +1,7 @@
 from typing import List, Optional
 from pydantic import BaseModel, validator
 
-from .squad import Squad
+from src.app.schemas.royale.squad import Squad
 from ..models.roles import Roles
 from src.app.exceptions.formatter_exceptions import *
 from src.app.services.banword_service.wordbanner import match_banword_percent

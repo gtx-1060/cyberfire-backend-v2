@@ -3,7 +3,6 @@ from logging.config import fileConfig
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from src.app.database.init import Base
-from src.app.models import stats, tournament
 from alembic import context
 
 # this is the Alembic Config object, which provides
@@ -16,16 +15,15 @@ config = context.config
 # This line sets up loggers basically.
 fileConfig(config.config_file_name)
 
-# add your model's MetaData object here
-# for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
 target_metadata = Base.metadata
+IGNORE_TABLES = ['apschedulers_table']
 
-# other values from the config, defined by the needs of env.py,
-# can be acquired:
-# my_important_option = config.get_main_option("my_important_option")
-# ... etc.
+
+def include_object(obj, name, type_, reflected, compare_to):
+    if type_ == 'table' and (name in IGNORE_TABLES):
+        return False
+
+    return True
 
 
 def run_migrations_offline():
@@ -46,7 +44,8 @@ def run_migrations_offline():
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
-        compare_types=True
+        compare_types=True,
+        include_object=include_object
     )
 
     with context.begin_transaction():
@@ -70,7 +69,8 @@ def run_migrations_online():
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
-            compare_types=True
+            compare_types=True,
+            include_object=include_object
         )
 
         with context.begin_transaction():

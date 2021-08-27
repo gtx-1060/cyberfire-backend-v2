@@ -6,7 +6,8 @@ from starlette.staticfiles import StaticFiles
 from src.app.middleware.db_session_middleware import DatabaseSessionMiddleware
 from src.app.config import STATIC_FILES_PATH
 from src.app.middleware.log_middleware import LoggingMiddleware
-from src.app.routers import news, users, stats, stages, tournaments, lobbies
+from src.app.routers import news, users
+from src.app.routers.royale import tournaments, lobbies, stats, stages
 from src.app.services.schedule_service import myscheduler
 
 app = FastAPI()
