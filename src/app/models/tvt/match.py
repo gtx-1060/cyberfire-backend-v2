@@ -12,3 +12,5 @@ class TvtMatch(Base):
     finished = Column(Boolean, default=False)
     index = Column(SmallInteger, nullable=False)
     teams_stats = relationship('TvtStats', cascade="all, delete", passive_deletes=True)
+    absented_id = Column(Integer, ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
+    absented = relationship('Users')

@@ -3,7 +3,7 @@ from pydantic import BaseModel
 
 
 class UserData(BaseModel):
-    team_name: str
+    team_name: Optional[str]
 
     class Config:
         orm_mode = True

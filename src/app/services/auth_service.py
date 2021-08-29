@@ -3,7 +3,6 @@ from typing import Optional
 
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordRequestForm
-from jose import JWTError, jwt
 
 from src.app.crud.royale.stages import remove_user_from_stages_leaders
 from src.app.crud.royale.stats import create_empty_global_stats
@@ -17,7 +16,7 @@ from ..exceptions.auth_exceptions import AuthenticationException, WrongCredentia
     UserWasBannedException
 from ..schemas.token_data import TokenData, Tokens
 from ..middleware.auth_middleware import MyOAuth2PasswordBearer
-from ..utils import verify_password, delete_image_by_web_path
+from ..utils import verify_hashed, delete_image_by_web_path, generate_jwt, data_from_jwt
 
 oauth2_scheme = MyOAuth2PasswordBearer(tokenUrl='/api/v2/users/login')
 
@@ -36,26 +35,22 @@ def get_role(scope: str) -> Roles:
 
 
 def create_jwt_token(user: User, expires_delta: Optional[timedelta] = None) -> str:
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=30)
-
-    to_encode = {'mail': user.email, 'exp': expire, 'scope': get_scope(user)}
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    if not expires_delta:
+        expires_delta = timedelta(minutes=30)
+    payload = {'mail': user.email, 'scope': get_scope(user)}
+    encoded_jwt = generate_jwt(payload, expires_delta)
     return encoded_jwt
 
 
 def decode_token(token: str) -> TokenData:
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email: str = payload.get("mail")
-        role = get_role(payload.get("scope"))
-        if email is None:
-            raise AuthenticationException('wrong access token')
-        return TokenData(email, role)
-    except JWTError:
+    payload = data_from_jwt(token)
+    if payload is None:
         raise AuthenticationException('access token is wrong or expired')
+    email: str = payload.get("mail")
+    role = get_role(payload.get("scope"))
+    if email is None:
+        raise AuthenticationException('wrong access token')
+    return TokenData(email, role)
 
 
 def try_auth_user(token: Optional[str] = Depends(oauth2_scheme)) -> Optional[TokenData]:
@@ -80,7 +75,7 @@ def __auth_with_password(password: str, email: str, db: Session) -> DbUser:
     current_user = get_user_by_email(email, db)
     if not current_user:
         raise WrongCredentialsException()
-    if not verify_password(current_user.hashed_password, password):
+    if not verify_hashed(current_user.hashed_password, password):
         raise WrongCredentialsException()
     return current_user
 
@@ -104,9 +99,9 @@ def register(user: UserCreate, db: Session):
 
 def change_user_password(old_password: str, new_password: str, email: str, db: Session):
     user = get_user_by_email(email, db)
-    if not verify_password(user.hashed_password, old_password):
+    if not verify_hashed(user.hashed_password, old_password):
         raise WrongCredentialsException()
-    phash = utils.get_password_hash(new_password)
+    phash = utils.get_str_hash(new_password)
     update_user_password(email, phash, db)
 
 

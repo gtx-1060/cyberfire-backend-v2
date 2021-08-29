@@ -33,6 +33,7 @@ class TvtTournamentAdvancedData(BaseModel):
     registered: bool
     ready_to_play: bool = Field(default=False)
     connect_until: Optional[datetime] = Field(default=None)
+    in_last_stage: bool = Field(default=False)
     can_register: bool
 
 

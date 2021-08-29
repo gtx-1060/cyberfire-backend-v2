@@ -1,13 +1,16 @@
 from sqlalchemy import exists, and_
 from sqlalchemy.orm import Session
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from src.app.config import DEFAULT_IMAGE_PATH
 from src.app.exceptions.db_exceptions import FieldCouldntBeEdited
 from src.app.models.games import Games
+from src.app.models.tvt.match import TvtMatch
+from src.app.models.tvt.stage import TvtStage
+from src.app.models.tvt.team_stats import TvtStats
 from src.app.models.tvt.tournament import TvtTournament as Tournament, association_table as tournament_associations
 from src.app.exceptions.base import ItemNotFound
-from src.app.models.tournament_states import TournamentStates
+from src.app.models.tournament_states import TournamentStates, StageStates
 from src.app.models.user import User
 from src.app.schemas.tvt.tournaments import TvtTournamentCreate, TvtTournamentEdit
 
@@ -112,3 +115,14 @@ def update_tournament_state_tvt(new_state: TournamentStates, tournament_id: int,
     })
     db.commit()
 
+
+def get_last_tournament_stage(tournament_id: int, db: Session):
+    last_stage: TvtStage = db.query(TvtStage).filter(Tournament.id == tournament_id).order_by(
+        TvtStage.id.desc()).first()
+    return last_stage
+
+
+def user_last_stage_match(user_id: int, last_stage: TvtStage, db: Session) -> Optional[TvtMatch]:
+    match = db.query(TvtMatch).join(TvtStats, TvtMatch.teams_stats).filter(and_(TvtMatch.stage_id == last_stage.id,
+                                                                                TvtStats.user_id == user_id)).first()
+    return match

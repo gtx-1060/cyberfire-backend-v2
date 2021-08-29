@@ -1,14 +1,15 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import reduce
 from typing import Tuple
-
 import pytz
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
 
 from src.app.crud.tvt import tournaments as tournaments_crud
 from src.app.crud.user import get_user_squad_by_email, get_user_by_email, get_user_by_team
+from src.app.database.db import SessionLocal
 from src.app.exceptions.tournament_exceptions import *
+from src.app.schemas.tvt import matches as match_schemas, stages as stage_schemas
 from src.app.models.games import game_squad_sizes
 from src.app.models.tournament_events import TournamentEvents
 from src.app.models.tournament_states import TournamentStates
@@ -19,6 +20,10 @@ from src.app.models.tvt.tournament import TvtTournament
 from src.app.models.user import User
 from src.app.schemas.tvt.tournaments import TvtTournamentCreate
 from src.app.services.schedule_service import myscheduler
+from src.app.services.redis_service import redis_client
+
+
+TIME_TO_CONNECT_AT_LAUNCH = timedelta(minutes=5)
 
 
 def get_tournament_task_id(event: TournamentEvents, tournament_id: int):
@@ -67,6 +72,59 @@ def create_stage(index: int, tournament_id: int, db):
 
 
 def start_tvt_tournament(tournament_id: int):
+    db = SessionLocal()
+    tournament = tournaments_crud.get_tournament_tvt(tournament_id, db)
+    tournaments_crud.update_tournament_state_tvt(TournamentStates.IS_ON, tournament_id, db)
+    launch_at = datetime.now()+TIME_TO_CONNECT_AT_LAUNCH
+    redis_client.add_val(f'tournament_launch:{tournament_id}', launch_at.isoformat(), TIME_TO_CONNECT_AT_LAUNCH)
+    redis_client.remove(f'tournament_launch:{tournament_id}:users')
+    myscheduler.plan_task(get_tournament_task_id(TournamentEvents.START_TEAMS_MANAGEMENT, tournament_id),
+                          launch_at+timedelta(seconds=10), start_admin_management_state, [tournament_id], 60)
+    db.close()
+
+
+def add_to_wait_room(email: str, tournament_id: int):
+    key = f'tournament_launch:{tournament_id}:users'
+    ex = redis_client.exists(key)
+    redis_client.add_to_set(key, email)
+    if not ex:
+        redis_client.client.expire(key, timedelta(minutes=30))
+
+
+def remove_from_wait_room(email: str, tournament_id: int):
+    redis_client.remove_from_set(f'tournament_launch:{tournament_id}:users', email)
+
+
+def start_admin_management_state(tournament_id: int):
+    # TODO: STAGE STATE CHANGE NEEDED
+    db: Session = SessionLocal()
+    db_stage = tournaments_crud.get_last_tournament_stage(tournament_id, db)
+    emails = redis_client.get_set(f'tournament_launch:{tournament_id}:users')
+    stage = stage_schemas.TvtStage.from_orm(db_stage)
+    teams_active = set()
+    for email in emails:
+        teams_active.add(get_user_by_email(email, db).team_name)
+
+    matches_to_remove = []
+    for i in range(len(stage.matches)):
+        match = stage.matches[i]
+        removed = 0
+        for stats in match.teams_stats:
+            if stats.user.team_name not in teams_active:
+                stats.user.team_name = None
+                removed += 1
+        if removed == 2:
+            matches_to_remove.append(i)
+    for ind in matches_to_remove:
+        stage.matches.pop(ind)
+    redis_client.add_val(f'tournament:{tournament_id}:temp_stage', stage.json(), expire=timedelta(minutes=20))
+
+
+def to_next_stage(team: str, tournament_id: int, db: Session):
+    pass
+
+
+def save_scoreboard(db: Session):
     pass
 
 
@@ -128,6 +186,7 @@ def kick_player_from_tournament(team_name: str, tournament_id: int, db: Session)
     user = get_user_by_team(team_name, db)
     tournaments_crud.get_tournament_tvt(tournament_id, db)
     tournaments_crud.remove_user_from_tournament_tvt(user.id, tournament_id, db)
+    __remove_from_last_match(tournament_id, user, db)
 
 
 def unregister_player_from_tournament(user_email: str, tournament_id: int, db: Session):
@@ -136,19 +195,20 @@ def unregister_player_from_tournament(user_email: str, tournament_id: int, db: S
         raise WrongTournamentState()
     user = get_user_by_email(user_email, db)
     tournaments_crud.remove_user_from_tournament_tvt(user.id, tournament_id, db)
-    __remove_from_match(tournament_id, user, db)
+    __remove_from_last_match(tournament_id, user, db)
 
 
-def __remove_from_match(tournament_id, user, db):
-    stats = db.query(TvtStats).filter(and_(TvtStats.user_id == user.id,
-                                           TvtStats.tournament_id == tournament_id)).first()
+def __remove_from_last_match(tournament_id, user, db):
+    stats = db.query(TvtStats)\
+        .filter(and_(TvtStats.user_id == user.id, TvtStats.tournament_id == tournament_id))\
+        .order_by(TvtStats.id.desc()).first()
     if stats.arrival_id is not None:
-        ar_stats: TvtStats = db.query(TvtStats).filter(and_(TvtStats.user_id == stats.arrival_id,
-                                                            TvtStats.tournament_id == tournament_id)).first()
+        ar_stats: TvtStats = db.query(TvtStats)\
+            .filter(and_(TvtStats.user_id == stats.arrival_id, TvtStats.tournament_id == tournament_id))\
+            .order_by(TvtStats.id.desc()).first()
         ar_stats.arrival_id = None
         db.add(ar_stats)
-        db.query(TvtStats).filter(and_(TvtStats.user_id == user.id,
-                                       TvtStats.tournament_id == tournament_id)).delete()
+        db.query(TvtStats).filter(TvtStats.id == stats.id).delete()
     else:
         db.query(TvtMatch).filter(TvtMatch.id == stats.match_id).delete()
     db.commit()
