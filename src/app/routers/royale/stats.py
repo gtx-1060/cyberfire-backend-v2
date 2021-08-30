@@ -57,14 +57,14 @@ def get_global_stats(game: Games, offset=0, count=20, db: Session = Depends(get_
     return db_stats
 
 
-@router.post('royale/matches')
+@router.post('/royale/matches')
 def create_new_multiple_match_stats(stats_list: List[MatchStatsCreate], lobby_id: int,
                                     db: Session = Depends(get_db), _=Depends(auth_admin)):
     save_row_stats(stats_list, lobby_id, db)
     return Response(status_code=202)
 
 
-@router.post('royale/match')
+@router.post('/royale/match')
 def create_match_stats(stats: MatchStatsCreate, lobby_id: int, db: Session = Depends(get_db),
                        _=Depends(auth_admin)):
     get_lobby(lobby_id, db)
@@ -72,7 +72,7 @@ def create_match_stats(stats: MatchStatsCreate, lobby_id: int, db: Session = Dep
     return Response(status_code=202)
 
 
-@router.put('royale/match')
+@router.put('/royale/match')
 def edit_match_stats(match: MatchStatsEdit, match_id: int, db: Session = Depends(get_db),
                      _=Depends(auth_admin)):
     stats_crud.edit_match_stats(match, match_id, db)
