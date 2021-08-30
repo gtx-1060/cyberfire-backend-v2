@@ -12,5 +12,6 @@ class TvtMatch(Base):
     finished = Column(Boolean, default=False)
     index = Column(SmallInteger, nullable=False)
     teams_stats = relationship('TvtStats', cascade="all, delete", passive_deletes=True)
-    absented_id = Column(Integer, ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
-    absented = relationship('User')
+    # absented_id = Column(Integer, ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
+    # absented = relationship('User')
+    __table_args__ = (UniqueConstraint('index', 'stage_id', name='uix_tvtmatch'),)

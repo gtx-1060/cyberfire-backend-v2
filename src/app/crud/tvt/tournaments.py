@@ -101,7 +101,7 @@ def remove_tournament_tvt(tournament_id: int, db: Session):
 
 
 def count_users_in_tournament_tvt(tournament_id: int, db: Session):
-    return db.query(User).join(Tournament, User.tournaments).filter(Tournament.id == tournament_id).count()
+    return db.query(User).join(Tournament, User.tvt_tournaments).filter(Tournament.id == tournament_id).count()
 
 
 def is_user_in_tournament_tvt(tournament_id: int, user_email: str, db: Session) -> bool:

@@ -17,13 +17,13 @@ from src.app.services.royale.tournaments_service import save_row_stats
 from src.app.utils import get_db
 
 router = APIRouter(
-    prefix="/api/v2/royale/stats",
+    prefix="/api/v2/stats",
     tags=["stats"],
     responses={404: {"description": "Not found"}},
 )
 
 
-@router.get('/stage', response_model=dict)
+@router.get('/royale/stage', response_model=dict)
 def get_math_stats(stage_id: int, user_data: TokenData = Depends(try_auth_user), db: Session = Depends(get_db)):
     stage = get_stage_by_id(stage_id, db)
     user_team = ''
@@ -33,7 +33,7 @@ def get_math_stats(stage_id: int, user_data: TokenData = Depends(try_auth_user),
     return {'lobbies': data, "key": lobby_key}
 
 
-@router.get('/lobby', response_model=dict)
+@router.get('/royale/lobby', response_model=dict)
 def get_math_stats(lobby_id: int, user_data: TokenData = Depends(try_auth_user), db: Session = Depends(get_db)):
     lobby = get_lobby(lobby_id, db)
     user_team = ''
@@ -46,7 +46,7 @@ def get_math_stats(lobby_id: int, user_data: TokenData = Depends(try_auth_user),
     return {'lobby': data, "key": key}
 
 
-@router.get('/tournament', response_model=List[TournamentStats])
+@router.get('/royale/tournament', response_model=List[TournamentStats])
 def get_tournament_stats(tournament_id: int, db: Session = Depends(get_db)):
     return stats_crud.get_tournament_stats(tournament_id, db)
 
@@ -57,14 +57,14 @@ def get_global_stats(game: Games, offset=0, count=20, db: Session = Depends(get_
     return db_stats
 
 
-@router.post('/matches')
+@router.post('royale/matches')
 def create_new_multiple_match_stats(stats_list: List[MatchStatsCreate], lobby_id: int,
                                     db: Session = Depends(get_db), _=Depends(auth_admin)):
     save_row_stats(stats_list, lobby_id, db)
     return Response(status_code=202)
 
 
-@router.post('/match')
+@router.post('royale/match')
 def create_match_stats(stats: MatchStatsCreate, lobby_id: int, db: Session = Depends(get_db),
                        _=Depends(auth_admin)):
     get_lobby(lobby_id, db)
@@ -72,7 +72,7 @@ def create_match_stats(stats: MatchStatsCreate, lobby_id: int, db: Session = Dep
     return Response(status_code=202)
 
 
-@router.put('/match')
+@router.put('royale/match')
 def edit_match_stats(match: MatchStatsEdit, match_id: int, db: Session = Depends(get_db),
                      _=Depends(auth_admin)):
     stats_crud.edit_match_stats(match, match_id, db)

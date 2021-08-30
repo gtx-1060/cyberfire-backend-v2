@@ -13,3 +13,4 @@ class TvtStage(Base):
     tournament_id = Column(Integer, ForeignKey('tvt_tournaments.id', ondelete='CASCADE'))
     index = Column(SmallInteger, default=0)
     matches = relationship("TvtMatch", backref=backref("stage", cascade="all, delete"), passive_deletes=True)
+    # absented_users =

@@ -12,7 +12,7 @@ from src.app.exceptions.tournament_exceptions import *
 from src.app.schemas.tvt import matches as match_schemas, stages as stage_schemas
 from src.app.models.games import game_squad_sizes
 from src.app.models.tournament_events import TournamentEvents
-from src.app.models.tournament_states import TournamentStates
+from src.app.models.tournament_states import TournamentStates, StageStates
 from src.app.models.tvt.match import TvtMatch
 from src.app.models.tvt.stage import TvtStage
 from src.app.models.tvt.team_stats import TvtStats
@@ -21,6 +21,7 @@ from src.app.models.user import User
 from src.app.schemas.tvt.tournaments import TvtTournamentCreate
 from src.app.services.schedule_service import myscheduler
 from src.app.services.redis_service import redis_client
+from src.app.crud.tvt import stages as stages_crud
 
 
 TIME_TO_CONNECT_AT_LAUNCH = timedelta(minutes=5)
@@ -60,15 +61,9 @@ def create_tournament_tvt(tournament_create: TvtTournamentCreate, db: Session) -
     if tournament_create.start_date.timestamp() < now_moscow.timestamp():
         raise WrongTournamentDates(tournament_create.start_date)
     db_tournament = tournaments_crud.create_tournament_tvt(tournament_create, db)
-    create_stage(0, db_tournament.id, db)
+    stages_crud.create_stage(0, db_tournament.id, db)
     schedule_tournament(db_tournament, db)
     return {"tournament_id": db_tournament.id}
-
-
-def create_stage(index: int, tournament_id: int, db):
-    stage = TvtStage(tournament_id=tournament_id, index=index)
-    db.add(stage)
-    db.commit()
 
 
 def start_tvt_tournament(tournament_id: int):
@@ -96,14 +91,14 @@ def remove_from_wait_room(email: str, tournament_id: int):
 
 
 def start_admin_management_state(tournament_id: int):
-    # TODO: STAGE STATE CHANGE NEEDED
     db: Session = SessionLocal()
     db_stage = tournaments_crud.get_last_tournament_stage(tournament_id, db)
+    stages_crud.update_stage_state(db_stage.id, StageStates.IS_ON, db)
     emails = redis_client.get_set(f'tournament_launch:{tournament_id}:users')
     stage = stage_schemas.TvtStage.from_orm(db_stage)
     teams_active = set()
     for email in emails:
-        teams_active.add(get_user_by_email(email, db).team_name)
+        teams_active.add(get_user_by_email(email.encode('utf-8'), db).team_name)
 
     matches_to_remove = []
     for i in range(len(stage.matches)):
@@ -117,15 +112,58 @@ def start_admin_management_state(tournament_id: int):
             matches_to_remove.append(i)
     for ind in matches_to_remove:
         stage.matches.pop(ind)
-    redis_client.add_val(f'tournament:{tournament_id}:temp_stage', stage.json(), expire=timedelta(minutes=20))
+    redis_client.add_val(f'tournament:{tournament_id}:temp_stage', stage.json(), expire=timedelta(minutes=30))
 
 
-def to_next_stage(team: str, tournament_id: int, db: Session):
+def end_admin_management_state(data: stage_schemas.AdminsManagementData, tournament_id: int, db: Session):
+    __save_scoreboard(data.stage, tournament_id, db)
+    __save_skipped_user(data, tournament_id, db)
+    redis_client.remove(f'tournament:{tournament_id}:temp_stage')
+    start_ban_maps()
+
+
+def __save_skipped_user(data, tournament_id, db):
+    skipped_user = get_user_by_team(data.skipped.team_name, db)
+    new_stage = stages_crud.create_stage(data.stage.index + 1, tournament_id, db)
+    new_match = stages_crud.create_match(new_stage.id, data.skipped.index, db)
+    stats = TvtStats(
+        tournament_id=tournament_id,
+        match_id=new_match.id,
+        user_id=skipped_user.id
+    )
+    db.add(stats)
+    db.commit()
+
+
+def start_ban_maps():
     pass
 
 
-def save_scoreboard(db: Session):
-    pass
+def __verify_stage_content(stage: stage_schemas.TvtStage, db: Session):
+    for match in stage.matches:
+        if len(match.teams_stats) > 2 or len(match.teams_stats) == 0:
+            raise MatchMustHaveOnlyTwoStats()
+        for stats in match.teams_stats:
+            user = get_user_by_team(stats.user.team_name, db)
+            stats.user.id = user.id
+    return stage
+
+
+def __save_scoreboard(stage: stage_schemas.TvtStage, tournament_id: int, db: Session):
+    stage = __verify_stage_content(stage, db)
+    tournaments_crud.get_tournament_tvt(tournament_id, db)
+    db.query(TvtMatch).filter(TvtMatch.stage_id == stage.id).delete()
+    for match in stage.matches:
+        new_match = stages_crud.create_match(stage.id, match.index, db)
+        user_id = match.teams_stats[0].user.id
+        rival_id = match.teams_stats[1].user.id
+        db.add(
+            TvtStats(user_id=user_id, rival_id=rival_id, match_id=new_match.id, tournament_id=tournament_id)
+        )
+        db.add(
+            TvtStats(user_id=rival_id, rival_id=user_id, match_id=new_match.id, tournament_id=tournament_id)
+        )
+    db.commit()
 
 
 def register_in_tournament(user_email: str, tournament_id: int, db: Session):
@@ -141,32 +179,26 @@ def __append_in_match(tournament: TvtTournament, user: User, db):
     saved = False
     for match in fstage.matches:
         if len(match.teams_stats) == 1:
-            ar_id = match.teams_stats[0].user_id
+            r_id = match.teams_stats[0].user_id
             new_stats = TvtStats(
                 score=0,
                 user_id=user.id,
-                arrival_id=ar_id,
+                rival_id=r_id,
                 match_id=match.id,
                 tournament_id=tournament.id
             )
             match.teams_stats.append(new_stats)
-            match.teams_stats[0].arrival_id = new_stats.user_id
+            match.teams_stats[0].rival_id = new_stats.user_id
             db.add(match)
             saved = True
             break
     if not saved:
         ind = 0 if len(fstage.matches) == 0 else fstage.matches[-1].index + 1
-        new_match = TvtMatch(
-            stage_id=fstage.id,
-            index=ind
-        )
-        db.add(new_match)
-        db.commit()
-        db.refresh(new_match)
+        new_match = stages_crud.create_match(fstage.id, ind, db)
         new_stats = TvtStats(
             score=0,
             user_id=user.id,
-            arrival_id=None,
+            rival_id=None,
             match_id=new_match.id,
             tournament_id=tournament.id
         )
@@ -202,12 +234,12 @@ def __remove_from_last_match(tournament_id, user, db):
     stats = db.query(TvtStats)\
         .filter(and_(TvtStats.user_id == user.id, TvtStats.tournament_id == tournament_id))\
         .order_by(TvtStats.id.desc()).first()
-    if stats.arrival_id is not None:
-        ar_stats: TvtStats = db.query(TvtStats)\
-            .filter(and_(TvtStats.user_id == stats.arrival_id, TvtStats.tournament_id == tournament_id))\
+    if stats.rival_id is not None:
+        r_stats: TvtStats = db.query(TvtStats)\
+            .filter(and_(TvtStats.user_id == stats.rival_id, TvtStats.tournament_id == tournament_id))\
             .order_by(TvtStats.id.desc()).first()
-        ar_stats.arrival_id = None
-        db.add(ar_stats)
+        r_stats.rival_id = None
+        db.add(r_stats)
         db.query(TvtStats).filter(TvtStats.id == stats.id).delete()
     else:
         db.query(TvtMatch).filter(TvtMatch.id == stats.match_id).delete()

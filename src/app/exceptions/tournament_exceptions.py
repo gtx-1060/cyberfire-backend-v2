@@ -61,3 +61,8 @@ class NotEnoughPlayersInSquad(MyException):
 class AllStageMustBeFinished(MyException):
     def __init__(self):
         super().__init__(400, "all stage must be finished")
+
+
+class MatchMustHaveOnlyTwoStats(MyException):
+    def __init__(self):
+        super().__init__(400, "There should be two statistics in a match - the player and his opponent.")

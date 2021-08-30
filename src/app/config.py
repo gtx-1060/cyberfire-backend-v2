@@ -10,9 +10,11 @@ STATIC_FILES_PATH = join(Path(ABSOLUTE_PATH), "static")
 NEWS_STATIC_PATH = join(STATIC_FILES_PATH, "news")
 AVATARS_STATIC_PATH = join(STATIC_FILES_PATH, "avatars")
 OTHER_STATIC_PATH = join(STATIC_FILES_PATH, "other")
+PROOFS_STATIC_PATH = join(STATIC_FILES_PATH, "proofs")
 
 DEFAULT_AVATAR_PATH = "static/avatars/default.jpg"
 DEFAULT_IMAGE_PATH = "static/news/default.jpg"
+DEFAULT_PROOF_PATH = "static/proofs/default.jpg"
 
 USER = 'postgres'
 PASSWORD = 'nba2003nba'

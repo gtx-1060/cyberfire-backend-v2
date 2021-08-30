@@ -12,3 +12,8 @@ class TvtMatch(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class TvtMatchShortData(BaseModel):
+    index: int
+    team_name: str

@@ -31,6 +31,9 @@ class __RedisClient:
         if expire is not None:
             self.client.expire(key, expire)
 
+    def get_val(self, key):
+        return self.client.get(key).encode('utf-8')
+
     def add_to_set(self, key, val):
         self.client.sadd(key, val)
 

@@ -1,9 +1,10 @@
-from typing import Optional
+from typing import Optional, Union
 from pydantic import BaseModel
 
 
 class UserData(BaseModel):
-    team_name: Optional[str]
+    team_name: Union[str, None]
+    id: Optional[int]
 
     class Config:
         orm_mode = True

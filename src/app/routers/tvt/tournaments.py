@@ -11,6 +11,7 @@ from src.app.models.games import Games
 from src.app.models.tournament_states import TournamentStates
 from src.app.schemas.token_data import TokenData
 from src.app.schemas.royale.tournaments import TournamentPreview
+from src.app.schemas.tvt.stages import TvtStage
 from src.app.schemas.tvt.tournaments import TvtTournamentCreate, TvtTournament, TvtTournamentEdit, \
     TvtTournamentAdvancedData
 from src.app.services.auth_service import auth_admin, try_auth_user, auth_user
