@@ -18,3 +18,4 @@ class TvtStage(BaseModel):
 class AdminsManagementData(BaseModel):
     stage: TvtStage
     skipped: TvtMatchShortData
+    kicked_teams: List[str]

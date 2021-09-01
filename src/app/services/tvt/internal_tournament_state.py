@@ -19,7 +19,10 @@ class TournamentInternalStateManager:
 
     @staticmethod
     def set_state(tournament_id: int, state: State):
-        redis_client.add_val(TournamentInternalStateManager.__get_key(tournament_id), state.value, timedelta(days=1))
+        exp = timedelta(days=1)
+        if state == TournamentInternalStateManager.State.MAP_CHOICE:
+            exp = timedelta(minutes=10)
+        redis_client.add_val(TournamentInternalStateManager.__get_key(tournament_id), state.value, exp)
 
     @staticmethod
     def get_state(tournament_id: int):

@@ -2,7 +2,7 @@ from typing import List, Optional
 from fastapi import APIRouter, UploadFile
 from fastapi.params import Depends, File
 from sqlalchemy.orm import Session
-from starlette.responses import Response
+from starlette.responses import Response, HTMLResponse
 
 from src.app.config import OTHER_STATIC_PATH
 from src.app.crud.tvt import tournaments as tournaments_crud
@@ -52,7 +52,7 @@ def get_tournament_advanced_data(tournament_id: int, db: Session = Depends(get_d
 @router.get("/by_id", response_model=TvtTournament)
 def get_tournament(tournament_id: int, db: Session = Depends(get_db), _=Depends(try_auth_user)):
     tournament = TvtTournament.from_orm(tournaments_crud.get_tournament_tvt(tournament_id, db))
-    for user in tournament.users:
+    for user in tournament.teams:
         user.squad = get_user_squad_by_team(user.team_name, tournament.game, db)
     return tournament
 
@@ -113,6 +113,49 @@ def edit_tournament(tournament: TvtTournamentEdit, tournament_id: int, _=Depends
                     db: Session = Depends(get_db)):
     tournaments_crud.edit_tournament_tvt(tournament, tournament_id, db)
     return Response(status_code=200)
+
+
+html = """
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Chat</title>
+    </head>
+    <body>
+        <h1>WebSocket Chat</h1>
+        <h2>Your ID: <span id="ws-id"></span></h2>
+        <form action="" onsubmit="sendMessage(event)">
+            <input type="text" id="messageText" autocomplete="off"/>
+            <button>Send</button>
+        </form>
+        <ul id='messages'>
+        </ul>
+        <script>
+            var client_id = Date.now()
+            document.querySelector("#ws-id").textContent = client_id;
+            var ws = new WebSocket(`ws://localhost:3020/api/v2/ws/lobby_selector?token=123123`);
+            ws.onmessage = function(event) {
+                var messages = document.getElementById('messages')
+                var message = document.createElement('li')
+                var content = document.createTextNode(event.data)
+                message.appendChild(content)
+                messages.appendChild(message)
+            };
+            function sendMessage(event) {
+                var input = document.getElementById("messageText")
+                ws.send(input.value)
+                input.value = ''
+                event.preventDefault()
+            }
+        </script>
+    </body>
+</html>
+"""
+
+
+@router.get("/test")
+async def get():
+    return HTMLResponse(html)
 
 
 @router.get('/finish')

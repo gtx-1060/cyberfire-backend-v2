@@ -122,7 +122,13 @@ def get_last_tournament_stage(tournament_id: int, db: Session):
     return last_stage
 
 
-def user_last_stage_match(user_id: int, last_stage: TvtStage, db: Session) -> Optional[TvtMatch]:
-    match = db.query(TvtMatch).join(TvtStats, TvtMatch.teams_stats).filter(and_(TvtMatch.stage_id == last_stage.id,
+def user_stage_match(user_id: int, stage: TvtStage, db: Session) -> Optional[TvtMatch]:
+    match = db.query(TvtMatch).join(TvtStats, TvtMatch.teams_stats).filter(and_(TvtMatch.stage_id == stage.id,
                                                                                 TvtStats.user_id == user_id)).first()
     return match
+
+
+def users_last_ison_stage_match(user_id: int, t_id: int, db: Session):
+    stage: TvtStage = db.query(TvtStage).filter(and_(Tournament.id == t_id, TvtStage.state == StageStates.IS_ON))\
+        .order_by(TvtStage.id.desc()).first()
+    return user_stage_match(user_id, stage, db)

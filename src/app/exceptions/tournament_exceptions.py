@@ -66,3 +66,8 @@ class AllStageMustBeFinished(MyException):
 class MatchMustHaveOnlyTwoStats(MyException):
     def __init__(self):
         super().__init__(400, "There should be two statistics in a match - the player and his opponent.")
+
+
+class UserCantConnectHere(MyException):
+    def __init__(self):
+        super().__init__(403, "User cant connect here")

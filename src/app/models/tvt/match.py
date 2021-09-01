@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, Boolean, SmallInteger, UniqueConstraint
+from sqlalchemy import Column, ForeignKey, Integer, Boolean, SmallInteger, UniqueConstraint, Text
 from sqlalchemy.orm import relationship
 
 from src.app.database.db import Base
@@ -12,6 +12,7 @@ class TvtMatch(Base):
     finished = Column(Boolean, default=False)
     index = Column(SmallInteger, nullable=False)
     teams_stats = relationship('TvtStats', cascade="all, delete", passive_deletes=True)
+    map = Column(Text, nullable=True)
     # absented_id = Column(Integer, ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
     # absented = relationship('User')
     __table_args__ = (UniqueConstraint('index', 'stage_id', name='uix_tvtmatch'),)

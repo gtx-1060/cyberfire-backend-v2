@@ -22,7 +22,7 @@ from src.app.schemas.tvt.tournaments import TvtTournamentCreate
 from src.app.services.schedule_service import myscheduler
 from src.app.services.redis_service import redis_client
 from src.app.crud.tvt import stages as stages_crud
-
+from src.app.services.tvt.internal_tournament_state import TournamentInternalStateManager
 
 TIME_TO_CONNECT_AT_LAUNCH = timedelta(minutes=5)
 
@@ -70,11 +70,11 @@ def start_tvt_tournament(tournament_id: int):
     db = SessionLocal()
     tournament = tournaments_crud.get_tournament_tvt(tournament_id, db)
     tournaments_crud.update_tournament_state_tvt(TournamentStates.IS_ON, tournament_id, db)
-    launch_at = datetime.now()+TIME_TO_CONNECT_AT_LAUNCH
+    launch_at = datetime.now() + TIME_TO_CONNECT_AT_LAUNCH
     redis_client.add_val(f'tournament_launch:{tournament_id}', launch_at.isoformat(), TIME_TO_CONNECT_AT_LAUNCH)
     redis_client.remove(f'tournament_launch:{tournament_id}:users')
     myscheduler.plan_task(get_tournament_task_id(TournamentEvents.START_TEAMS_MANAGEMENT, tournament_id),
-                          launch_at+timedelta(seconds=10), start_admin_management_state, [tournament_id], 60)
+                          launch_at + timedelta(seconds=10), start_admin_management_state, [tournament_id], 60)
     db.close()
 
 
@@ -83,11 +83,27 @@ def add_to_wait_room(email: str, tournament_id: int):
     ex = redis_client.exists(key)
     redis_client.add_to_set(key, email)
     if not ex:
-        redis_client.client.expire(key, timedelta(minutes=30))
+        redis_client.client.expire(key, timedelta(minutes=60))
 
 
 def remove_from_wait_room(email: str, tournament_id: int):
     redis_client.remove_from_set(f'tournament_launch:{tournament_id}:users', email)
+
+
+def user_can_connect_to_map_selector(user: User, t_id: int, db: Session) -> bool:
+    state = TournamentInternalStateManager.get_state(t_id)
+    last_stage = tournaments_crud.get_last_tournament_stage(t_id, db)
+    emails = redis_client.get_set(f'tournament_launch:{t_id}:users')
+    user_in_list = (emails is not None) and (user.email.encode('ascii') in emails)
+    return (state == TournamentInternalStateManager.State.CONNECTING
+            and tournaments_crud.user_stage_match(user.id, last_stage.id, db)) \
+           or (state == TournamentInternalStateManager.State.MAP_CHOICE and user_in_list)
+
+
+def check_users_remained(t_id: int):
+    emails = redis_client.get_set(f'tournament_launch:{t_id}:users')
+    if emails is None or len(emails) == 0:
+        TournamentInternalStateManager.set_state(t_id, TournamentInternalStateManager.State.VERIFYING_RESULTS)
 
 
 def start_admin_management_state(tournament_id: int):
@@ -118,12 +134,16 @@ def start_admin_management_state(tournament_id: int):
 def end_admin_management_state(data: stage_schemas.AdminsManagementData, tournament_id: int, db: Session):
     __save_scoreboard(data.stage, tournament_id, db)
     __save_skipped_user(data, tournament_id, db)
+    for team_name in data.kicked_teams:
+        user = get_user_by_team(team_name, db)
+        redis_client.remove_from_set(f'tournament_launch:{tournament_id}:users', user.email)
     redis_client.remove(f'tournament:{tournament_id}:temp_stage')
     start_ban_maps()
 
 
 def __save_skipped_user(data, tournament_id, db):
     skipped_user = get_user_by_team(data.skipped.team_name, db)
+    redis_client.remove_from_set(f'tournament_launch:{tournament_id}:users', skipped_user.email)
     new_stage = stages_crud.create_stage(data.stage.index + 1, tournament_id, db)
     new_match = stages_crud.create_match(new_stage.id, data.skipped.index, db)
     stats = TvtStats(
@@ -231,12 +251,12 @@ def unregister_player_from_tournament(user_email: str, tournament_id: int, db: S
 
 
 def __remove_from_last_match(tournament_id, user, db):
-    stats = db.query(TvtStats)\
-        .filter(and_(TvtStats.user_id == user.id, TvtStats.tournament_id == tournament_id))\
+    stats = db.query(TvtStats) \
+        .filter(and_(TvtStats.user_id == user.id, TvtStats.tournament_id == tournament_id)) \
         .order_by(TvtStats.id.desc()).first()
     if stats.rival_id is not None:
-        r_stats: TvtStats = db.query(TvtStats)\
-            .filter(and_(TvtStats.user_id == stats.rival_id, TvtStats.tournament_id == tournament_id))\
+        r_stats: TvtStats = db.query(TvtStats) \
+            .filter(and_(TvtStats.user_id == stats.rival_id, TvtStats.tournament_id == tournament_id)) \
             .order_by(TvtStats.id.desc()).first()
         r_stats.rival_id = None
         db.add(r_stats)
@@ -258,4 +278,3 @@ def __add_user_to_tournament(tournament_id: int, user: User, db: Session):
         raise MaxSquadsCount()
     db.add(tournament)
     db.commit()
-
