@@ -116,10 +116,11 @@ def update_tournament_state_tvt(new_state: TournamentStates, tournament_id: int,
     db.commit()
 
 
-def get_last_tournament_stage(tournament_id: int, db: Session):
-    last_stage: TvtStage = db.query(TvtStage).filter(Tournament.id == tournament_id).order_by(
-        TvtStage.id.desc()).first()
-    return last_stage
+def get_last_tournament_stage(tournament_id: int, db: Session, state: StageStates = None) -> TvtStage:
+    last_stage_query = db.query(TvtStage).filter(TvtStage.tournament_id == tournament_id)
+    if state is not None:
+        last_stage_query = last_stage_query.filter(TvtStage.state == state)
+    return last_stage_query.order_by(TvtStage.id.desc()).first()
 
 
 def user_stage_match(user_id: int, stage: TvtStage, db: Session) -> Optional[TvtMatch]:
@@ -129,6 +130,10 @@ def user_stage_match(user_id: int, stage: TvtStage, db: Session) -> Optional[Tvt
 
 
 def users_last_ison_stage_match(user_id: int, t_id: int, db: Session):
-    stage: TvtStage = db.query(TvtStage).filter(and_(Tournament.id == t_id, TvtStage.state == StageStates.IS_ON))\
-        .order_by(TvtStage.id.desc()).first()
+    stage = get_last_tournament_stage(t_id, db, StageStates.IS_ON)
+    return user_stage_match(user_id, stage, db)
+
+
+def users_last_waiting_stage_match(user_id: int, t_id: int, db: Session):
+    stage = get_last_tournament_stage(t_id, db, StageStates.WAITING)
     return user_stage_match(user_id, stage, db)

@@ -52,9 +52,9 @@ async def waiting_for_start(user: User, t_id: int):
 async def selecting_map(socket: WebSocket, match_id: int, user: User):
     manager = MapChoiceManager(match_id, user.team_name)
     while True:
+        await socket.send_json(manager.get_row_data())
         if manager.is_ended():
             await socket.close()
-        await socket.send_json(manager.get_row_data())
         if manager.is_me_active():
             try:
                 gamemap = await asyncio.wait_for(socket.receive_text(), timeout=MapChoiceManager.TIME_TO_CHOICE_SECONDS)

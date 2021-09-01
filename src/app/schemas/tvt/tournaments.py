@@ -6,6 +6,7 @@ from src.app.models.games import Games
 from src.app.models.tournament_states import TournamentStates
 from src.app.schemas.royale.tournaments import UserData
 from src.app.schemas.tvt.stages import TvtStage
+from src.app.services.tvt.internal_tournament_state import TournamentInternalStateManager
 
 
 class TvtTournamentCreate(BaseModel):
@@ -28,13 +29,19 @@ class TvtTournamentEdit(BaseModel):
     rewards: Optional[List[str]]
 
 
-class TvtTournamentAdvancedData(BaseModel):
+class TvtTournamentPreviewPersonal(BaseModel):
     id: int
     registered: bool
-    ready_to_play: bool = Field(default=False)
-    connect_until: Optional[datetime] = Field(default=None)
-    in_last_stage: bool = Field(default=False)
     can_register: bool
+
+
+class TvtTournamentPersonal(BaseModel):
+    registered: bool
+    can_register: bool
+    internal_state: TournamentInternalStateManager.State
+    # ready_to_play: bool = Field(default=False)
+    # connect_until: Optional[datetime] = Field(default=None)
+    in_last_stage: bool = Field(default=False)
 
 
 class TvtTournament(BaseModel):
