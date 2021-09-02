@@ -108,7 +108,7 @@ def kick_user(tournament_id: int, team_name: str, db: Session = Depends(get_db),
 
 
 @router.post('/upload_image')
-def upload_news_image(tournament_id: int, image: UploadFile = File(...), _=Depends(auth_admin),
+def upload_tournament_image(tournament_id: int, image: UploadFile = File(...), _=Depends(auth_admin),
                       db: Session = Depends(get_db)):
     old_web_path = tournaments_crud.get_tournament_tvt(tournament_id, db).img_path
     web_path = save_image(OTHER_STATIC_PATH, image.file.read())
@@ -126,47 +126,10 @@ def edit_tournament(tournament: TvtTournamentEdit, tournament_id: int, _=Depends
     return Response(status_code=200)
 
 
-# html = """
-# <!DOCTYPE html>
-# <html>
-#     <head>
-#         <title>Chat</title>
-#     </head>
-#     <body>
-#         <h1>WebSocket Chat</h1>
-#         <h2>Your ID: <span id="ws-id"></span></h2>
-#         <form action="" onsubmit="sendMessage(event)">
-#             <input type="text" id="messageText" autocomplete="off"/>
-#             <button>Send</button>
-#         </form>
-#         <ul id='messages'>
-#         </ul>
-#         <script>
-#             var client_id = Date.now()
-#             document.querySelector("#ws-id").textContent = client_id;
-#             var ws = new WebSocket(`ws://localhost:3020/api/v2/ws/lobby_selector?token=123123`);
-#             ws.onmessage = function(event) {
-#                 var messages = document.getElementById('messages')
-#                 var message = document.createElement('li')
-#                 var content = document.createTextNode(event.data)
-#                 message.appendChild(content)
-#                 messages.appendChild(message)
-#             };
-#             function sendMessage(event) {
-#                 var input = document.getElementById("messageText")
-#                 ws.send(input.value)
-#                 input.value = ''
-#                 event.preventDefault()
-#             }
-#         </script>
-#     </body>
-# </html>
-# """
-#
-#
-# @router.get("/test")
-# async def get():
-#     return HTMLResponse(html)
+@router.post('/upload_proof_image')
+def load_results_proof(tournament_id: int, image: UploadFile = File(...), _=Depends(auth_user),
+                      db: Session = Depends(get_db)):
+    pass
 
 
 @router.get('/finish')
