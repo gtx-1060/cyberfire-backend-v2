@@ -33,6 +33,7 @@ app.include_router(lobbies.router)
 app.include_router(tournaments_tvt.router)
 app.add_api_websocket_route('/api/v2/ws/lobby_selector', websocket_lobby_selector)
 
+
 @app.on_event("startup")
 async def startup_event():
     myscheduler.start()

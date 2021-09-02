@@ -24,8 +24,6 @@ from src.app.services.redis_service import redis_client
 from src.app.crud.tvt import stages as stages_crud
 from src.app.services.tvt.internal_tournament_state import TournamentInternalStateManager
 
-TIME_TO_CONNECT_AT_LAUNCH = timedelta(minutes=5)
-
 
 def get_tournament_task_id(event: TournamentEvents, tournament_id: int):
     return f"{event.value}_{tournament_id}"
@@ -70,11 +68,11 @@ def start_tvt_tournament(tournament_id: int):
     db = SessionLocal()
     tournament = tournaments_crud.get_tournament_tvt(tournament_id, db)
     tournaments_crud.update_tournament_state_tvt(TournamentStates.IS_ON, tournament_id, db)
-    launch_at = datetime.now() + TIME_TO_CONNECT_AT_LAUNCH
-    redis_client.add_val(f'tournament_launch:{tournament_id}', launch_at.isoformat(), TIME_TO_CONNECT_AT_LAUNCH)
+    launch_at = TournamentInternalStateManager.set_connect_to_waitroom_timer(tournament_id)
     redis_client.remove(f'tournament_launch:{tournament_id}:users')
     myscheduler.plan_task(get_tournament_task_id(TournamentEvents.START_TEAMS_MANAGEMENT, tournament_id),
                           launch_at + timedelta(seconds=10), start_admin_management_state, [tournament_id], 60)
+    TournamentInternalStateManager.set_state(tournament_id, TournamentInternalStateManager.State.CONNECTING)
     db.close()
 
 
@@ -92,6 +90,8 @@ def remove_from_wait_room(email: str, tournament_id: int):
 
 def user_can_connect_to_map_selector(user: User, t_id: int, db: Session) -> bool:
     state = TournamentInternalStateManager.get_state(t_id)
+    if state == TournamentInternalStateManager.State.WAITING:
+        return False
     last_stage = tournaments_crud.get_last_tournament_stage(t_id, db)
     emails = redis_client.get_set(f'tournament_launch:{t_id}:users')
     user_in_list = (emails is not None) and (user.email.encode('ascii') in emails)
@@ -100,10 +100,23 @@ def user_can_connect_to_map_selector(user: User, t_id: int, db: Session) -> bool
            or (state == TournamentInternalStateManager.State.MAP_CHOICE and user_in_list)
 
 
+def user_have_unloaded_results(user: User, t_id: int, db: Session):
+    match = tournaments_crud.users_last_ison_stage_match(user.id, t_id, db)
+    if match is None:
+        return False
+    ustats = None
+    for stats in match.teams_stats:
+        if stats.user_id == user.id:
+            ustats = stats
+    if ustats is None:
+        return False
+    return 'default' in ustats.proof_path
+
+
 def check_users_remained(t_id: int):
     emails = redis_client.get_set(f'tournament_launch:{t_id}:users')
     if emails is None or len(emails) == 0:
-        TournamentInternalStateManager.set_state(t_id, TournamentInternalStateManager.State.VERIFYING_RESULTS)
+        end_ban_maps(t_id)
 
 
 def start_admin_management_state(tournament_id: int):
@@ -129,6 +142,7 @@ def start_admin_management_state(tournament_id: int):
     for ind in matches_to_remove:
         stage.matches.pop(ind)
     redis_client.add_val(f'tournament:{tournament_id}:temp_stage', stage.json(), expire=timedelta(minutes=30))
+    TournamentInternalStateManager.set_state(tournament_id, TournamentInternalStateManager.State.ADMIN_MANAGEMENT)
 
 
 def end_admin_management_state(data: stage_schemas.AdminsManagementData, tournament_id: int, db: Session):
@@ -138,7 +152,7 @@ def end_admin_management_state(data: stage_schemas.AdminsManagementData, tournam
         user = get_user_by_team(team_name, db)
         redis_client.remove_from_set(f'tournament_launch:{tournament_id}:users', user.email)
     redis_client.remove(f'tournament:{tournament_id}:temp_stage')
-    start_ban_maps()
+    start_ban_maps(tournament_id)
 
 
 def __save_skipped_user(data, tournament_id, db):
@@ -155,8 +169,12 @@ def __save_skipped_user(data, tournament_id, db):
     db.commit()
 
 
-def start_ban_maps():
-    pass
+def start_ban_maps(tournament_id: int):
+    TournamentInternalStateManager.set_state(tournament_id, TournamentInternalStateManager.State.MAP_CHOICE)
+
+
+def end_ban_maps(tournament_id: int):
+    TournamentInternalStateManager.set_state(tournament_id, TournamentInternalStateManager.State.VERIFYING_RESULTS)
 
 
 def __verify_stage_content(stage: stage_schemas.TvtStage, db: Session):

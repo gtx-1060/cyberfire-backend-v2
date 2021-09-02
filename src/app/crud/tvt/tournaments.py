@@ -134,6 +134,11 @@ def users_last_ison_stage_match(user_id: int, t_id: int, db: Session):
     return user_stage_match(user_id, stage, db)
 
 
+def users_last_tournament_stats(user_id: int, t_id: int, db: Session):
+    return db.query(TvtStats).filter(and_(TvtStats.user_id == user_id, TvtStats.tournament_id == t_id))\
+        .order_by(TvtStage.id.desc()).first()
+
+
 def users_last_waiting_stage_match(user_id: int, t_id: int, db: Session):
     stage = get_last_tournament_stage(t_id, db, StageStates.WAITING)
     return user_stage_match(user_id, stage, db)

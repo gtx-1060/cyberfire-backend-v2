@@ -35,13 +35,18 @@ class TvtTournamentPreviewPersonal(BaseModel):
     can_register: bool
 
 
+class MapChoiceRoomData(BaseModel):
+    ready_to_connect: bool = False
+    connect_until: Optional[datetime] = None
+
+
 class TvtTournamentPersonal(BaseModel):
     registered: bool
     can_register: bool
     internal_state: TournamentInternalStateManager.State
-    # ready_to_play: bool = Field(default=False)
-    # connect_until: Optional[datetime] = Field(default=None)
-    in_last_stage: bool = Field(default=False)
+    in_new_stage: bool = False
+    can_load_result_proof: bool = False
+    map_choice: MapChoiceRoomData
 
 
 class TvtTournament(BaseModel):

@@ -54,16 +54,18 @@ async def selecting_map(socket: WebSocket, match_id: int, user: User):
     while True:
         await socket.send_json(manager.get_row_data())
         if manager.is_ended():
+            await socket.send_text('kostayne virubai')
             await socket.close()
+            break
         if manager.is_me_active():
             try:
                 gamemap = await asyncio.wait_for(socket.receive_text(), timeout=MapChoiceManager.TIME_TO_CHOICE_SECONDS)
                 manager.ban_map(gamemap)
             except asyncio.TimeoutError:
-                await socket.send_text("timeout bro)")
+                await socket.send_text("kostayne mozhech pomenyati state")
         else:
             while True:
-                await asyncio.sleep(3)
+                await asyncio.sleep(5)
                 if manager.is_me_active():
                     break
 

@@ -13,7 +13,7 @@ from src.app.schemas.token_data import TokenData
 from src.app.schemas.royale.tournaments import TournamentPreview
 from src.app.schemas.tvt.stages import TvtStage
 from src.app.schemas.tvt.tournaments import TvtTournamentCreate, TvtTournament, TvtTournamentEdit, \
-    TvtTournamentPersonal, TvtTournamentPreviewPersonal
+    TvtTournamentPersonal, TvtTournamentPreviewPersonal, MapChoiceRoomData
 from src.app.services.auth_service import auth_admin, try_auth_user, auth_user
 from src.app.services.tvt.internal_tournament_state import TournamentInternalStateManager
 from src.app.utils import get_db, save_image, delete_image_by_web_path
@@ -50,8 +50,14 @@ def get_tournament_advanced_data(tournament_id: int, db: Session = Depends(get_d
     istate = TournamentInternalStateManager.get_state(tournament_id)
     user = get_user_by_email(auth.email, db)
     in_last_stage = tournaments_crud.users_last_waiting_stage_match(user.id, tournament_id, db) is not None
+    mc_data = MapChoiceRoomData()
+    if tournaments_service.user_can_connect_to_map_selector(user, tournament_id, db):
+        mc_data.ready_to_connect = True
+        mc_data.connect_until = TournamentInternalStateManager.get_connect_to_waitroom_time(tournament_id)
+    can_load_results = istate == TournamentInternalStateManager.State.VERIFYING_RESULTS \
+                       and tournaments_service.user_have_unloaded_results(user, tournament_id, db)
     return TvtTournamentPersonal(registered=is_registered, can_register=register_access, internal_state=istate,
-                                 in_last_stage=in_last_stage)
+                                 in_new_stage=in_last_stage, can_load_result_proof=can_load_results, map_choice=mc_data)
 
 
 @router.get("/by_id", response_model=TvtTournament)
