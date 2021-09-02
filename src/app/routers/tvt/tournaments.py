@@ -2,16 +2,18 @@ from typing import List, Optional
 from fastapi import APIRouter, UploadFile
 from fastapi.params import Depends, File
 from sqlalchemy.orm import Session
-from starlette.responses import Response, HTMLResponse
+from starlette.responses import Response
 
 from src.app.config import OTHER_STATIC_PATH
 from src.app.crud.tvt import tournaments as tournaments_crud
+from src.app.crud.tvt import stats as stats_crud
 from src.app.crud.user import get_user_squad_by_team, get_user_by_email
+from src.app.exceptions.tournament_exceptions import TournamentInternalStateException
 from src.app.models.games import Games
-from src.app.models.tournament_states import TournamentStates
 from src.app.schemas.token_data import TokenData
 from src.app.schemas.royale.tournaments import TournamentPreview
-from src.app.schemas.tvt.stages import TvtStage
+from src.app.schemas.tvt.matches import TvtMatch
+from src.app.schemas.tvt.stages import TvtStage, AdminsManagementData
 from src.app.schemas.tvt.tournaments import TvtTournamentCreate, TvtTournament, TvtTournamentEdit, \
     TvtTournamentPersonal, TvtTournamentPreviewPersonal, MapChoiceRoomData
 from src.app.services.auth_service import auth_admin, try_auth_user, auth_user
@@ -109,7 +111,7 @@ def kick_user(tournament_id: int, team_name: str, db: Session = Depends(get_db),
 
 @router.post('/upload_image')
 def upload_tournament_image(tournament_id: int, image: UploadFile = File(...), _=Depends(auth_admin),
-                      db: Session = Depends(get_db)):
+                            db: Session = Depends(get_db)):
     old_web_path = tournaments_crud.get_tournament_tvt(tournament_id, db).img_path
     web_path = save_image(OTHER_STATIC_PATH, image.file.read())
     tournaments_edit = TvtTournamentEdit(img_path=web_path)
@@ -127,9 +129,32 @@ def edit_tournament(tournament: TvtTournamentEdit, tournament_id: int, _=Depends
 
 
 @router.post('/upload_proof_image')
-def load_results_proof(tournament_id: int, image: UploadFile = File(...), _=Depends(auth_user),
-                      db: Session = Depends(get_db)):
-    pass
+def load_results_proof(tournament_id: int, image: UploadFile = File(...), auth_data: TokenData = Depends(auth_user),
+                       db: Session = Depends(get_db)):
+    istate = TournamentInternalStateManager.get_state(tournament_id)
+    user = get_user_by_email(auth_data.email, db)
+    if istate != TournamentInternalStateManager.State.VERIFYING_RESULTS:
+        raise TournamentInternalStateException()
+    tournaments_service.load_match_results_proof(image, user, tournament_id, db)
+    return Response(status_code=200)
+
+
+@router.get('/not_verified_stats', response_model=List[TvtMatch])
+def load_results_proof(tournament_id: int, _=Depends(auth_admin), db: Session = Depends(get_db)):
+    return stats_crud.load_not_verified_stats(tournament_id, db)
+
+
+@router.get('/verify_stats')
+def load_results_proof(stats_id: int, score: int, _=Depends(auth_admin), db: Session = Depends(get_db)):
+    stats_crud.edit_stats(stats_id, score, True, db)
+    return Response(status_code=200)
+
+
+@router.post('/end_management_state')
+def end_admin_management_state(data: AdminsManagementData, tournament_id: int, _=Depends(auth_admin),
+                               db: Session = Depends(get_db)):
+    tournaments_service.end_admin_management_state(data, tournament_id, db)
+    return Response(status_code=200)
 
 
 @router.get('/finish')

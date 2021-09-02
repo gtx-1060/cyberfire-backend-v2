@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from src.app.crud.user import get_user_by_team
 from src.app.database.db import SessionLocal
+from src.app.exceptions.tournament_exceptions import MapChoiceDataNotFound
 from src.app.models.tvt.match import TvtMatch
 from src.app.schemas.tvt.map_choice_data import MapChoiceData
 from src.app.services.redis_service import redis_client
@@ -66,11 +67,16 @@ class MapChoiceManager:
         return self.__is_ended
 
     def get_data(self) -> MapChoiceData:
-        redis_str = redis_client.get_val(self.key).encode('utf-8')
-        return MapChoiceData.parse_raw(redis_str)
+        redis_str = redis_client.get_val(self.key)
+        if redis_str in None:
+            raise MapChoiceDataNotFound()
+        return MapChoiceData.parse_raw(redis_str.encode('utf-8'))
 
     def get_row_data(self) -> str:
-        return redis_client.get_val(self.key).encode('utf-8')
+        redis_str = redis_client.get_val(self.key)
+        if redis_str in None:
+            raise MapChoiceDataNotFound()
+        return redis_str.encode('utf-8')
 
     def __save_data(self, data: MapChoiceData):
         redis_client.add_val(self.key, data.json())

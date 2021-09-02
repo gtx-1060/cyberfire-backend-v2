@@ -1,10 +1,12 @@
 from datetime import datetime, timedelta
 from functools import reduce
-from typing import Tuple
+from typing import Tuple, Optional
 import pytz
+from fastapi import UploadFile
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
 
+from src.app.config import PROOFS_STATIC_PATH
 from src.app.crud.tvt import tournaments as tournaments_crud
 from src.app.crud.user import get_user_squad_by_email, get_user_by_email, get_user_by_team
 from src.app.database.db import SessionLocal
@@ -23,6 +25,7 @@ from src.app.services.schedule_service import myscheduler
 from src.app.services.redis_service import redis_client
 from src.app.crud.tvt import stages as stages_crud
 from src.app.services.tvt.internal_tournament_state import TournamentInternalStateManager
+from src.app.utils import save_image
 
 
 def get_tournament_task_id(event: TournamentEvents, tournament_id: int):
@@ -100,17 +103,35 @@ def user_can_connect_to_map_selector(user: User, t_id: int, db: Session) -> bool
            or (state == TournamentInternalStateManager.State.MAP_CHOICE and user_in_list)
 
 
+def load_match_results_proof(image: UploadFile, user: User, t_id: int, db: Session):
+    stats = __get_users_active_stats(user, t_id, db)
+    if stats is None:
+        raise ResultProofLoadError('users match stats not found')
+    if stats.confirmed:
+        raise ResultProofLoadError('stats already confirmed')
+    path = save_image(PROOFS_STATIC_PATH, image)
+    stats.proof_path = path
+    db.add(stats)
+    db.commit()
+
+
 def user_have_unloaded_results(user: User, t_id: int, db: Session):
+    ustats = __get_users_active_stats(user, t_id, db)
+    if ustats is None:
+        return False
+    return 'default' in ustats.proof_path and not ustats.confirmed
+
+
+def __get_users_active_stats(user: User, t_id: int, db: Session) -> Optional[TvtStats]:
     match = tournaments_crud.users_last_ison_stage_match(user.id, t_id, db)
     if match is None:
-        return False
+        return None
     ustats = None
     for stats in match.teams_stats:
         if stats.user_id == user.id:
             ustats = stats
-    if ustats is None:
-        return False
-    return 'default' in ustats.proof_path
+            break
+    return ustats
 
 
 def check_users_remained(t_id: int):
@@ -146,6 +167,9 @@ def start_admin_management_state(tournament_id: int):
 
 
 def end_admin_management_state(data: stage_schemas.AdminsManagementData, tournament_id: int, db: Session):
+    istate = TournamentInternalStateManager.get_state(tournament_id)
+    if istate != TournamentInternalStateManager.State.ADMIN_MANAGEMENT:
+        raise TournamentInternalStateException()
     __save_scoreboard(data.stage, tournament_id, db)
     __save_skipped_user(data, tournament_id, db)
     for team_name in data.kicked_teams:

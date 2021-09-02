@@ -71,3 +71,18 @@ class MatchMustHaveOnlyTwoStats(MyException):
 class UserCantConnectHere(MyException):
     def __init__(self):
         super().__init__(403, "User cant connect here")
+
+
+class MapChoiceDataNotFound(MyException):
+    def __init__(self):
+        super().__init__(404, "Map choice data not found")
+
+
+class ResultProofLoadError(MyException):
+    def __init__(self, s):
+        super().__init__(404, s)
+
+
+class TournamentInternalStateException(MyException):
+    def __init__(self):
+        super().__init__(400, 'wrong tournament state')

@@ -15,6 +15,7 @@ PROOFS_STATIC_PATH = join(STATIC_FILES_PATH, "proofs")
 DEFAULT_AVATAR_PATH = "static/avatars/default.jpg"
 DEFAULT_IMAGE_PATH = "static/news/default.jpg"
 DEFAULT_PROOF_PATH = "static/proofs/default.jpg"
+DEFAULT_VERIFICATED_PATH = "static/proofs/verificated.jpg"
 
 USER = 'postgres'
 PASSWORD = 'nba2003nba'

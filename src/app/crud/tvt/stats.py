@@ -1,0 +1,23 @@
+from operator import and_
+from typing import List
+
+from sqlalchemy.orm import Session
+
+from src.app.models.tvt.match import TvtMatch
+from src.app.models.tvt.team_stats import TvtStats
+
+
+def load_not_verified_stats(tournament_id: int, db: Session) -> List[TvtMatch]:
+    matches = db.query(TvtStats).filter(and_(not TvtStats.confirmed, TvtStats.tournament_id == tournament_id)) \
+        .order_by(TvtStats.match_id).all()
+    if matches is None:
+        return []
+    return matches
+
+
+def edit_stats(stats_id: int, score: int, confirmed: bool, db: Session):
+    db.query(TvtStats).filter(TvtStats.id == stats_id).update({
+        TvtStats.score: score,
+        TvtStats.confirmed: confirmed
+    })
+    db.commit()
