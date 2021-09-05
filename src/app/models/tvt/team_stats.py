@@ -17,7 +17,6 @@ class TvtStats(Base):
     rival_id = Column(Integer, ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
     rival = relationship("User", foreign_keys=[rival_id])
     match_id = Column(Integer, ForeignKey('tvt_matches.id', ondelete='CASCADE', onupdate='CASCADE'))
-    match = relationship("TvtMatch")
     tournament_id = Column(Integer, ForeignKey('tvt_tournaments.id'))
     __table_args__ = (UniqueConstraint('user_id', 'match_id', name='uix_tvtstats1'),
                       UniqueConstraint('rival_id', 'match_id', name='uix_tvtstats2'),)
