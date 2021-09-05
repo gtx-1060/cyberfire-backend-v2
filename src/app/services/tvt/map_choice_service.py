@@ -70,13 +70,13 @@ class MapChoiceManager:
         redis_str = redis_client.get_val(self.key)
         if redis_str in None:
             raise MapChoiceDataNotFound()
-        return MapChoiceData.parse_raw(redis_str.encode('utf-8'))
+        return MapChoiceData.parse_raw(redis_str.decode('ascii'))
 
     def get_row_data(self) -> str:
         redis_str = redis_client.get_val(self.key)
         if redis_str in None:
             raise MapChoiceDataNotFound()
-        return redis_str.encode('utf-8')
+        return redis_str.decode('ascii')
 
     def __save_data(self, data: MapChoiceData):
         redis_client.add_val(self.key, data.json())

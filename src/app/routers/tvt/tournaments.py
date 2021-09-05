@@ -10,6 +10,7 @@ from src.app.crud.tvt import stats as stats_crud
 from src.app.crud.user import get_user_squad_by_team, get_user_by_email
 from src.app.exceptions.tournament_exceptions import TournamentInternalStateException
 from src.app.models.games import Games
+from src.app.models.tvt.team_stats import TvtStats
 from src.app.schemas.token_data import TokenData
 from src.app.schemas.royale.tournaments import TournamentPreview
 from src.app.schemas.tvt.matches import TvtMatch
@@ -139,8 +140,8 @@ def load_results_proof(tournament_id: int, image: UploadFile = File(...), auth_d
     return Response(status_code=200)
 
 
-@router.get('/not_verified_stats', response_model=List[TvtMatch])
-def load_results_proof(tournament_id: int, _=Depends(auth_admin), db: Session = Depends(get_db)):
+@router.get('/not_verified_stats', response_model=List[TvtStats])
+def get_not_verified_stats(tournament_id: int, _=Depends(auth_admin), db: Session = Depends(get_db)):
     return stats_crud.load_not_verified_stats(tournament_id, db)
 
 

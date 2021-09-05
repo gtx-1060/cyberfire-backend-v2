@@ -37,12 +37,12 @@ class TournamentInternalStateManager:
         time = redis_client.get_val(f'tournament_launch:{tournament_id}')
         if time is None:
             return ''
-        return time.encode('utf-8')
+        return time.decode('ascii')
 
     @staticmethod
     def get_state(tournament_id: int):
         state_val = redis_client.get_val(TournamentInternalStateManager.__get_key(tournament_id))
         if state_val is None:
             return TournamentInternalStateManager.State.WAITING
-        state_val = state_val.encode('utf-8')
+        state_val = state_val.decode('ascii')
         return TournamentInternalStateManager.State(state_val)

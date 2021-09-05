@@ -148,7 +148,7 @@ def start_admin_management_state(tournament_id: int):
     stage = stage_schemas.TvtStage.from_orm(db_stage)
     teams_active = set()
     for email in emails:
-        teams_active.add(get_user_by_email(email.encode('utf-8'), db).team_name)
+        teams_active.add(get_user_by_email(email.decode('ascii'), db).team_name)
 
     matches_to_remove = []
     for i in range(len(stage.matches)):

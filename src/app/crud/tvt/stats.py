@@ -9,11 +9,11 @@ from src.app.models.tvt.team_stats import TvtStats
 
 
 def load_not_verified_stats(tournament_id: int, db: Session) -> List[TvtMatch]:
-    matches = db.query(TvtStats).filter(and_(not TvtStats.confirmed, TvtStats.tournament_id == tournament_id)) \
+    stats = db.query(TvtStats).filter(and_(not TvtStats.confirmed, TvtStats.tournament_id == tournament_id)) \
         .order_by(TvtStats.match_id).all()
-    if matches is None:
+    if stats is None:
         return []
-    return matches
+    return stats
 
 
 def edit_stats(stats_id: int, score: int, confirmed: bool, proof_path: str, db: Session):
