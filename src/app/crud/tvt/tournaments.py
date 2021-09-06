@@ -139,6 +139,8 @@ def users_last_tournament_stats(user_id: int, t_id: int, db: Session):
         .order_by(TvtStage.id.desc()).first()
 
 
-def users_last_waiting_stage_match(user_id: int, t_id: int, db: Session):
+def users_last_waiting_stage_match(user_id: int, t_id: int, db: Session) -> Optional[TvtMatch]:
     stage = get_last_tournament_stage(t_id, db, StageStates.WAITING)
+    if stage is None:
+        return None
     return user_stage_match(user_id, stage, db)

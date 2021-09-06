@@ -7,7 +7,9 @@ from starlette.responses import Response
 from src.app.config import OTHER_STATIC_PATH
 from src.app.crud.tvt import tournaments as tournaments_crud
 from src.app.crud.user import get_user_squad_by_team, get_user_by_email
+from src.app.exceptions.tournament_exceptions import WrongTournamentState
 from src.app.models.games import Games
+from src.app.models.tournament_states import TournamentStates
 from src.app.schemas.token_data import TokenData
 from src.app.schemas.royale.tournaments import TournamentPreview
 from src.app.schemas.tvt.stages import AdminsManagementData
@@ -130,6 +132,14 @@ def end_admin_management_state(data: AdminsManagementData, tournament_id: int, _
                                db: Session = Depends(get_db)):
     tournaments_service.end_admin_management_state(data, tournament_id, db)
     return Response(status_code=200)
+
+
+@router.get('/next_stage')
+def start_next_stage(tournament_id: int, _=Depends(auth_admin), db: Session = Depends(get_db)):
+    tournament = tournaments_crud.get_tournament_tvt(tournament_id, db)
+    if tournament.state != TournamentStates.IS_ON:
+        raise WrongTournamentState()
+    tournaments_service.start_stage_tvt(tournament_id, db)
 
 
 @router.get('/finish')

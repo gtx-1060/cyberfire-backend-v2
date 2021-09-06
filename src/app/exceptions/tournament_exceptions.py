@@ -86,3 +86,8 @@ class ResultProofLoadError(MyException):
 class TournamentInternalStateException(MyException):
     def __init__(self):
         super().__init__(400, 'wrong tournament state')
+
+
+class AllStatsMustBeVerified(MyException):
+    def __init__(self):
+        super().__init__(400, 'all statistics must be confirmed')

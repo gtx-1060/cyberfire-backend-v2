@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from src.app.config import PROOFS_STATIC_PATH
 from src.app.crud.tvt import tournaments as tournaments_crud
+from src.app.crud.tvt.stats import load_not_verified_stats
 from src.app.crud.user import get_user_squad_by_email, get_user_by_email, get_user_by_team
 from src.app.database.db import SessionLocal
 from src.app.exceptions.tournament_exceptions import *
@@ -71,12 +72,19 @@ def start_tvt_tournament(tournament_id: int):
     db = SessionLocal()
     tournament = tournaments_crud.get_tournament_tvt(tournament_id, db)
     tournaments_crud.update_tournament_state_tvt(TournamentStates.IS_ON, tournament_id, db)
+    start_stage_tvt(tournament_id, db)
+    db.close()
+
+
+def start_stage_tvt(tournament_id: int, db: Session):
+    nvs = load_not_verified_stats(tournament_id, db)
+    if len(nvs) > 0:
+        raise AllStatsMustBeVerified()
     launch_at = TournamentInternalStateManager.set_connect_to_waitroom_timer(tournament_id)
     redis_client.remove(f'tournament_launch:{tournament_id}:users')
     myscheduler.plan_task(get_tournament_task_id(TournamentEvents.START_TEAMS_MANAGEMENT, tournament_id),
                           launch_at + timedelta(seconds=10), start_admin_management_state, [tournament_id], 60)
     TournamentInternalStateManager.set_state(tournament_id, TournamentInternalStateManager.State.CONNECTING)
-    db.close()
 
 
 def add_to_wait_room(email: str, tournament_id: int):
