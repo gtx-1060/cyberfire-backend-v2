@@ -10,11 +10,11 @@ from src.app.crud.tvt import stats as stats_crud
 from src.app.crud.user import get_user_squad_by_team, get_user_by_email
 from src.app.exceptions.tournament_exceptions import TournamentInternalStateException
 from src.app.models.games import Games
-from src.app.models.tvt.team_stats import TvtStats
 from src.app.schemas.token_data import TokenData
 from src.app.schemas.royale.tournaments import TournamentPreview
 from src.app.schemas.tvt.matches import TvtMatch
 from src.app.schemas.tvt.stages import TvtStage, AdminsManagementData
+from src.app.schemas.tvt.team_stats import TvtStats
 from src.app.schemas.tvt.tournaments import TvtTournamentCreate, TvtTournament, TvtTournamentEdit, \
     TvtTournamentPersonal, TvtTournamentPreviewPersonal, MapChoiceRoomData
 from src.app.services.auth_service import auth_admin, try_auth_user, auth_user
