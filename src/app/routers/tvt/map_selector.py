@@ -14,7 +14,7 @@ from src.app.services.tvt.map_choice_service import MapChoiceManager
 from src.app.services.tvt import tournaments_service as tvt_service
 
 
-async def websocket_lobby_selector(websocket: WebSocket, tournament_id: int = Query(..., alias="token"),
+async def websocket_lobby_selector(websocket: WebSocket, tournament_id: int = Query(..., alias="tournament_id"),
                                    token: str = Query(..., alias="token")):
     db = SessionLocal()
     data = decode_token(token)
