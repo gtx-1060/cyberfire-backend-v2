@@ -59,6 +59,7 @@ async def selecting_map(socket: WebSocket, match_id: int, user: User):
             break
         if manager.is_me_active():
             try:
+                # TODO CHECK HERE
                 gamemap = await asyncio.wait_for(socket.receive_text(), timeout=MapChoiceManager.TIME_TO_CHOICE_SECONDS)
                 manager.ban_map(gamemap)
             except asyncio.TimeoutError:

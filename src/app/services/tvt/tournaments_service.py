@@ -174,6 +174,13 @@ def start_admin_management_state(tournament_id: int):
     TournamentInternalStateManager.set_state(tournament_id, TournamentInternalStateManager.State.ADMIN_MANAGEMENT)
 
 
+def get_admin_stage_data(tournament_id: int) -> str:
+    data = redis_client.get_val(f'tournament:{tournament_id}:temp_stage')
+    if data is None:
+        return '{}'
+    return data.decode('ascii')
+
+
 def end_admin_management_state(data: stage_schemas.AdminsManagementData, tournament_id: int, db: Session):
     istate = TournamentInternalStateManager.get_state(tournament_id)
     if istate != TournamentInternalStateManager.State.ADMIN_MANAGEMENT:

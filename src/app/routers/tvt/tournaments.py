@@ -2,7 +2,7 @@ from typing import List, Optional
 from fastapi import APIRouter, UploadFile
 from fastapi.params import Depends, File
 from sqlalchemy.orm import Session
-from starlette.responses import Response
+from starlette.responses import Response, JSONResponse
 
 from src.app.config import OTHER_STATIC_PATH
 from src.app.crud.tvt import tournaments as tournaments_crud
@@ -140,6 +140,15 @@ def start_next_stage(tournament_id: int, _=Depends(auth_admin), db: Session = De
     if tournament.state != TournamentStates.IS_ON:
         raise WrongTournamentState()
     tournaments_service.start_stage_tvt(tournament_id, db)
+
+
+@router.get('/teams_to_admin')
+def teams_to_admin(tournament_id: int, _=Depends(auth_admin), db: Session = Depends(get_db)):
+    state = TournamentInternalStateManager.get_state(tournament_id)
+    if state != TournamentInternalStateManager.State.ADMIN_MANAGEMENT:
+        raise WrongTournamentState()
+    data = tournaments_service.get_admin_stage_data(tournament_id)
+    return JSONResponse(content=data)
 
 
 @router.get('/finish')
