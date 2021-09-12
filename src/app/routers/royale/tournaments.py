@@ -7,7 +7,7 @@ from starlette.responses import Response
 
 from src.app.config import OTHER_STATIC_PATH
 from src.app.crud.royale import tournaments as tournaments_crud_r
-from src.app.crud.tvt import tournaments as tournaments_crud_t
+from src.app.crud.royale import tournaments as tournaments_crud_r
 from src.app.crud.user import get_user_squad_by_team
 from src.app.models.games import Games
 from src.app.models.tournament_states import TournamentStates
