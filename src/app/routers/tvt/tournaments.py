@@ -143,7 +143,7 @@ def start_next_stage(tournament_id: int, _=Depends(auth_admin), db: Session = De
 
 
 @router.get('/teams_to_admin')
-def teams_to_admin(tournament_id: int, _=Depends(auth_admin), db: Session = Depends(get_db)):
+def teams_to_admin(tournament_id: int, _=Depends(auth_admin)):
     state = TournamentInternalStateManager.get_state(tournament_id)
     if state != TournamentInternalStateManager.State.ADMIN_MANAGEMENT:
         raise WrongTournamentState()
