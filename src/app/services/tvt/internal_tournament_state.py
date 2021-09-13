@@ -1,6 +1,8 @@
 from datetime import timedelta, datetime
 from enum import Enum
+from typing import Optional
 
+import dateutil
 from loguru import logger
 
 from src.app.services.redis_service import redis_client
@@ -36,11 +38,11 @@ class TournamentInternalStateManager:
         return launch_at
 
     @staticmethod
-    def get_connect_to_waitroom_time(tournament_id: int):
+    def get_connect_to_waitroom_time(tournament_id: int) -> Optional[datetime]:
         time = redis_client.get_val(f'tournament_launch:{tournament_id}')
         if time is None:
-            return ''
-        return time.decode('ascii')
+            return None
+        return datetime.fromisoformat(time.decode('ascii'))
 
     @staticmethod
     def get_state(tournament_id: int):

@@ -54,7 +54,9 @@ def get_tournament_advanced_data(tournament_id: int, db: Session = Depends(get_d
     mc_data = MapChoiceRoomData()
     if tournaments_service.user_can_connect_to_map_selector(user, tournament_id, db):
         mc_data.ready_to_connect = True
-        mc_data.connect_until = TournamentInternalStateManager.get_connect_to_waitroom_time(tournament_id)
+        time_remaining = TournamentInternalStateManager.get_connect_to_waitroom_time(tournament_id)
+        if time_remaining is not None:
+            mc_data.connect_until = time_remaining
     can_load_results = istate == TournamentInternalStateManager.State.VERIFYING_RESULTS \
                        and tournaments_service.user_have_unloaded_results(user, tournament_id, db)
     return TvtTournamentPersonal(registered=is_registered, can_register=register_access, internal_state=istate,
