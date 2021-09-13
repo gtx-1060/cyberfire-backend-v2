@@ -13,6 +13,7 @@ from src.app.crud.tvt.stats import load_not_verified_stats
 from src.app.crud.user import get_user_squad_by_email, get_user_by_email, get_user_by_team
 from src.app.database.db import SessionLocal
 from src.app.exceptions.tournament_exceptions import *
+from src.app.exceptions.user_exceptions import UserNotFound
 from src.app.schemas.tvt import matches as match_schemas, stages as stage_schemas
 from src.app.models.games import game_squad_sizes
 from src.app.models.tournament_events import TournamentEvents
@@ -155,6 +156,9 @@ def start_admin_management_state(tournament_id: int):
     db_stage = tournaments_crud.get_last_tournament_stage(tournament_id, db)
     stages_crud.update_stage_state(db_stage.id, StageStates.IS_ON, db)
     emails = redis_client.get_set(f'tournament_launch:{tournament_id}:users')
+    if emails is None or len(emails) == 0:
+        tournaments_crud.update_tournament_state_tvt(TournamentStates.PAUSED, tournament_id, db)
+        return
     stage = stage_schemas.TvtStage.from_orm(db_stage)
     teams_active = set()
     for email in emails:
