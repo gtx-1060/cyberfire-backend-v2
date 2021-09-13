@@ -23,6 +23,7 @@ class TvtTournament(Base):
     state = Column(Enum(TournamentStates))
     rewards = Column(MutableList.as_mutable(PickleType))
     stages = relationship("TvtStage", backref=backref("tournament", cascade="all, delete"), passive_deletes=True)
+    stats = relationship("TvtStats", backref=backref("tournament", cascade="all, delete"), passive_deletes=True)
     users = relationship("User", secondary=association_table, backref="tvt_tournaments")
     stream_url = Column(String)
     game = Column(Enum(Games))
