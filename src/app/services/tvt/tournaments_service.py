@@ -93,7 +93,6 @@ def add_to_wait_room(email: str, tournament_id: int):
     ex = redis_client.exists(key)
     redis_client.add_to_set(key, email)
     logger.info(f'[lobby selector] adding {email} to wait-room')
-    logger.info(redis_client.get_set(key))
     if not ex:
         redis_client.client.expire(key, timedelta(minutes=60))
 

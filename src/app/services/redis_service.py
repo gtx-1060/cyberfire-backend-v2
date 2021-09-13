@@ -38,7 +38,7 @@ class __RedisClient:
         self.client.sadd(key, val)
 
     def get_set(self, key):
-        self.client.smembers(key)
+        return self.client.smembers(key)
 
     def remove_from_set(self, key, val):
         self.client.srem(key, val)
