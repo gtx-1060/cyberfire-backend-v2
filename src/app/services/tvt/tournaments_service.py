@@ -3,6 +3,7 @@ from functools import reduce
 from typing import Tuple, Optional
 import pytz
 from fastapi import UploadFile
+from loguru import logger
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
 
@@ -91,6 +92,8 @@ def add_to_wait_room(email: str, tournament_id: int):
     key = f'tournament_launch:{tournament_id}:users'
     ex = redis_client.exists(key)
     redis_client.add_to_set(key, email)
+    logger.info(f'[lobby selector] adding {email} to wait-room')
+    logger.info(redis_client.get_set(key))
     if not ex:
         redis_client.client.expire(key, timedelta(minutes=60))
 

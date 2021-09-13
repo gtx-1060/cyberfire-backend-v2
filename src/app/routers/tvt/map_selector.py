@@ -39,6 +39,7 @@ async def lobby_selector_lifecycle(socket: WebSocket, user: User, tournament_id:
 
 async def waiting_for_start(user: User, t_id: int):
     tvt_service.add_to_wait_room(user.email, t_id)
+    logger.info(f'[lobby selector] added to wait-room {user.team_name}')
     t_state = TournamentInternalStateManager.get_state(t_id)
     while t_state != TournamentInternalStateManager.State.MAP_CHOICE:
         await asyncio.sleep(5)

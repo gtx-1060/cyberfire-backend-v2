@@ -45,7 +45,7 @@ class UserNotRegistered(MyException):
 
 class WrongTournamentState(MyException):
     def __init__(self):
-        super().__init__(400, "you couldn't register/unregister to tournament now")
+        super().__init__(425, "something wrong with tournament state")
 
 
 class WrongTournamentDates(MyException):
