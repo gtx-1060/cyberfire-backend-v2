@@ -1,6 +1,8 @@
 from datetime import timedelta, datetime
 from enum import Enum
 
+from loguru import logger
+
 from src.app.services.redis_service import redis_client
 
 
@@ -29,6 +31,7 @@ class TournamentInternalStateManager:
     @staticmethod
     def set_connect_to_waitroom_timer(tournament_id: int):
         launch_at = datetime.now() + TournamentInternalStateManager.TIME_TO_CONNECT_AT_LAUNCH
+        logger.info(launch_at.isoformat())
         redis_client.add_val(f'tournament_launch:{tournament_id}', launch_at.isoformat(), TournamentInternalStateManager.TIME_TO_CONNECT_AT_LAUNCH)
         return launch_at
 

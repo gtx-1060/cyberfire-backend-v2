@@ -107,7 +107,7 @@ def user_can_connect_to_map_selector(user: User, t_id: int, db: Session) -> bool
     emails = redis_client.get_set(f'tournament_launch:{t_id}:users')
     user_in_list = (emails is not None) and (user.email.encode('ascii') in emails)
     return (state == TournamentInternalStateManager.State.CONNECTING
-            and tournaments_crud.user_stage_match(user.id, last_stage.id, db)) \
+            and tournaments_crud.user_stage_match(user.id, last_stage, db)) \
            or (state == TournamentInternalStateManager.State.MAP_CHOICE and user_in_list)
 
 
