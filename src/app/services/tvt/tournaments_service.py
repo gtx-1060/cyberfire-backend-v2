@@ -104,7 +104,8 @@ def remove_from_wait_room(email: str, tournament_id: int):
 
 def user_can_connect_to_map_selector(user: User, t_id: int, db: Session) -> bool:
     state = TournamentInternalStateManager.get_state(t_id)
-    if state == TournamentInternalStateManager.State.WAITING:
+    tournament = tournaments_crud.get_tournament_tvt(t_id, db)
+    if state == TournamentInternalStateManager.State.WAITING or tournament.state != TournamentStates.IS_ON:
         return False
     last_stage = tournaments_crud.get_last_tournament_stage(t_id, db)
     emails = redis_client.get_set(f'tournament_launch:{t_id}:users')

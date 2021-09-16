@@ -150,10 +150,12 @@ def teams_to_admin(tournament_id: int, _=Depends(auth_admin)):
     if state != TournamentInternalStateManager.State.ADMIN_MANAGEMENT:
         raise WrongTournamentState()
     data = tournaments_service.get_admin_stage_data(tournament_id)
-    return JSONResponse(content=data)
+    return Response(content=data, media_type='json')
 
 
 @router.get('/finish')
 def finish_tournament(tournament_id: int, _=Depends(auth_admin), db: Session = Depends(get_db)):
     pass
     # TODO: JUST DO IT
+
+
