@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from enum import Enum
 import random
-from typing import Tuple
+from typing import Tuple, Optional
 from loguru import logger
 from sqlalchemy.orm import Session
 
@@ -25,37 +25,35 @@ class MapChoiceManager:
     def __init__(self, match_id: int, team: str):
         self.match_id = match_id
         self.key = f'tournament:map_choice:{match_id}'
-        self.__is_ended = False
         self.team = team
+        self.last_data: Optional[MapChoiceData] = None
 
     def is_me_active(self):
-        data = self.get_data()
-        if data is None:
-            return False
-        return data.active_team == self.team
+        if self.last_data is None:
+            self.update_data()
+        return self.last_data == self.team
 
     def ban_map(self, map_name: str):
         if not self.is_me_active():
             logger.error('[lobby selector] user is inactive, but tries to ban map')
-            return False
-        data = self.get_data()
-        if map_name not in data.maps:
+            return True
+        self.update_data()
+        if map_name not in self.last_data.maps:
             logger.error('[lobby selector] map already banned')
             return False
-        data.maps.remove(map_name)
-        if len(data.maps) == 1:
+        self.last_data.maps.remove(map_name)
+        if self.is_ended():
             self.__end_all()
-            self.__save_data(data)
+            self.__synchronise_data()
             return True
-        users_set = list(data.teams)
+        users_set = list(self.last_data.teams)
         users_set.remove(self.team)
-        data.active_team = users_set[0]
-        self.__save_data(data)
-        MapChoiceManager.plan_force_random_choice(self.match_id, data.active_team)
+        self.last_data.active_team = users_set[0]
+        self.__synchronise_data()
+        MapChoiceManager.plan_force_random_choice(self.match_id, self.last_data.active_team)
         return True
 
     def __end_all(self):
-        self.__is_ended = True
         db: Session = SessionLocal()
         user = get_user_by_team(self.team, db)
         t_id = db.query(TvtMatch).filter(TvtMatch.id == self.match_id).first().teams_stats[0].tournament_id
@@ -64,29 +62,37 @@ class MapChoiceManager:
         db.close()
 
     def is_ended(self) -> bool:
-        return self.__is_ended
+        if self.last_data is None:
+            return False
+        return len(self.last_data.teams) <= 1
 
     def get_data(self) -> MapChoiceData:
+        if self.last_data is None:
+            self.update_data()
+        return self.last_data
+
+    def get_row_data(self) -> str:
+        if self.last_data is None:
+            self.update_data()
+        return self.last_data.json()
+
+    def update_data(self):
         redis_str = redis_client.get_val(self.key)
         if redis_str in None:
             raise MapChoiceDataNotFound()
-        return MapChoiceData.parse_raw(redis_str.decode('ascii'))
+        self.last_data = MapChoiceData.parse_raw(redis_str.decode('ascii'))
 
-    def get_row_data(self) -> str:
-        redis_str = redis_client.get_val(self.key)
-        if redis_str is None:
-            raise MapChoiceDataNotFound()
-        return redis_str.decode('ascii')
-
-    def __save_data(self, data: MapChoiceData):
-        redis_client.add_val(self.key, data.json())
+    def __synchronise_data(self):
+        if self.last_data is None:
+            return
+        redis_client.add_val(self.key, self.last_data.json())
 
     @staticmethod
     def create_lobby(match_id: int, game: GameMaps, teams: Tuple[str, str]):
         exp = datetime.now() + timedelta(seconds=MapChoiceManager.TIME_TO_CHOICE_SECONDS)
         data = MapChoiceData(users=teams, maps=game.value, active_team=teams[0], switch_time=exp)
         key = f'tournament:map_choice:{match_id}'
-        redis_client.add_val(key, data.json())
+        redis_client.add_val(key, data.json(), timedelta(minutes=10))
         MapChoiceManager.plan_force_random_choice(match_id, data.active_team)
 
     @staticmethod

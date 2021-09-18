@@ -2,6 +2,7 @@ import asyncio
 from fastapi import Query
 from loguru import logger
 from starlette.websockets import WebSocket, WebSocketDisconnect
+from time import time
 
 from src.app.crud.tvt.tournaments import users_last_ison_stage_match
 from src.app.crud.user import get_user_by_email
@@ -53,6 +54,7 @@ async def waiting_for_start(user: User, t_id: int):
 async def selecting_map(socket: WebSocket, match_id: int, user: User):
     manager = MapChoiceManager(match_id, user.team_name)
     while True:
+        manager.update_data()
         await socket.send_json(manager.get_row_data())
         if manager.is_ended():
             await socket.send_text('kostayne virubai')
@@ -60,14 +62,23 @@ async def selecting_map(socket: WebSocket, match_id: int, user: User):
             break
         if manager.is_me_active():
             try:
-                # TODO CHECK HERE
-                gamemap = await asyncio.wait_for(socket.receive_text(), timeout=MapChoiceManager.TIME_TO_CHOICE_SECONDS)
-                manager.ban_map(gamemap)
+                await ban_map(manager, socket)
             except asyncio.TimeoutError:
                 await socket.send_text("kostayne mozhech pomenyati state")
         else:
             while True:
                 await asyncio.sleep(5)
+                manager.update_data()
                 if manager.is_me_active():
                     break
 
+
+async def ban_map(manager: MapChoiceManager, socket: WebSocket):
+    time_remained = MapChoiceManager.TIME_TO_CHOICE_SECONDS
+    start_choice_time = time()
+    while True:
+        gamemap = await asyncio.wait_for(socket.receive_text(), timeout=time_remained)
+        if manager.ban_map(gamemap):
+            break
+        await socket.send_text('wrong data')
+        time_remained = MapChoiceManager.TIME_TO_CHOICE_SECONDS - (time() - start_choice_time)
