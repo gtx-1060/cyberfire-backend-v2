@@ -64,7 +64,7 @@ async def selecting_map(socket: WebSocket, match_id: int, user: User):
             try:
                 await ban_map(manager, socket)
             except asyncio.TimeoutError:
-                await socket.send_text("kostayne mozhech pomenyati state")
+                logger.info(f'[lobby selector] timeout in match {match_id} {user.team_name}')
         else:
             while True:
                 await asyncio.sleep(5)

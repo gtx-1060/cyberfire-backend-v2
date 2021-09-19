@@ -20,8 +20,8 @@ class MapChoiceManager:
     TIME_TO_CHOICE_SECONDS = 30
 
     class GameMaps(Enum):
-        CSGO = {'dust 2', 'inferno', 'mirage', 'nuke', 'overpass', 'vertigo', 'ancient', 'cache', 'train'}
-        VALORANT = {'breeze', 'icebox', 'bind', 'haven', 'haven', 'haven', 'split', 'ascent'}
+        CSGO = {'Dust 2', 'Inferno', 'Mirage', 'Nuke', 'Overpass', 'Vertigo', 'Ancient', 'Cache', 'Train'}
+        VALORANT = {'Breeze', 'Icebox', 'Bind', 'Haven', 'Split', 'Ascent'}
 
     def __init__(self, match_id: int, team: str):
         self.match_id = match_id
