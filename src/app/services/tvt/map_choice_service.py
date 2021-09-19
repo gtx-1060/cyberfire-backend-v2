@@ -78,7 +78,7 @@ class MapChoiceManager:
 
     def update_data(self):
         redis_str = redis_client.get_val(self.key)
-        if redis_str in None:
+        if redis_str is None:
             raise MapChoiceDataNotFound()
         self.last_data = MapChoiceData.parse_raw(redis_str.decode('ascii'))
 
