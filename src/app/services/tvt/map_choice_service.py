@@ -65,7 +65,7 @@ class MapChoiceManager:
     def is_ended(self) -> bool:
         if self.last_data is None:
             return False
-        return len(self.last_data.teams) <= 1
+        return len(self.last_data.maps) <= 1
 
     def get_data(self) -> MapChoiceData:
         if self.last_data is None:
