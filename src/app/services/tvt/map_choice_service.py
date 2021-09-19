@@ -32,7 +32,7 @@ class MapChoiceManager:
     def is_me_active(self):
         if self.last_data is None:
             self.update_data()
-        return self.last_data == self.team
+        return self.last_data .active_team == self.team
 
     def ban_map(self, map_name: str):
         if not self.is_me_active():
