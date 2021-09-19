@@ -99,7 +99,7 @@ class MapChoiceManager:
     @staticmethod
     def create_lobby(match_id: int, game: GameMaps, teams: Tuple[str, str]):
         exp = datetime.now() + timedelta(seconds=MapChoiceManager.TIME_TO_CHOICE_SECONDS)
-        data = MapChoiceData(users=teams, maps=game.value, active_team=teams[0], switch_time=exp)
+        data = MapChoiceData(teams=teams, maps=game.value, active_team=teams[0], switch_time=exp)
         key = f'tournament:map_choice:{match_id}'
         redis_client.add_val(key, data.json(), timedelta(minutes=10))
         MapChoiceManager.plan_force_random_choice(match_id, data.active_team)
