@@ -200,7 +200,7 @@ def end_admin_management_state(data: stage_schemas.AdminsManagementData, tournam
         user = get_user_by_team(team_name, db)
         redis_client.remove_from_set(f'tournament_launch:{tournament_id}:users', user.email)
     redis_client.remove(f'tournament:{tournament_id}:temp_stage')
-    start_ban_maps(tournament_id)
+    start_ban_maps(tournament_id, db)
 
 
 def __save_skipped_user(data, tournament_id, db):
@@ -219,11 +219,7 @@ def __save_skipped_user(data, tournament_id, db):
     db.commit()
 
 
-def start_ban_maps(tournament_id: int):
-    TournamentInternalStateManager.set_state(tournament_id, TournamentInternalStateManager.State.MAP_CHOICE)
-
-
-def end_ban_maps(tournament_id: int, db: Session):
+def start_ban_maps(tournament_id: int, db: Session):
     tournament = tournaments_crud.get_tournament_tvt(tournament_id, db)
     stage = tournaments_crud.get_last_tournament_stage(tournament_id, db, StageStates.IS_ON)
     if stage is None:
@@ -232,6 +228,10 @@ def end_ban_maps(tournament_id: int, db: Session):
         stats = match.teams_stats[0]
         MapChoiceManager.create_lobby(match.id, MapChoiceManager.get_maps_by_game(tournament.game),
                                       (stats.user.team_name, stats.rival.team_name))
+    TournamentInternalStateManager.set_state(tournament_id, TournamentInternalStateManager.State.MAP_CHOICE)
+
+
+def end_ban_maps(tournament_id: int):
     TournamentInternalStateManager.set_state(tournament_id, TournamentInternalStateManager.State.VERIFYING_RESULTS)
 
 
