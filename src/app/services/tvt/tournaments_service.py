@@ -12,6 +12,7 @@ from src.app.crud.tvt import tournaments as tournaments_crud
 from src.app.crud.tvt.stats import load_not_verified_stats
 from src.app.crud.user import get_user_squad_by_email, get_user_by_email, get_user_by_team
 from src.app.database.db import SessionLocal
+from src.app.exceptions.base import ItemNotFound
 from src.app.exceptions.tournament_exceptions import *
 from src.app.exceptions.user_exceptions import UserNotFound
 from src.app.schemas.tvt import matches as match_schemas, stages as stage_schemas
@@ -28,6 +29,7 @@ from src.app.services.schedule_service import myscheduler
 from src.app.services.redis_service import redis_client
 from src.app.crud.tvt import stages as stages_crud
 from src.app.services.tvt.internal_tournament_state import TournamentInternalStateManager
+from src.app.services.tvt.map_choice_service import MapChoiceManager
 from src.app.utils import save_image
 
 
@@ -221,7 +223,15 @@ def start_ban_maps(tournament_id: int):
     TournamentInternalStateManager.set_state(tournament_id, TournamentInternalStateManager.State.MAP_CHOICE)
 
 
-def end_ban_maps(tournament_id: int):
+def end_ban_maps(tournament_id: int, db: Session):
+    tournament = tournaments_crud.get_tournament_tvt(tournament_id, db)
+    stage = tournaments_crud.get_last_tournament_stage(tournament_id, db, StageStates.IS_ON)
+    if stage is None:
+        raise ItemNotFound(TvtStage)
+    for match in stage.matches:
+        stats = match.teams_stats[0]
+        MapChoiceManager.create_lobby(match.id, MapChoiceManager.get_maps_by_game(tournament.game),
+                                      (stats.user.team_name, stats.rival.team_name))
     TournamentInternalStateManager.set_state(tournament_id, TournamentInternalStateManager.State.VERIFYING_RESULTS)
 
 

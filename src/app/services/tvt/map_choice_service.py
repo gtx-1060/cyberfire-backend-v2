@@ -7,7 +7,8 @@ from sqlalchemy.orm import Session
 
 from src.app.crud.user import get_user_by_team
 from src.app.database.db import SessionLocal
-from src.app.exceptions.tournament_exceptions import MapChoiceDataNotFound
+from src.app.exceptions.tournament_exceptions import MapChoiceDataNotFound, GameNotFoundInTvtPool
+from src.app.models.games import Games
 from src.app.models.tvt.match import TvtMatch
 from src.app.schemas.tvt.map_choice_data import MapChoiceData
 from src.app.services.redis_service import redis_client
@@ -86,6 +87,14 @@ class MapChoiceManager:
         if self.last_data is None:
             return
         redis_client.add_val(self.key, self.last_data.json())
+
+    @staticmethod
+    def get_maps_by_game(game: Games) -> GameMaps:
+        if game == Games.CSGO:
+            return MapChoiceManager.GameMaps.CSGO
+        elif game == Games.VALORANT:
+            return MapChoiceManager.GameMaps.VALORANT
+        raise GameNotFoundInTvtPool()
 
     @staticmethod
     def create_lobby(match_id: int, game: GameMaps, teams: Tuple[str, str]):

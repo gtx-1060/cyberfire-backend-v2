@@ -91,3 +91,8 @@ class TournamentInternalStateException(MyException):
 class AllStatsMustBeVerified(MyException):
     def __init__(self):
         super().__init__(400, 'all statistics must be confirmed')
+
+
+class GameNotFoundInTvtPool(MyException):
+    def __init__(self):
+        super().__init__(400, 'game not found in tvt pool')
