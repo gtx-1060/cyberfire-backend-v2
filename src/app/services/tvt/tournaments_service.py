@@ -202,6 +202,8 @@ def end_admin_management_state(data: stage_schemas.AdminsManagementData, tournam
 
 
 def __save_skipped_user(data, tournament_id, db):
+    if data.skipped is None:
+        return
     skipped_user = get_user_by_team(data.skipped.team_name, db)
     redis_client.remove_from_set(f'tournament_launch:{tournament_id}:users', skipped_user.email)
     new_stage = stages_crud.create_stage(data.stage.index + 1, tournament_id, db)

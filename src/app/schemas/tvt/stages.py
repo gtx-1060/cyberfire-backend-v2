@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel
 
 from src.app.models.tournament_states import StageStates
@@ -17,5 +17,5 @@ class TvtStage(BaseModel):
 
 class AdminsManagementData(BaseModel):
     stage: TvtStage
-    skipped: TvtMatchShortData
+    skipped: Optional[TvtMatchShortData]
     kicked_teams: List[str]
