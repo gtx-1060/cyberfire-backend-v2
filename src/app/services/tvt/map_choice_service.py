@@ -107,7 +107,8 @@ class MapChoiceManager:
     @staticmethod
     def plan_force_random_choice(match_id: int, now_active_team: str):
         key = f'tournament:map_choice:{match_id}'
-        myscheduler.remove_task(key)
+        if myscheduler.task_exists(key):
+            myscheduler.remove_task(key)
         exp = datetime.now() + timedelta(seconds=MapChoiceManager.TIME_TO_CHOICE_SECONDS + 1)
         myscheduler.plan_task(key, exp, MapChoiceManager.random_choice, [match_id, now_active_team], 3)
 
