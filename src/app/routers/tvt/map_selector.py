@@ -55,7 +55,7 @@ async def selecting_map(socket: WebSocket, match_id: int, user: User):
     manager = MapChoiceManager(match_id, user.team_name)
     while True:
         manager.update_data()
-        await socket.send_json(manager.get_row_data())
+        await socket.send_text(manager.get_row_data())
         if manager.is_ended():
             await socket.send_text('kostayne virubai')
             await socket.close()

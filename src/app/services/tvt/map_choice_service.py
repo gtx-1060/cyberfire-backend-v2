@@ -75,6 +75,7 @@ class MapChoiceManager:
     def get_row_data(self) -> str:
         if self.last_data is None:
             self.update_data()
+        print(self.last_data.json())
         return self.last_data.json()
 
     def update_data(self):
