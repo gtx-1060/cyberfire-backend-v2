@@ -38,6 +38,11 @@ async def lobby_selector_lifecycle(socket: WebSocket, user: User, tournament_id:
     match_id = await waiting_for_start(user, tournament_id)
     if match_id == -1:
         await socket.send_text('vach sopernik clown')
+        await socket.close()
+        return
+    elif match_id == 0:
+        await socket.send_text('match not found')
+        await socket.close()
         return
     await selecting_map(socket, match_id, user)
 
@@ -52,9 +57,11 @@ async def waiting_for_start(user: User, t_id: int):
     db = SessionLocal()
     if is_user_skipped(user.email, t_id):
         return -1
-    match_id = users_last_ison_stage_match(user.id, t_id, db).id
+    match = users_last_ison_stage_match(user.id, t_id, db)
+    if not match:
+        return 0
     db.close()
-    return match_id
+    return match.id
 
 
 async def selecting_map(socket: WebSocket, match_id: int, user: User):
