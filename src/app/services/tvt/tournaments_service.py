@@ -195,7 +195,7 @@ def end_admin_management_state(data: stage_schemas.AdminsManagementData, tournam
     if istate != TournamentInternalStateManager.State.ADMIN_MANAGEMENT:
         raise TournamentInternalStateException()
     __save_scoreboard(data.stage, tournament_id, db)
-    __save_skipped_user(data, tournament_id, db)
+    __handle_skipped_user(data, tournament_id, db)
     for team_name in data.kicked_teams:
         user = get_user_by_team(team_name, db)
         redis_client.remove_from_set(f'tournament_launch:{tournament_id}:users', user.email)
@@ -203,11 +203,12 @@ def end_admin_management_state(data: stage_schemas.AdminsManagementData, tournam
     start_ban_maps(tournament_id, db)
 
 
-def __save_skipped_user(data, tournament_id, db):
+def __handle_skipped_user(data, tournament_id, db):
     if data.skipped is None:
         return
     skipped_user = get_user_by_team(data.skipped.team_name, db)
     redis_client.remove_from_set(f'tournament_launch:{tournament_id}:users', skipped_user.email)
+    redis_client.add_val(f'tournament_launch:{tournament_id}:skipped', skipped_user.email, timedelta(minutes=5))
     new_stage = stages_crud.create_stage(data.stage.index + 1, tournament_id, db)
     new_match = stages_crud.create_match(new_stage.id, data.skipped.index, db)
     stats = TvtStats(
@@ -217,6 +218,14 @@ def __save_skipped_user(data, tournament_id, db):
     )
     db.add(stats)
     db.commit()
+
+
+def is_user_skipped(email: str, tournament_id: int):
+    val = redis_client.get_val(f'tournament_launch:{tournament_id}:skipped')
+    if val is None:
+        return False
+    val = val.decode('ascii')
+    return val == email
 
 
 def start_ban_maps(tournament_id: int, db: Session):

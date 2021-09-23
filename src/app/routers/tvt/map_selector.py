@@ -13,6 +13,7 @@ from src.app.services.auth_service import decode_token
 from src.app.services.tvt.internal_tournament_state import TournamentInternalStateManager
 from src.app.services.tvt.map_choice_service import MapChoiceManager
 from src.app.services.tvt import tournaments_service as tvt_service
+from src.app.services.tvt.tournaments_service import is_user_skipped
 
 
 async def websocket_lobby_selector(websocket: WebSocket, tournament_id: int = Query(..., alias="tournament_id"),
@@ -35,6 +36,9 @@ async def websocket_lobby_selector(websocket: WebSocket, tournament_id: int = Qu
 
 async def lobby_selector_lifecycle(socket: WebSocket, user: User, tournament_id: int):
     match_id = await waiting_for_start(user, tournament_id)
+    if match_id == -1:
+        await socket.send_text('vach sopernik clown')
+        return
     await selecting_map(socket, match_id, user)
 
 
@@ -46,6 +50,8 @@ async def waiting_for_start(user: User, t_id: int):
         await asyncio.sleep(5)
         t_state = TournamentInternalStateManager.get_state(t_id)
     db = SessionLocal()
+    if is_user_skipped(user.email, t_id):
+        return -1
     match_id = users_last_ison_stage_match(user.id, t_id, db).id
     db.close()
     return match_id
