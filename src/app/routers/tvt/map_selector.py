@@ -54,11 +54,12 @@ async def waiting_for_start(user: User, t_id: int):
     while t_state != TournamentInternalStateManager.State.MAP_CHOICE:
         await asyncio.sleep(5)
         t_state = TournamentInternalStateManager.get_state(t_id)
-    db = SessionLocal()
     if is_user_skipped(user.email, t_id):
         return -1
+    db = SessionLocal()
     match = users_last_ison_stage_match(user.id, t_id, db)
     if not match:
+        db.close()
         return 0
     db.close()
     return match.id
