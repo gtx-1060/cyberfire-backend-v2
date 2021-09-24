@@ -123,7 +123,7 @@ def load_match_results_proof(image: UploadFile, user: User, t_id: int, db: Sessi
         raise ResultProofLoadError('users match stats not found')
     if stats.confirmed:
         raise ResultProofLoadError('stats already confirmed')
-    path = save_image(PROOFS_STATIC_PATH, image)
+    path = save_image(PROOFS_STATIC_PATH, image.file.read())
     stats.proof_path = path
     db.add(stats)
     db.commit()
