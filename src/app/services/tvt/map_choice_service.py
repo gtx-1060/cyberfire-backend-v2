@@ -44,17 +44,17 @@ class MapChoiceManager:
             return False
         self.last_data.maps.remove(map_name)
         if self.is_ended():
-            self.__end_all()
+            self.destroy_session()
+            other_user_manager = MapChoiceManager(self.match_id, self.get_other_player())
+            other_user_manager.destroy_session()
             self.__synchronise_data()
             return True
-        users_set = list(self.last_data.teams)
-        users_set.remove(self.team)
-        self.last_data.active_team = users_set[0]
+        self.last_data.active_team = self.get_other_player()
         self.__synchronise_data()
         MapChoiceManager.plan_force_random_choice(self.match_id, self.last_data.active_team)
         return True
 
-    def __end_all(self):
+    def destroy_session(self):
         db: Session = SessionLocal()
         user = get_user_by_team(self.team, db)
         t_id = db.query(TvtMatch).filter(TvtMatch.id == self.match_id).first().teams_stats[0].tournament_id
@@ -88,6 +88,11 @@ class MapChoiceManager:
         if self.last_data is None:
             return
         redis_client.add_val(self.key, self.last_data.json())
+
+    def get_other_player(self):
+        users_set = list(self.last_data.teams)
+        users_set.remove(self.team)
+        return users_set[0]
 
     @staticmethod
     def get_maps_by_game(game: Games) -> GameMaps:
