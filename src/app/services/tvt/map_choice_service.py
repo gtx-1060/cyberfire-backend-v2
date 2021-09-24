@@ -45,8 +45,10 @@ class MapChoiceManager:
         self.last_data.maps.remove(map_name)
         if self.is_ended():
             self.destroy_session()
-            other_user_manager = MapChoiceManager(self.match_id, self.get_other_player())
+            rival = self.get_other_player()
+            other_user_manager = MapChoiceManager(self.match_id, rival)
             other_user_manager.destroy_session()
+            self.last_data.active_team = rival
             self.__synchronise_data()
             return True
         self.last_data.active_team = self.get_other_player()
