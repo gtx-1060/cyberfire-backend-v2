@@ -118,7 +118,7 @@ def user_can_connect_to_map_selector(user: User, t_id: int, db: Session) -> bool
 
 
 def load_match_results_proof(image: UploadFile, user: User, t_id: int, db: Session):
-    stats = __get_users_active_stats(user, t_id, db)
+    stats = __get_user_active_stats(user, t_id, db)
     if stats is None:
         raise ResultProofLoadError('users match stats not found')
     if stats.confirmed:
@@ -130,13 +130,13 @@ def load_match_results_proof(image: UploadFile, user: User, t_id: int, db: Sessi
 
 
 def user_have_unloaded_results(user: User, t_id: int, db: Session):
-    ustats = __get_users_active_stats(user, t_id, db)
+    ustats = __get_user_active_stats(user, t_id, db)
     if ustats is None:
         return False
     return 'default' in ustats.proof_path and not ustats.confirmed
 
 
-def __get_users_active_stats(user: User, t_id: int, db: Session) -> Optional[TvtStats]:
+def __get_user_active_stats(user: User, t_id: int, db: Session) -> Optional[TvtStats]:
     match = tournaments_crud.users_last_ison_stage_match(user.id, t_id, db)
     if match is None:
         return None
