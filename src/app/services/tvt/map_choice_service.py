@@ -50,6 +50,7 @@ class MapChoiceManager:
             self.__synchronise_data()
             return True
         self.last_data.active_team = self.get_other_player()
+        self.last_data.switch_time = datetime.now() + timedelta(seconds=MapChoiceManager.TIME_TO_CHOICE_SECONDS)
         self.__synchronise_data()
         MapChoiceManager.plan_force_random_choice(self.match_id, self.last_data.active_team)
         return True
