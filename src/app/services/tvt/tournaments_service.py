@@ -298,7 +298,7 @@ def __create_match_with_stats(stage_id: int, index: int, tournament_id: int, use
 
 def __verify_stage_content(stage: stage_schemas.TvtStage, db: Session):
     for match in stage.matches:
-        if len(match.teams_stats) > 2 or len(match.teams_stats) == 0:
+        if len(match.teams_stats) != 2:
             raise MatchMustHaveOnlyTwoStats()
         for stats in match.teams_stats:
             user = get_user_by_team(stats.user.team_name, db)
