@@ -43,7 +43,7 @@ def tournament_registrable_data_tvt(tournament_id: int, user_email: str, db: Ses
     tournament = tournaments_crud.get_tournament_tvt(tournament_id, db)
     is_registered = tournaments_crud.is_user_in_tournament_tvt(tournament.id, user_email, db)
     register_access = tournaments_crud.count_users_in_tournament_tvt(tournament_id, db) < tournament.max_squads \
-                      and tournament.state == TournamentStates.REGISTRATION
+                      and tournament.state == TournamentStates.REGISTRATION and (not is_registered)
     return is_registered, register_access
 
 
