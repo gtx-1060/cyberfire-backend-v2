@@ -271,10 +271,7 @@ def end_ison_stage(tournament_id: int, db: Session) -> str:
 def __is_tournament_can_be_ended(stage: TvtStage):
     if len(stage.matches) > 1:
         return False
-    elif len(stage.matches) == 0:
-        return True
-    match = stage.matches[0]
-    return len(match.teams_stats) == 1
+    return len(stage.matches) == 0 or len(stage.matches[0].teams_stats) == 1
 
 
 def __create_match_with_stats(stage_id: int, index: int, tournament_id: int, user_id: int, db: Session, rival_id=None,
