@@ -35,8 +35,8 @@ def get_tournament_royale(tournament_id: int, db: Session) -> Tournament:
     return tournament
 
 
-def get_tournaments_count_royale(db: Session) -> int:
-    return db.query(Tournament).count()
+def get_tournaments_count_royale(db: Session, game: Games) -> int:
+    return db.query(Tournament).filter(Tournament.game == game).count()
 
 
 def create_tournament_royale(tournament: TournamentCreate, db: Session) -> Tournament:

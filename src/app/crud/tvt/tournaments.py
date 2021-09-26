@@ -38,8 +38,8 @@ def get_tournament_tvt(tournament_id: int, db: Session) -> Tournament:
     return tournament
 
 
-def get_tournaments_count_tvt(db: Session) -> int:
-    return db.query(Tournament).count()
+def get_tournaments_count_tvt(db: Session, game: Games) -> int:
+    return db.query(Tournament).filter(Tournament.game == game).count()
 
 
 def create_tournament_tvt(tournament: TvtTournamentCreate, db: Session) -> Tournament:

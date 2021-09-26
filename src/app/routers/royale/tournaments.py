@@ -57,8 +57,8 @@ def get_tournament(tournament_id: int, db: Session = Depends(get_db), _=Depends(
 
 
 @router.get("/count", response_model=int)
-def get_tournaments_count(db: Session = Depends(get_db)):
-    return tournaments_crud_r.get_tournaments_count_royale(db)
+def get_tournaments_count(game: Games, db: Session = Depends(get_db)):
+    return tournaments_crud_r.get_tournaments_count_royale(db, game)
 
 
 @router.post("", response_model=dict)
