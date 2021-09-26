@@ -142,6 +142,7 @@ def end_last_stage(tournament_id: int, _=Depends(auth_admin), db: Session = Depe
     if tournament.state != TournamentStates.IS_ON:
         raise WrongTournamentState()
     tournaments_service.end_ison_stage(tournament_id, db)
+    return Response(status_code=200)
 
 
 @router.get('/next_stage')
@@ -150,6 +151,7 @@ def start_next_stage(tournament_id: int, _=Depends(auth_admin), db: Session = De
     if tournament.state != TournamentStates.IS_ON:
         raise WrongTournamentState()
     tournaments_service.start_stage_tvt(tournament_id, db)
+    return Response(status_code=200)
 
 
 @router.get('/teams_to_admin')
@@ -164,5 +166,6 @@ def teams_to_admin(tournament_id: int, _=Depends(auth_admin)):
 @router.get('/finish')
 def finish_tournament(tournament_id: int, _=Depends(auth_admin), db: Session = Depends(get_db)):
     tournaments_service.finish_tournament(tournament_id, db)
+    return Response(status_code=200)
 
 
