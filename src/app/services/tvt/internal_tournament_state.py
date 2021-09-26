@@ -25,10 +25,7 @@ class TournamentInternalStateManager:
 
     @staticmethod
     def set_state(tournament_id: int, state: State):
-        exp = timedelta(days=1)
-        if state == TournamentInternalStateManager.State.VERIFYING_RESULTS:
-            exp = timedelta(minutes=180)
-        redis_client.add_val(TournamentInternalStateManager.__get_key(tournament_id), state.value, exp)
+        redis_client.add_val(TournamentInternalStateManager.__get_key(tournament_id), state.value)
 
     @staticmethod
     def set_connect_to_waitroom_timer(tournament_id: int):

@@ -136,6 +136,14 @@ def end_admin_management_state(data: AdminsManagementData, tournament_id: int, _
     return Response(status_code=200)
 
 
+@router.get('/end_stage')
+def end_last_stage(tournament_id: int, _=Depends(auth_admin), db: Session = Depends(get_db)):
+    tournament = tournaments_crud.get_tournament_tvt(tournament_id, db)
+    if tournament.state != TournamentStates.IS_ON:
+        raise WrongTournamentState()
+    tournaments_service.end_ison_stage(tournament_id, db)
+
+
 @router.get('/next_stage')
 def start_next_stage(tournament_id: int, _=Depends(auth_admin), db: Session = Depends(get_db)):
     tournament = tournaments_crud.get_tournament_tvt(tournament_id, db)

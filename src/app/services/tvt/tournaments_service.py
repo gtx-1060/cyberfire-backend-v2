@@ -83,9 +83,12 @@ def start_tvt_tournament(tournament_id: int):
 
 
 def start_stage_tvt(tournament_id: int, db: Session):
-    nvs = load_not_verified_stats(tournament_id, db)
-    if len(nvs) > 0:
-        raise AllStatsMustBeVerified()
+    last_stage = tournaments_crud.get_last_tournament_stage(tournament_id, db)
+    if last_stage.state != StageStates.WAITING:
+        raise ItemNotFound(TvtStage)
+    internal_state = TournamentInternalStateManager.get_state(tournament_id)
+    if internal_state != TournamentInternalStateManager.State.WAITING:
+        raise WrongTournamentState()
     launch_at = TournamentInternalStateManager.set_connect_to_waitroom_timer(tournament_id)
     redis_client.remove(f'tournament_launch:{tournament_id}:users')
     myscheduler.plan_task(get_tournament_task_id(TournamentEvents.START_TEAMS_MANAGEMENT, tournament_id),
@@ -197,7 +200,8 @@ def end_admin_management_state(data: stage_schemas.AdminsManagementData, tournam
     if istate != TournamentInternalStateManager.State.ADMIN_MANAGEMENT:
         raise TournamentInternalStateException()
     __save_scoreboard(data.stage, tournament_id, db)
-    __handle_skipped_user(data, tournament_id, db)
+    new_stage = stages_crud.create_stage(data.stage.index + 1, tournament_id, db)
+    __handle_skipped_user(data, tournament_id, new_stage.id, db)
     for team_name in data.kicked_teams:
         user = get_user_by_team(team_name, db)
         redis_client.remove_from_set(f'tournament_launch:{tournament_id}:users', user.email)
@@ -205,21 +209,13 @@ def end_admin_management_state(data: stage_schemas.AdminsManagementData, tournam
     start_ban_maps(tournament_id, db)
 
 
-def __handle_skipped_user(data, tournament_id, db):
+def __handle_skipped_user(data, tournament_id, new_stage_id: int, db):
     if data.skipped is None:
         return
     skipped_user = get_user_by_team(data.skipped.team_name, db)
     redis_client.remove_from_set(f'tournament_launch:{tournament_id}:users', skipped_user.email)
     redis_client.add_val(f'tournament_launch:{tournament_id}:skipped', skipped_user.email, timedelta(minutes=5))
-    new_stage = stages_crud.create_stage(data.stage.index + 1, tournament_id, db)
-    new_match = stages_crud.create_match(new_stage.id, data.skipped.index, db)
-    stats = TvtStats(
-        tournament_id=tournament_id,
-        match_id=new_match.id,
-        user_id=skipped_user.id
-    )
-    db.add(stats)
-    db.commit()
+    __create_match_with_stats(new_stage_id, data.skipped.index, tournament_id, skipped_user.id, db)
 
 
 def is_user_skipped(email: str, tournament_id: int):
@@ -244,6 +240,48 @@ def start_ban_maps(tournament_id: int, db: Session):
 
 def end_ban_maps(tournament_id: int):
     TournamentInternalStateManager.set_state(tournament_id, TournamentInternalStateManager.State.VERIFYING_RESULTS)
+
+
+def end_ison_stage(tournament_id: int, db: Session):
+    nvs = load_not_verified_stats(tournament_id, db)
+    if len(nvs) > 0:
+        raise AllStatsMustBeVerified()
+    stage = tournaments_crud.get_last_tournament_stage(tournament_id, db)
+    pr_stage = tournaments_crud.get_last_tournament_stage(tournament_id, db, StageStates.IS_ON)
+    sorted_matches = sorted(pr_stage.matches, key=lambda m: m.index)
+    m_count = len(sorted_matches)
+    for i in range(0, m_count-1, 2):
+        winner1 = __get_match_winner(sorted_matches[i])
+        winner2 = __get_match_winner(sorted_matches[i+1])
+        __create_match_with_stats(stage.id, sorted_matches[i].index, tournament_id, winner1.id, db, winner2.id, False)
+
+    if m_count % 2 != 0:
+        winner = __get_match_winner(sorted_matches[-1])
+        __create_match_with_stats(stage.id, sorted_matches[-1].index, tournament_id, winner.id, db)
+    stages_crud.update_stage_state(pr_stage.id, StageStates.FINISHED, db)
+    TournamentInternalStateManager.set_state(tournament_id, TournamentInternalStateManager.State.WAITING)
+
+
+def __create_match_with_stats(stage_id: int, index: int, tournament_id: int, user_id: int, db: Session, rival_id=None,
+                              auto_commit=True):
+    new_match = stages_crud.create_match(stage_id, index, db)
+    stats = TvtStats(
+        tournament_id=tournament_id,
+        match_id=new_match.id,
+        user_id=user_id,
+        rival_id=rival_id
+    )
+    db.add(stats)
+    if rival_id:
+        stats = TvtStats(
+            tournament_id=tournament_id,
+            match_id=new_match.id,
+            user_id=rival_id,
+            rival_id=user_id
+        )
+        db.add(stats)
+    if auto_commit:
+        db.commit()
 
 
 def __verify_stage_content(stage: stage_schemas.TvtStage, db: Session):
@@ -348,12 +386,16 @@ def finish_tournament(t_id: int, db: Session):
     matches : List[TvtMatch] = db.query(TvtMatch).join(TvtStage)\
         .filter(and_(TvtStage.tournament_id == t_id, TvtMatch.stage_id == TvtStage.id)).all()
     for match in matches:
-        winner = match.teams_stats[0].user if match.teams_stats[0].score > match.teams_stats[1].score \
-            else match.teams_stats[1].user
+        winner = __get_match_winner(match)
         if not winner:
             raise ItemNotFound(User)
         edit_global_stats(GlobalStatsEdit(wins_count=1), tournament.game, winner.id, db, False)
     db.commit()
+
+
+def __get_match_winner(match: TvtMatch):
+    return match.teams_stats[0].user if match.teams_stats[0].score > match.teams_stats[1].score \
+            else match.teams_stats[1].user
 
 
 def __remove_from_last_match(tournament_id, user, db):
