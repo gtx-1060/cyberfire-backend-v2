@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from functools import reduce
-from typing import Tuple, Optional
+from typing import Tuple, Optional, List
 import pytz
 from fastapi import UploadFile
 from loguru import logger
@@ -8,6 +8,7 @@ from sqlalchemy import and_
 from sqlalchemy.orm import Session
 
 from src.app.config import PROOFS_STATIC_PATH
+from src.app.crud.royale.stats import edit_global_stats
 from src.app.crud.tvt import tournaments as tournaments_crud
 from src.app.crud.tvt.stats import load_not_verified_stats
 from src.app.crud.user import get_user_squad_by_email, get_user_by_email, get_user_by_team
@@ -15,6 +16,7 @@ from src.app.database.db import SessionLocal
 from src.app.exceptions.base import ItemNotFound
 from src.app.exceptions.tournament_exceptions import *
 from src.app.exceptions.user_exceptions import UserNotFound
+from src.app.schemas.royale.stats import GlobalStatsEdit
 from src.app.schemas.tvt import matches as match_schemas, stages as stage_schemas
 from src.app.models.games import game_squad_sizes
 from src.app.models.tournament_events import TournamentEvents
@@ -333,6 +335,25 @@ def unregister_player_from_tournament(user_email: str, tournament_id: int, db: S
     user = get_user_by_email(user_email, db)
     tournaments_crud.remove_user_from_tournament_tvt(user.id, tournament_id, db)
     __remove_from_last_match(tournament_id, user, db)
+
+
+def finish_tournament(t_id: int, db: Session):
+    tournament = tournaments_crud.get_tournament_tvt(t_id, db)
+    for stage in tournament.stages:
+        if stage.state != StageStates.FINISHED:
+            raise AllStageMustBeFinished()
+    if len(load_not_verified_stats(t_id, db)):
+        raise AllStatsMustBeVerified()
+    tournaments_crud.update_tournament_state_tvt(TournamentStates.FINISHED, t_id, db)
+    matches : List[TvtMatch] = db.query(TvtMatch).join(TvtStage)\
+        .filter(and_(TvtStage.tournament_id == t_id, TvtMatch.stage_id == TvtStage.id)).all()
+    for match in matches:
+        winner = match.teams_stats[0].user if match.teams_stats[0].score > match.teams_stats[1].score \
+            else match.teams_stats[1].user
+        if not winner:
+            raise ItemNotFound(User)
+        edit_global_stats(GlobalStatsEdit(wins_count=1), tournament.game, winner.id, db, False)
+    db.commit()
 
 
 def __remove_from_last_match(tournament_id, user, db):

@@ -184,7 +184,7 @@ def end_battleroyale_tournament(tournament_id: int, db: Session):
     tournaments_crud.update_tournament_state_royale(TournamentStates.FINISHED, tournament_id, db)
     for stats in tournament.stats:
         gl_stat_new = GlobalStatsEdit(score=stats.score, kills_count=stats.kills_count, wins_count=stats.wins_count)
-        edit_global_stats(gl_stat_new, stats.user_id, db, False)
+        edit_global_stats(gl_stat_new, tournament.game, stats.user_id, db, False)
     db.commit()
 
 

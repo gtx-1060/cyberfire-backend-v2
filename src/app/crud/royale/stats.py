@@ -166,8 +166,8 @@ def create_global_stats(stats: stats_schemas.GlobalStatsCreate, db: Session):
         raise SameItemAlreadyExists(f'global stats {user.team_name}')
 
 
-def edit_global_stats(added_stats: stats_schemas.GlobalStatsEdit, user_id: int, db: Session, commit=True):
-    db_stats = db.query(GlobalStats).filter(GlobalStats.user_id == user_id).first()
+def edit_global_stats(added_stats: stats_schemas.GlobalStatsEdit, game: Games, user_id: int, db: Session, commit=True):
+    db_stats = db.query(GlobalStats).filter(and_(GlobalStats.user_id == user_id, GlobalStats.game == game)).first()
     if db_stats is None:
         raise ItemNotFound(GlobalStats)
     if added_stats.score is not None:

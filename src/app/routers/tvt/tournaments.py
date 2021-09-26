@@ -155,7 +155,6 @@ def teams_to_admin(tournament_id: int, _=Depends(auth_admin)):
 
 @router.get('/finish')
 def finish_tournament(tournament_id: int, _=Depends(auth_admin), db: Session = Depends(get_db)):
-    pass
-    # TODO: JUST DO IT
+    tournaments_service.finish_tournament(tournament_id, db)
 
 
