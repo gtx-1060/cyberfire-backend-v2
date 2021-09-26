@@ -41,6 +41,6 @@ def get_not_verified_stats(tournament_id: int, _=Depends(auth_admin), db: Sessio
 @router.get('/verify')
 def load_results_proof(stats_id: int, score: int, _=Depends(auth_admin), db: Session = Depends(get_db)):
     stats = stats_crud.get_stats(stats_id, db)
-    stats_crud.edit_stats(stats_id, score, True, DEFAULT_VERIFIED_PATH, db)
     delete_image_by_web_path(stats.proof_path)
+    stats_crud.edit_stats(stats_id, score, True, DEFAULT_VERIFIED_PATH, db)
     return Response(status_code=200)

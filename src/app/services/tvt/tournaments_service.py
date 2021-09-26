@@ -383,7 +383,7 @@ def finish_tournament(t_id: int, db: Session):
     if len(load_not_verified_stats(t_id, db)):
         raise AllStatsMustBeVerified()
     tournaments_crud.update_tournament_state_tvt(TournamentStates.FINISHED, t_id, db)
-    matches : List[TvtMatch] = db.query(TvtMatch).join(TvtStage)\
+    matches: List[TvtMatch] = db.query(TvtMatch).join(TvtStage)\
         .filter(and_(TvtStage.tournament_id == t_id, TvtMatch.stage_id == TvtStage.id)).all()
     for match in matches:
         winner = __get_match_winner(match)
