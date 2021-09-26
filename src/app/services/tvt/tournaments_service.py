@@ -242,7 +242,7 @@ def end_ban_maps(tournament_id: int):
     TournamentInternalStateManager.set_state(tournament_id, TournamentInternalStateManager.State.VERIFYING_RESULTS)
 
 
-def end_ison_stage(tournament_id: int, db: Session):
+def end_ison_stage(tournament_id: int, db: Session) -> str:
     nvs = load_not_verified_stats(tournament_id, db)
     if len(nvs) > 0:
         raise AllStatsMustBeVerified()
@@ -260,6 +260,21 @@ def end_ison_stage(tournament_id: int, db: Session):
         __create_match_with_stats(stage.id, sorted_matches[-1].index, tournament_id, winner.id, db)
     stages_crud.update_stage_state(pr_stage.id, StageStates.FINISHED, db)
     TournamentInternalStateManager.set_state(tournament_id, TournamentInternalStateManager.State.WAITING)
+    if __is_tournament_can_be_ended(stage):
+        db.query(TvtStage).filter(TvtStage.id == stage.id).delete()
+        db.commit()
+        finish_tournament(tournament_id, db)
+        return '{"status":  "tournament was finished"}'
+    return '{"status":  "stage was finished"}"'
+
+
+def __is_tournament_can_be_ended(stage: TvtStage):
+    if len(stage.matches) > 1:
+        return False
+    elif len(stage.matches) == 0:
+        return True
+    match = stage.matches[0]
+    return len(match.teams_stats) == 1
 
 
 def __create_match_with_stats(stage_id: int, index: int, tournament_id: int, user_id: int, db: Session, rival_id=None,
