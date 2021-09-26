@@ -124,8 +124,8 @@ def get_last_tournament_stage(tournament_id: int, db: Session, state: StageState
 
 
 def user_stage_match(user_id: int, stage: TvtStage, db: Session) -> Optional[TvtMatch]:
-    match = db.query(TvtMatch).join(TvtStats, TvtMatch.teams_stats).filter(and_(TvtMatch.stage_id == stage.id,
-                                                                                TvtStats.user_id == user_id)).first()
+    match = db.query(TvtMatch).filter(TvtMatch.stage_id == stage.id)\
+        .join(TvtStats).filter(TvtStats.user_id == user_id).first()
     return match
 
 
