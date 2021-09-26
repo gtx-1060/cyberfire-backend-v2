@@ -33,7 +33,7 @@ def get_tournaments_previews(game: Games, db: Session = Depends(get_db), count=2
 
 
 @router.get("/advanced_data_list", response_model=List[TvtTournamentPreviewPersonal])
-def is_user_tournaments_registered(game: Optional[Games] = None, count=20, offset=0, db: Session = Depends(get_db),
+def is_user_tournaments_registered(game: Games = None, count=20, offset=0, db: Session = Depends(get_db),
                                    auth: TokenData = Depends(auth_user)):
     tournaments = tournaments_crud.get_tournaments_tvt(game, offset, count, db)
     tournaments_registered: List[TvtTournamentPreviewPersonal] = []
