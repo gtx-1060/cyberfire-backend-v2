@@ -44,6 +44,7 @@ class MapChoiceManager:
             return False
         self.last_data.maps.remove(map_name)
         if self.is_ended():
+            print("lol ended")
             self.destroy_session()
             rival = self.get_other_player()
             other_user_manager = MapChoiceManager(self.match_id, rival)
