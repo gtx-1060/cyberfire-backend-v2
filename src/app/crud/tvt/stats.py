@@ -4,13 +4,16 @@ from typing import List
 from sqlalchemy.orm import Session
 
 from src.app.exceptions.base import ItemNotFound
+from src.app.models.tournament_states import StageStates
 from src.app.models.tvt.match import TvtMatch
+from src.app.models.tvt.stage import TvtStage
 from src.app.models.tvt.team_stats import TvtStats
 
 
 def load_not_verified_stats(tournament_id: int, db: Session) -> List[TvtMatch]:
-    stats = db.query(TvtStats).filter(and_(TvtStats.confirmed == False, TvtStats.tournament_id == tournament_id)) \
-        .order_by(TvtStats.match_id).all()
+    stats = db.query(TvtStats).filter(and_(TvtStats.confirmed == False, TvtStats.tournament_id == tournament_id))\
+        .join(TvtMatch, TvtStage).filter(and_(TvtMatch.id == TvtStats.match_id, TvtStage.id == TvtMatch.stage_id))\
+        .filter(TvtStage.state == StageStates.IS_ON).order_by(TvtStats.match_id).all()
     if stats is None:
         return []
     return stats

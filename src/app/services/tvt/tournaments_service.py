@@ -248,6 +248,8 @@ def end_ison_stage(tournament_id: int, db: Session) -> str:
         raise AllStatsMustBeVerified()
     stage = tournaments_crud.get_last_tournament_stage(tournament_id, db)
     pr_stage = tournaments_crud.get_last_tournament_stage(tournament_id, db, StageStates.IS_ON)
+    if pr_stage is None or pr_stage.matches is None:
+        raise ItemNotFound(TvtStage)
     sorted_matches = sorted(pr_stage.matches, key=lambda m: m.index)
     m_count = len(sorted_matches)
     for i in range(0, m_count-1, 2):
