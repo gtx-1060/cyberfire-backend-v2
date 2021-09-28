@@ -264,7 +264,7 @@ def end_ison_stage(tournament_id: int, db: Session) -> str:
         db.query(TvtStats).filter(TvtStats.tournament_id == tournament_id).update({
             TvtStats.confirmed: True
         })
-        db.commit()
+        stages_crud.update_stage_state(stage.id, StageStates.FINISHED, db)
         finish_tournament(tournament_id, db)
         return '{"status":  "tournament was finished"}'
     return '{"status":  "stage was finished"}"'
@@ -393,7 +393,7 @@ def finish_tournament(t_id: int, db: Session):
     tournament = tournaments_crud.get_tournament_tvt(t_id, db)
     for stage in tournament.stages:
         if stage.state != StageStates.FINISHED:
-            raise AllStageMustBeFinished()
+            raise AllStagesMustBeFinished()
     if len(load_not_verified_stats(t_id, db)):
         raise AllStatsMustBeVerified()
     tournaments_crud.update_tournament_state_tvt(TournamentStates.FINISHED, t_id, db)
