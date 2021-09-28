@@ -261,7 +261,9 @@ def end_ison_stage(tournament_id: int, db: Session) -> str:
     stages_crud.update_stage_state(pr_stage.id, StageStates.FINISHED, db)
     TournamentInternalStateManager.set_state(tournament_id, TournamentInternalStateManager.State.WAITING)
     if __is_tournament_can_be_ended(stage):
-        db.query(TvtStage).filter(TvtStage.id == stage.id).delete()
+        db.query(TvtStats).filter(TvtStats.tournament_id == tournament_id).update({
+            TvtStats.confirmed: True
+        })
         db.commit()
         finish_tournament(tournament_id, db)
         return '{"status":  "tournament was finished"}'
