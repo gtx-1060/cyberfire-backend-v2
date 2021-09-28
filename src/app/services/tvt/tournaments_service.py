@@ -269,7 +269,7 @@ def end_ison_stage(tournament_id: int, db: Session) -> str:
         stages_crud.update_stage_state(stage.id, StageStates.FINISHED, db)
         finish_tournament(tournament_id, db)
         return '{"status":  "tournament was finished"}'
-    return '{"status":  "stage was finished"}"'
+    return '{"status":  "stage was finished"}'
 
 
 def __is_tournament_can_be_ended(stage: TvtStage):
