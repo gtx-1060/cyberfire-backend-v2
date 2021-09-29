@@ -164,7 +164,7 @@ def start_admin_management_state(tournament_id: int):
     db_stage = tournaments_crud.get_last_tournament_stage(tournament_id, db)
     stages_crud.update_stage_state(db_stage.id, StageStates.IS_ON, db)
     emails = redis_client.get_set(f'tournament_launch:{tournament_id}:users')
-    if emails is None or len(emails) == 0:
+    if emails is None:
         # tournaments_crud.update_tournament_state_tvt(TournamentStates.PAUSED, tournament_id, db)
         return
     stage = stage_schemas.TvtStage.from_orm(db_stage)
