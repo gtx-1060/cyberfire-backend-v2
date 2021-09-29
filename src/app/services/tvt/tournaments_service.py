@@ -278,8 +278,9 @@ def end_ison_stage(tournament_id: int, db: Session) -> str:
         __create_match_with_stats(stage.id, sorted_matches[-1].index, tournament_id, winner.id, db)
     stages_crud.update_stage_state(pr_stage.id, StageStates.FINISHED, db)
     TournamentInternalStateManager.set_state(tournament_id, TournamentInternalStateManager.State.WAITING)
-    if skipped_match:
-        __create_match_with_stats(pr_stage.id, skipped_match.index, pr_stage.tournament_id, pr_stage.user_id, db)
+    if skipped_match and skipped_match.teams_stats[0]:
+        __create_match_with_stats(pr_stage.id, skipped_match.index, pr_stage.tournament_id,
+                                  skipped_match.teams_stats[0].user_id, db)
     if __is_tournament_can_be_ended(stage):
         db.query(TvtStats).filter(TvtStats.tournament_id == tournament_id).update({
             TvtStats.confirmed: True
