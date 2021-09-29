@@ -90,7 +90,7 @@ def start_stage_tvt(tournament_id: int, db: Session):
     if internal_state != TournamentInternalStateManager.State.WAITING:
         raise WrongTournamentState()
     launch_at = TournamentInternalStateManager.set_connect_to_waitroom_timer(tournament_id)
-    redis_client.remove(f'tournament_launch:{tournament_id}:users')
+    redis_client.remove([f'tournament_launch:{tournament_id}:users'])
     myscheduler.plan_task(get_tournament_task_id(TournamentEvents.START_TEAMS_MANAGEMENT, tournament_id),
                           launch_at + timedelta(seconds=10), start_admin_management_state, [tournament_id], 60)
     TournamentInternalStateManager.set_state(tournament_id, TournamentInternalStateManager.State.CONNECTING)
@@ -166,6 +166,7 @@ def start_admin_management_state(tournament_id: int):
     emails = redis_client.get_set(f'tournament_launch:{tournament_id}:users')
     if emails is None:
         # tournaments_crud.update_tournament_state_tvt(TournamentStates.PAUSED, tournament_id, db)
+        db.close()
         return
     stage = stage_schemas.TvtStage.from_orm(db_stage)
     teams_active = set()
@@ -186,6 +187,7 @@ def start_admin_management_state(tournament_id: int):
         stage.matches.pop(ind)
     redis_client.add_val(f'tournament:{tournament_id}:temp_stage', stage.json(), expire=timedelta(minutes=30))
     TournamentInternalStateManager.set_state(tournament_id, TournamentInternalStateManager.State.ADMIN_MANAGEMENT)
+    db.close()
 
 
 def get_admin_stage_data(tournament_id: int) -> str:
@@ -205,14 +207,14 @@ def end_admin_management_state(data: stage_schemas.AdminsManagementData, tournam
     for team_name in data.kicked_teams:
         user = get_user_by_team(team_name, db)
         redis_client.remove_from_set(f'tournament_launch:{tournament_id}:users', user.email)
-    redis_client.remove(f'tournament:{tournament_id}:temp_stage')
+    redis_client.remove([f'tournament:{tournament_id}:temp_stage'])
     start_ban_maps(tournament_id, db)
 
 
 def restart_user_connection_state(t_id: int, db: Session):
     if TournamentInternalStateManager.get_state(t_id) != TournamentInternalStateManager.State.ADMIN_MANAGEMENT:
         raise WrongTournamentState()
-    redis_client.remove(f'tournament:{t_id}:temp_stage')
+    redis_client.remove([f'tournament:{t_id}:temp_stage', f'tournament_launch:{t_id}:users'])
     db_stage = tournaments_crud.get_last_tournament_stage(t_id, db)
     stages_crud.update_stage_state(db_stage.id, StageStates.WAITING, db)
     TournamentInternalStateManager.set_state(t_id, TournamentInternalStateManager.State.WAITING)
