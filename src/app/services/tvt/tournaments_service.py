@@ -176,16 +176,16 @@ def start_admin_management_state(tournament_id: int):
     matches_to_remove = []
     for i in range(len(stage.matches)):
         match = stage.matches[i]
-        stats_to_remove = []
+        stats_to_del = []
         for j in range(len(match.teams_stats)):
             if match.teams_stats[j].user.team_name not in teams_active:
-                stats_to_remove.append(j)
-        for ind in stats_to_remove:
-            match.teams_stats.pop(ind)
+                stats_to_del.append(match.teams_stats[j])
+            for stats in stats_to_del:
+                match.teams_stats.remove(stats)
         if len(match.teams_stats) == 0:
-            matches_to_remove.append(i)
-    for ind in matches_to_remove:
-        stage.matches.pop(ind)
+            matches_to_remove.append(match)
+    for match in matches_to_remove:
+        stage.matches.remove(match)
     redis_client.add_val(f'tournament:{tournament_id}:temp_stage', stage.json(), expire=timedelta(minutes=30))
     TournamentInternalStateManager.set_state(tournament_id, TournamentInternalStateManager.State.ADMIN_MANAGEMENT)
     db.close()
