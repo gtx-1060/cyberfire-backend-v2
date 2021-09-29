@@ -176,12 +176,13 @@ def start_admin_management_state(tournament_id: int):
     matches_to_remove = []
     for i in range(len(stage.matches)):
         match = stage.matches[i]
-        removed = 0
-        for stats in match.teams_stats:
-            if stats.user.team_name not in teams_active:
-                stats.user.team_name = None
-                removed += 1
-        if removed == 2:
+        stats_to_remove = []
+        for j in range(len(match.teams_stats)):
+            if match.teams_stats[j].user.team_name not in teams_active:
+                stats_to_remove.append(j)
+        for ind in stats_to_remove:
+            match.teams_stats.pop(ind)
+        if len(match.teams_stats) == 0:
             matches_to_remove.append(i)
     for ind in matches_to_remove:
         stage.matches.pop(ind)
