@@ -145,6 +145,12 @@ def end_last_stage(tournament_id: int, _=Depends(auth_admin), db: Session = Depe
     return Response(status_code=200, content=answer)
 
 
+@router.get('/restart_user_lobby')
+def restart_user_connection(tournament_id: int, _=Depends(auth_admin), db: Session = Depends(get_db)):
+    tournaments_service.restart_user_connection_state(tournament_id, db)
+    return Response(status_code=200)
+
+
 @router.get('/next_stage')
 def start_next_stage(tournament_id: int, _=Depends(auth_admin), db: Session = Depends(get_db)):
     tournament = tournaments_crud.get_tournament_tvt(tournament_id, db)

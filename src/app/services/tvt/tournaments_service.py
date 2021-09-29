@@ -165,7 +165,7 @@ def start_admin_management_state(tournament_id: int):
     stages_crud.update_stage_state(db_stage.id, StageStates.IS_ON, db)
     emails = redis_client.get_set(f'tournament_launch:{tournament_id}:users')
     if emails is None or len(emails) == 0:
-        tournaments_crud.update_tournament_state_tvt(TournamentStates.PAUSED, tournament_id, db)
+        # tournaments_crud.update_tournament_state_tvt(TournamentStates.PAUSED, tournament_id, db)
         return
     stage = stage_schemas.TvtStage.from_orm(db_stage)
     teams_active = set()
@@ -209,6 +209,16 @@ def end_admin_management_state(data: stage_schemas.AdminsManagementData, tournam
     start_ban_maps(tournament_id, db)
 
 
+def restart_user_connection_state(t_id: int, db: Session):
+    if TournamentInternalStateManager.get_state(t_id) != TournamentInternalStateManager.State.ADMIN_MANAGEMENT:
+        raise WrongTournamentState()
+    redis_client.remove(f'tournament:{t_id}:temp_stage')
+    db_stage = tournaments_crud.get_last_tournament_stage(t_id, db)
+    stages_crud.update_stage_state(db_stage.id, StageStates.WAITING, db)
+    TournamentInternalStateManager.set_state(t_id, TournamentInternalStateManager.State.WAITING)
+    start_stage_tvt(t_id, db)
+
+
 def __handle_skipped_user(data, tournament_id, new_stage_id: int, db):
     if data.skipped is None:
         return
@@ -247,6 +257,9 @@ def end_ison_stage(tournament_id: int, db: Session) -> str:
     if len(nvs) > 0:
         raise AllStatsMustBeVerified()
     stage = tournaments_crud.get_last_tournament_stage(tournament_id, db)
+    skipped_match = None
+    if stage.matches:
+        skipped_match = stage.matches[0]
     pr_stage = tournaments_crud.get_last_tournament_stage(tournament_id, db, StageStates.IS_ON)
     if pr_stage is None or pr_stage.matches is None:
         raise ItemNotFound(TvtStage)
@@ -262,6 +275,8 @@ def end_ison_stage(tournament_id: int, db: Session) -> str:
         __create_match_with_stats(stage.id, sorted_matches[-1].index, tournament_id, winner.id, db)
     stages_crud.update_stage_state(pr_stage.id, StageStates.FINISHED, db)
     TournamentInternalStateManager.set_state(tournament_id, TournamentInternalStateManager.State.WAITING)
+    if skipped_match:
+        __create_match_with_stats(pr_stage.id, skipped_match.index, pr_stage.tournament_id, pr_stage.user_id, db)
     if __is_tournament_can_be_ended(stage):
         db.query(TvtStats).filter(TvtStats.tournament_id == tournament_id).update({
             TvtStats.confirmed: True
