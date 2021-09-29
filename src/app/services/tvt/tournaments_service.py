@@ -180,8 +180,8 @@ def start_admin_management_state(tournament_id: int):
         for j in range(len(match.teams_stats)):
             if match.teams_stats[j].user.team_name not in teams_active:
                 stats_to_del.append(match.teams_stats[j])
-            for stats in stats_to_del:
-                match.teams_stats.remove(stats)
+        for stats in stats_to_del:
+            match.teams_stats.remove(stats)
         if len(match.teams_stats) == 0:
             matches_to_remove.append(match)
     for match in matches_to_remove:
