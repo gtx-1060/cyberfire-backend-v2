@@ -421,6 +421,8 @@ def finish_tournament(t_id: int, db: Session):
     matches: List[TvtMatch] = db.query(TvtMatch).join(TvtStage)\
         .filter(and_(TvtStage.tournament_id == t_id, TvtMatch.stage_id == TvtStage.id)).all()
     for match in matches:
+        if len(match.teams_stats) < 2:
+            continue
         winner = __get_match_winner(match)
         if not winner:
             raise ItemNotFound(User)
