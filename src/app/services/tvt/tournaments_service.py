@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 from functools import reduce
 from typing import Tuple, Optional, List
 import pytz
@@ -15,9 +15,8 @@ from src.app.crud.user import get_user_squad_by_email, get_user_by_email, get_us
 from src.app.database.db import SessionLocal
 from src.app.exceptions.base import ItemNotFound
 from src.app.exceptions.tournament_exceptions import *
-from src.app.exceptions.user_exceptions import UserNotFound
 from src.app.schemas.royale.stats import GlobalStatsEdit
-from src.app.schemas.tvt import matches as match_schemas, stages as stage_schemas
+from src.app.schemas.tvt import stages as stage_schemas
 from src.app.models.games import game_squad_sizes
 from src.app.models.tournament_events import TournamentEvents
 from src.app.models.tournament_states import TournamentStates, StageStates
@@ -180,6 +179,8 @@ def start_admin_management_state(tournament_id: int):
         for j in range(len(match.teams_stats)):
             if match.teams_stats[j].user.team_name not in teams_active:
                 stats_to_del.append(match.teams_stats[j])
+                user = get_user_by_team(match.teams_stats[j].user.team_name, db)
+                db_stage.absent_users.append(user)
         for stats in stats_to_del:
             match.teams_stats.remove(stats)
         if len(match.teams_stats) == 0:
@@ -202,12 +203,15 @@ def end_admin_management_state(data: stage_schemas.AdminsManagementData, tournam
     istate = TournamentInternalStateManager.get_state(tournament_id)
     if istate != TournamentInternalStateManager.State.ADMIN_MANAGEMENT:
         raise TournamentInternalStateException()
+    stage = tournaments_crud.get_last_tournament_stage(tournament_id, db, StageStates.IS_ON)
     __save_scoreboard(data.stage, tournament_id, db)
     new_stage = stages_crud.create_stage(data.stage.index + 1, tournament_id, db)
     __handle_skipped_user(data, tournament_id, new_stage.id, db)
     for team_name in data.kicked_teams:
         user = get_user_by_team(team_name, db)
+        stage.absent_users.append(user)
         redis_client.remove_from_set(f'tournament_launch:{tournament_id}:users', user.email)
+    db.commit()
     redis_client.remove([f'tournament:{tournament_id}:temp_stage'])
     start_ban_maps(tournament_id, db)
 
@@ -217,6 +221,7 @@ def restart_user_connection_state(t_id: int, db: Session):
         raise WrongTournamentState()
     redis_client.remove([f'tournament:{t_id}:temp_stage', f'tournament_launch:{t_id}:users'])
     db_stage = tournaments_crud.get_last_tournament_stage(t_id, db)
+    stages_crud.clear_absent_users(db_stage.id, db)
     stages_crud.update_stage_state(db_stage.id, StageStates.WAITING, db)
     TournamentInternalStateManager.set_state(t_id, TournamentInternalStateManager.State.WAITING)
     start_stage_tvt(t_id, db)

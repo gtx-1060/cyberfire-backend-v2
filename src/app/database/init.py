@@ -9,7 +9,7 @@ from src.app.models.royale.tournament import Tournament, association_table
 from src.app.models.royale.stats import MatchStats, TournamentStats, GlobalStats
 from src.app.models.royale.lobbies import Lobby
 from src.app.models.tvt.tournament import TvtTournament
-from src.app.models.tvt.stage import TvtStage
+from src.app.models.tvt.stage import TvtStage, suspended_association_table
 from src.app.models.tvt.match import TvtMatch
 from src.app.models.tvt.team_stats import TvtStats
 from .db import Base

@@ -2,6 +2,7 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 from src.app.models.tournament_states import StageStates
+from src.app.schemas.royale.tournaments import UserData
 from src.app.schemas.tvt.matches import TvtMatch, TvtMatchShortData
 
 
@@ -10,6 +11,7 @@ class TvtStage(BaseModel):
     state: StageStates
     index: int
     matches: List[TvtMatch]
+    absent_users: List[UserData]
 
     class Config:
         orm_mode = True

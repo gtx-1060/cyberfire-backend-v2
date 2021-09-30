@@ -148,7 +148,7 @@ def register_in_tournament(user_email: str, tournament_id: int, db: Session):
     __add_user_to_tournament(tournament_id, user_email, db)
 
 
-def update_tournament_stats(stats: Dict[str, Tuple[int, int, int]], tournament_id: int, db: Session, commit=True):
+def update_tournament_stats(stats: Dict[str, List[int]], tournament_id: int, db: Session, commit=True):
     db_stats_list = get_tournament_stats(tournament_id, db)
     for db_stats in db_stats_list:
         team_name = db_stats.user.team_name
