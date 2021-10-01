@@ -5,7 +5,7 @@ from src.app.models.tournament_states import StageStates
 from src.app.database.db import Base
 
 suspended_association_table = Table('suspended_association_table', Base.metadata,
-                                    Column('stage_id', Integer, ForeignKey('stages.id', ondelete="CASCADE")),
+                                    Column('stage_id', Integer, ForeignKey('tvt_stages.id', ondelete="CASCADE")),
                                     Column('users_id', Integer, ForeignKey('users.id', ondelete="CASCADE"))
                                     )
 
