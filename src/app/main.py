@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 import uvicorn
+from loguru import logger
 from starlette.middleware.cors import CORSMiddleware
 from starlette.staticfiles import StaticFiles
 
@@ -38,6 +39,7 @@ app.add_api_websocket_route('/api/v2/ws/lobby_selector', websocket_lobby_selecto
 @app.on_event("startup")
 async def startup_event():
     myscheduler.start()
+    logger.info("server started")
 
 
 @app.on_event("shutdown")

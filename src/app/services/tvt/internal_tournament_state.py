@@ -10,7 +10,7 @@ from src.app.services.redis_service import redis_client
 
 class TournamentInternalStateManager:
 
-    TIME_TO_CONNECT_AT_LAUNCH = timedelta(minutes=5)
+    TIME_TO_CONNECT_AT_LAUNCH = timedelta(minutes=1)
 
     class State(Enum):
         WAITING = "WA"
