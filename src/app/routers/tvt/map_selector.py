@@ -1,7 +1,6 @@
 import asyncio
-from fastapi import Query
+from fastapi import Query, WebSocketDisconnect, WebSocket
 from loguru import logger
-from starlette.websockets import WebSocket, WebSocketDisconnect
 from time import time
 
 from src.app.crud.tvt.tournaments import users_last_ison_stage_match
@@ -30,13 +29,13 @@ async def websocket_lobby_selector(websocket: WebSocket, tournament_id: int = Qu
     try:
         await lobby_selector_lifecycle(websocket, user, tournament_id)
     except WebSocketDisconnect:
+        logger.warning(f'[lobby selector] disconnected {user.team_name}')
         if TournamentInternalStateManager.get_state(tournament_id) == TournamentInternalStateManager.State.CONNECTING:
             tvt_service.remove_from_wait_room(user.email, tournament_id)
-        logger.info(f'[lobby selector] disconnected {user.team_name}')
 
 
 async def lobby_selector_lifecycle(socket: WebSocket, user: User, tournament_id: int):
-    match_id = await waiting_for_start(user, tournament_id)
+    match_id = await waiting_for_start(socket, user, tournament_id)
     if match_id == -1:
         await socket.send_text('vach sopernik clown')
         await socket.close()
@@ -48,12 +47,15 @@ async def lobby_selector_lifecycle(socket: WebSocket, user: User, tournament_id:
     await selecting_map(socket, match_id, user)
 
 
-async def waiting_for_start(user: User, t_id: int):
+async def waiting_for_start(socket: WebSocket, user: User, t_id: int):
     tvt_service.add_to_wait_room(user.email, t_id)
     logger.info(f'[lobby selector] added to wait-room {user.team_name}')
     t_state = TournamentInternalStateManager.get_state(t_id)
     while t_state != TournamentInternalStateManager.State.MAP_CHOICE:
-        await asyncio.sleep(5)
+        try:
+            await asyncio.wait_for(socket.receive_text(), timeout=5)
+        except asyncio.TimeoutError:
+            pass
         t_state = TournamentInternalStateManager.get_state(t_id)
     if is_user_skipped(user.email, t_id):
         return -1
