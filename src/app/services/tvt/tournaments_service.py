@@ -211,6 +211,7 @@ def end_admin_management_state(data: stage_schemas.AdminsManagementData, tournam
         user = get_user_by_team(team_name, db)
         stage.absent_users.append(user)
         redis_client.remove_from_set(f'tournament_launch:{tournament_id}:users', user.email)
+    db.add(stage)
     db.commit()
     redis_client.remove([f'tournament:{tournament_id}:temp_stage'])
     start_ban_maps(tournament_id, db)

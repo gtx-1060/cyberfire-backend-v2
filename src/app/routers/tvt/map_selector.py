@@ -31,7 +31,7 @@ async def websocket_lobby_selector(websocket: WebSocket, tournament_id: int = Qu
         await lobby_selector_lifecycle(websocket, user, tournament_id)
     except WebSocketDisconnect:
         if TournamentInternalStateManager.get_state(tournament_id) == TournamentInternalStateManager.State.CONNECTING:
-            tvt_service.remove_from_wait_room(data.email, tournament_id)
+            tvt_service.remove_from_wait_room(user.email, tournament_id)
         logger.info(f'[lobby selector] disconnected {user.team_name}')
 
 
