@@ -11,6 +11,12 @@ class TvtStage(BaseModel):
     state: StageStates
     index: int
     matches: List[TvtMatch]
+
+    class Config:
+        orm_mode = True
+
+
+class TvtStageWithAbsent(TvtStage):
     absent_users: List[UserData]
 
     class Config:

@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 from src.app.models.games import Games
 from src.app.models.tournament_states import TournamentStates
 from src.app.schemas.royale.tournaments import UserData
-from src.app.schemas.tvt.stages import TvtStage
+from src.app.schemas.tvt.stages import TvtStage, TvtStageWithAbsent
 from src.app.services.tvt.internal_tournament_state import TournamentInternalStateManager
 
 
@@ -61,7 +61,7 @@ class TvtTournament(BaseModel):
     max_squads: int
     users: List[UserData]
     rewards: List[str]
-    stages: List[TvtStage]
+    stages: List[TvtStageWithAbsent]
 
     class Config:
         orm_mode = True
