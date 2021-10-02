@@ -188,6 +188,7 @@ def start_admin_management_state(tournament_id: int):
     for match in matches_to_remove:
         stage.matches.remove(match)
     db.add(db_stage)
+    db.commit()
     redis_client.add_val(f'tournament:{tournament_id}:temp_stage', stage.json(), expire=timedelta(minutes=30))
     TournamentInternalStateManager.set_state(tournament_id, TournamentInternalStateManager.State.ADMIN_MANAGEMENT)
     db.close()
