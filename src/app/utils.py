@@ -9,9 +9,10 @@ from uuid import uuid1
 from pathlib import Path
 from os import remove
 
-from src.app.config import ABSOLUTE_PATH, ALGORITHM, SECRET_KEY
+from src.app.config import ABSOLUTE_PATH, ALGORITHM
 from src.app.exceptions.base import WrongFilePath, FileSaveException, FileRemoveException
 from src.app.middleware.log_middleware import error_logger
+from src.app.services.dotenv_loader import env_vars
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -31,12 +32,12 @@ def get_db(request: Request):
 def generate_jwt(payload: dict, expires_delta) -> str:
     expire = datetime.utcnow() + expires_delta
     payload['exp'] = expire
-    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+    return jwt.encode(payload, env_vars["SECRET_KEY"], algorithm=ALGORITHM)
 
 
 def data_from_jwt(token: str) -> Optional[dict]:
     try:
-        data = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        data = jwt.decode(token, env_vars["SECRET_KEY"], algorithms=[ALGORITHM])
         return data
     except JWTError:
         return None

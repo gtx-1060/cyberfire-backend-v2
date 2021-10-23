@@ -11,7 +11,7 @@ from ..crud.user import *
 from ..schemas.user import User, UserCreate
 from ..models.roles import Roles
 from ..models.user import User as DbUser
-from ..config import SECRET_KEY, ALGORITHM, REFRESH_TOKEN_EXPIRE_DAYS
+from ..config import REFRESH_TOKEN_EXPIRE_DAYS
 from ..exceptions.auth_exceptions import AuthenticationException, WrongCredentialsException, NotEnoughPermissions, \
     UserWasBannedException
 from ..schemas.token_data import TokenData, Tokens

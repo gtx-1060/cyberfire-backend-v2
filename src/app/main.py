@@ -11,12 +11,13 @@ from src.app.routers import news, users
 from src.app.routers.royale import tournaments, lobbies, stats, stages
 from src.app.routers.tvt import tournaments as tournaments_tvt, stats as stats_tvt
 from src.app.routers.tvt.map_selector import websocket_lobby_selector
+from src.app.services.dotenv_loader import env_vars
 from src.app.services.schedule_service import myscheduler
 
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=['http://localhost', "http://127.0.0.1:3005"],
+    allow_origins=env_vars["ALLOW_ORIGINS"].split(", "),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
