@@ -12,7 +12,7 @@ from os import remove
 from src.app.config import ABSOLUTE_PATH, ALGORITHM
 from src.app.exceptions.base import WrongFilePath, FileSaveException, FileRemoveException
 from src.app.middleware.log_middleware import error_logger
-from src.app.services.dotenv_loader import env_vars
+from src.app.dotenv_loader import env_vars
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

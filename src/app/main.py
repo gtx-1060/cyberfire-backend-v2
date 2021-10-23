@@ -11,7 +11,7 @@ from src.app.routers import news, users
 from src.app.routers.royale import tournaments, lobbies, stats, stages
 from src.app.routers.tvt import tournaments as tournaments_tvt, stats as stats_tvt
 from src.app.routers.tvt.map_selector import websocket_lobby_selector
-from src.app.services.dotenv_loader import env_vars
+from src.app.dotenv_loader import env_vars
 from src.app.services.schedule_service import myscheduler
 
 app = FastAPI()
@@ -49,7 +49,7 @@ async def startup_event():
 
 
 def start():
-    uvicorn.run("src.app.main:app", host="127.0.0.1", port=3020, log_level="critical")
+    uvicorn.run("src.app.main:app", host=env_vars["HOST"], port=int(env_vars["PORT"]), log_level="error")
 
 
 if __name__ == "__main__":
