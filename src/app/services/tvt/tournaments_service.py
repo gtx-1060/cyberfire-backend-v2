@@ -420,6 +420,8 @@ def unregister_player_from_tournament(user_email: str, tournament_id: int, db: S
 
 def finish_tournament(t_id: int, db: Session):
     tournament = tournaments_crud.get_tournament_tvt(t_id, db)
+    if tournament.state == TournamentStates.FINISHED:
+        return WrongTournamentState()
     for stage in tournament.stages:
         if stage.state != StageStates.FINISHED:
             raise AllStagesMustBeFinished()
