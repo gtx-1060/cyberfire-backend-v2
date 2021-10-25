@@ -126,8 +126,12 @@ def edit_tournament_stats(stats: stats_schemas.TournamentStatsEdit, stats_id: in
 
 
 def get_global_stats(game: Games, offset: int, count: int, db: Session) -> List[GlobalStats]:
-    stats = db.query(GlobalStats).filter(GlobalStats.game == game).order_by(GlobalStats.score.desc()) \
-        .offset(offset).limit(count).all()
+    stats_query = db.query(GlobalStats).filter(GlobalStats.game == game)
+    if game == Games.COD_WARZONE or game == Games.APEX or game == Games.FORTNITE:
+        stats_query = stats_query.order_by(GlobalStats.score.desc())
+    else:
+        stats_query = stats_query.order_by(GlobalStats.wins_count.desc())
+    stats = stats_query.offset(offset).limit(count).all()
     if stats is None:
         return []
     return stats
