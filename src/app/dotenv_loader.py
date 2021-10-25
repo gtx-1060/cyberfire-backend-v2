@@ -20,7 +20,7 @@ class _VariablesLoader:
         }
 
     def __init__(self):
-        load_dotenv()
+        load_dotenv("./src/app/.env")
         for key in self.__variables.keys():
             self.__variables[key] = os.getenv(key) or ""
 
