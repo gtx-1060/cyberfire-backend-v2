@@ -41,6 +41,13 @@ class __MyScheduler:
             print(e)
             raise CannotScheduleTask(task_id, e)
 
+    def plan_periodic_task(self, task_id: str, interval_seconds, task_func, f_args: list):
+        try:
+            self.__scheduler.add_job(id=task_id, trigger='interval', seconds=interval_seconds, func=task_func, args=f_args)
+        except Exception as e:
+            print(e)
+            raise CannotScheduleTask(task_id, e)
+
     def replan_task(self, task_id: str, date: datetime):
         try:
             self.__scheduler.modify_job(task_id, run_date=date)

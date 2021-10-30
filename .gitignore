@@ -154,3 +154,5 @@ config.py
 
 # static files like images
 static/*
+
+*.zip

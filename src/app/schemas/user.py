@@ -1,7 +1,9 @@
 from typing import List, Optional
 from pydantic import BaseModel, validator
+from re import match
 
-from .squad import Squad
+from src.app.schemas.royale.squad import Squad
+from ..models.games import Games
 from ..models.roles import Roles
 from src.app.exceptions.formatter_exceptions import *
 from src.app.services.banword_service.wordbanner import match_banword_percent
@@ -55,6 +57,17 @@ def validate_password(v):
     return v
 
 
+# valorant team captain must have tag in nickname like "name#tag"
+def validate_valorant_squad_captain(v):
+    valorant_squad = [squad for squad in v if squad.game == Games.VALORANT]
+    if not valorant_squad:
+        return v
+    captain = valorant_squad[0].players[0]
+    if not match(r'\w+#\w{3}', captain):
+        raise IncorrectUserDataException("В поле с ником капитана введите его тэг в таком виде: ваш_ник#ваш_тэг")
+    return v
+
+
 class UserBase(BaseModel):
     email: str
     username: str
@@ -98,6 +111,12 @@ class UserEdit(BaseModel):
         if v is None:
             return v
         return validate_team(v)
+
+    @validator('squads')
+    def base_team_validator(cls, v):
+        if v is None:
+            return v
+        return validate_valorant_squad_captain(v)
 
 
 class UserPrivateEdit(BaseModel):

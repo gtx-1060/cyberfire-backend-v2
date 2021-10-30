@@ -3,7 +3,7 @@ from sqlalchemy import and_
 
 from ..schemas import user as user_schemas
 from ..models.user import User
-from ..models.squad import Squad
+from src.app.models.royale.squad import Squad
 from ..models.roles import Roles
 from ..models.games import Games
 from ..exceptions import user_exceptions
@@ -48,7 +48,7 @@ def user_id_by_team(team_name: str, db: Session) -> int:
 def create_user(user: user_schemas.UserCreate, db: Session):
     __check_team_unique(user.team_name, db)
     __check_email_unique(user.email, db)
-    hashed_pass = utils.get_password_hash(user.password)
+    hashed_pass = utils.get_str_hash(user.password)
     db_user = User(
         email=user.email,
         team_name=user.team_name,
