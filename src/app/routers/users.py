@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from starlette.responses import Response
 
 from src.app.config import AVATARS_STATIC_PATH
-from src.app.crud.user import get_user_by_email, edit_user, update_user_role
+from src.app.crud.user import get_user_by_email, edit_user, update_user_role, user_by_team
 from src.app.models.roles import Roles
 from src.app.schemas.token_data import Tokens, TokenData
 from src.app.schemas.user import UserCreate, User, UserEdit, UserPrivateEdit
@@ -68,6 +68,11 @@ def upload_avatar(image: UploadFile = File(...), data=Depends(auth_user), db: Se
 def ban_user(team_name: str, _=Depends(auth_admin), db: Session = Depends(get_db)):
     auth_service.ban_user(team_name, db)
     return Response(status_code=200)
+
+
+@router.get("/user_by_team", response_model=User)
+def get_user_by_team(team_name: str, db: Session = Depends(get_db)):
+    return user_by_team(team_name, db)
 
 
 @router.delete("")

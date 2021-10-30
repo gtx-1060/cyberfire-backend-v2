@@ -1,27 +1,46 @@
+from datetime import datetime
 from os.path import join
+from typing import Optional
+
+from jose import jwt, JWTError
 from passlib.context import CryptContext
 from fastapi import Request
 from uuid import uuid1
 from pathlib import Path
 from os import remove
 
-from src.app.config import ABSOLUTE_PATH
+from src.app.config import ABSOLUTE_PATH, ALGORITHM
 from src.app.exceptions.base import WrongFilePath, FileSaveException, FileRemoveException
 from src.app.middleware.log_middleware import error_logger
+from src.app.dotenv_loader import env_vars
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-def get_password_hash(password: str) -> str:
-    return pwd_context.hash(password)
+def get_str_hash(string: str) -> str:
+    return pwd_context.hash(string)
 
 
-def verify_password(password_hash: str, password: str) -> bool:
-    return pwd_context.verify(password, password_hash)
+def verify_hashed(string_hash: str, string: str) -> bool:
+    return pwd_context.verify(string, string_hash)
 
 
 def get_db(request: Request):
     return request.state.db
+
+
+def generate_jwt(payload: dict, expires_delta) -> str:
+    expire = datetime.utcnow() + expires_delta
+    payload['exp'] = expire
+    return jwt.encode(payload, env_vars["SECRET_KEY"], algorithm=ALGORITHM)
+
+
+def data_from_jwt(token: str) -> Optional[dict]:
+    try:
+        data = jwt.decode(token, env_vars["SECRET_KEY"], algorithms=[ALGORITHM])
+        return data
+    except JWTError:
+        return None
 
 
 def save_image(path: str, content) -> str:

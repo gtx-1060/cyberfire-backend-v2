@@ -1,14 +1,13 @@
 from datetime import timedelta, datetime
-from typing import Tuple
 
 import pytz
 import requests
 from uuid import uuid4, uuid1
 
 from src.app.models.games import Games
-from src.app.schemas.lobbies import LobbyCreate
-from src.app.schemas.squad import Squad
-from src.app.schemas.stats import MatchStatsCreate
+from src.app.schemas.royale.lobbies import LobbyCreate
+from src.app.schemas.royale.squad import Squad
+from src.app.schemas.royale.stats import MatchStatsCreate
 from src.app.schemas.user import UserCreate, UserEdit
 
 players_count = 100

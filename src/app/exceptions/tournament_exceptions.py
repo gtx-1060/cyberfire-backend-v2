@@ -45,7 +45,7 @@ class UserNotRegistered(MyException):
 
 class WrongTournamentState(MyException):
     def __init__(self):
-        super().__init__(400, "you couldn't register/unregister to tournament now")
+        super().__init__(425, "something wrong with tournament state")
 
 
 class WrongTournamentDates(MyException):
@@ -58,6 +58,41 @@ class NotEnoughPlayersInSquad(MyException):
         super().__init__(400, "not enough players in user's squad")
 
 
-class AllStageMustBeFinished(MyException):
+class AllStagesMustBeFinished(MyException):
     def __init__(self):
-        super().__init__(400, "all stage must be finished")
+        super().__init__(400, "all stages must be finished")
+
+
+class MatchMustHaveOnlyTwoStats(MyException):
+    def __init__(self):
+        super().__init__(400, "There should be two statistics in a match - the player and his opponent.")
+
+
+class UserCantConnectHere(MyException):
+    def __init__(self):
+        super().__init__(403, "User cant connect here")
+
+
+class MapChoiceDataNotFound(MyException):
+    def __init__(self):
+        super().__init__(404, "Map choice data not found")
+
+
+class ResultProofLoadError(MyException):
+    def __init__(self, s):
+        super().__init__(404, s)
+
+
+class TournamentInternalStateException(MyException):
+    def __init__(self):
+        super().__init__(400, 'wrong tournament state')
+
+
+class AllStatsMustBeVerified(MyException):
+    def __init__(self):
+        super().__init__(400, 'all statistics must be confirmed')
+
+
+class GameNotFoundInTvtPool(MyException):
+    def __init__(self):
+        super().__init__(400, 'game not found in tvt pool')
