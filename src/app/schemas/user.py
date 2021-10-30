@@ -113,7 +113,7 @@ class UserEdit(BaseModel):
         return validate_team(v)
 
     @validator('squads')
-    def base_team_validator(cls, v):
+    def base_squads_validator(cls, v):
         if v is None:
             return v
         return validate_valorant_squad_captain(v)
