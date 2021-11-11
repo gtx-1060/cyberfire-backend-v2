@@ -189,7 +189,7 @@ def end_battleroyale_tournament(tournament_id: int, db: Session):
 
 
 def create_empty_tournament_stats(tournament, db):
-    for user in tournament.teams:
+    for user in tournament.users:
         stats = TournamentStats(
             game=tournament.game,
             user_id=user.id,
