@@ -40,7 +40,7 @@ app.add_api_websocket_route('/api/v2/ws/lobby_selector', websocket_lobby_selecto
 @app.on_event("startup")
 async def startup_event():
     myscheduler.start()
-    logger.info("server started")
+    logger.info(f"server started at {env_vars['HOST']}:{env_vars['PORT']}")
 
 
 @app.on_event("shutdown")
