@@ -215,9 +215,14 @@ def match_players_stats(stats_list: List[MatchStats]) -> Dict[str, List[int]]:
 
 
 def end_stage(stage_id: int, db: Session):
-    update_stage_state(stage_id, StageStates.FINISHED, db)
-    stats = []
     stage = get_stage_by_id(stage_id, db)
+    tournament = db.query(Tournament).filter(Tournament.id == stage.tournament_id)
+    if tournament.state != TournamentStates.IS_ON:
+        raise WrongTournamentState()
+    stage.state = StageStates.FINISHED
+    db.add(stage)
+    db.commit()
+    stats = []
     for lobby in stage.lobbies:
         stats.extend(lobby.stats)
     stats_sum = match_players_stats(stats)
@@ -232,6 +237,9 @@ def end_stage(stage_id: int, db: Session):
 
 def start_stage(stage_id: int, db: Session):
     stage = get_stage_by_id(stage_id, db)
+    tournament = db.query(Tournament).filter(Tournament.id == stage.tournament_id)
+    if tournament.state != TournamentStates.IS_ON:
+        raise WrongTournamentState()
     if stage.state == StageStates.FINISHED:
         raise StageAlreadyFinished(stage.id)
     update_stage_state(stage_id, StageStates.IS_ON, db)
