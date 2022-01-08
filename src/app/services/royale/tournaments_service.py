@@ -15,6 +15,7 @@ from src.app.exceptions.tournament_exceptions import WrongTournamentDates, NotEn
     AllStagesMustBeFinished, \
     WrongTournamentState, UserNotRegistered, MaxSquadsCount, UserAlreadyRegistered, StageAlreadyFinished, \
     TournamentAlreadyFinished
+from src.app.middleware.log_middleware import access_logger, debug_logger
 from src.app.models.games import Games, game_squad_sizes
 from src.app.models.royale.stage import Stage
 from src.app.models.royale.stats import MatchStats, TournamentStats
@@ -166,10 +167,11 @@ def update_tournament_stats(stats: Dict[str, List[int]], tournament_id: int, db:
 
 def start_battleroyale_tournament(tournament_id: int):
     db = SessionLocal()
+    debug_logger.info(f"started tournament {tournament_id}")
     tournament = tournaments_crud.get_tournament_royale(tournament_id, db)
     if len(tournament.users) < tournament.max_squads:
         pause_tournament(tournament_id, db)
-        print("the number of registered players is less than required, the tournament is paused")
+        debug_logger.info(f"the number of registered players is less than required, the tournament {tournament_id} is paused")
         db.close()
         return
     tournaments_crud.update_tournament_state_royale(TournamentStates.IS_ON, tournament_id, db)
