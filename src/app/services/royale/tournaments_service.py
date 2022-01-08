@@ -216,7 +216,7 @@ def match_players_stats(stats_list: List[MatchStats]) -> Dict[str, List[int]]:
 
 def end_stage(stage_id: int, db: Session):
     stage = get_stage_by_id(stage_id, db)
-    tournament = db.query(Tournament).filter(Tournament.id == stage.tournament_id)
+    tournament = db.query(Tournament).filter(Tournament.id == stage.tournament_id).first()
     if tournament.state != TournamentStates.IS_ON:
         raise WrongTournamentState()
     stage.state = StageStates.FINISHED
@@ -237,7 +237,7 @@ def end_stage(stage_id: int, db: Session):
 
 def start_stage(stage_id: int, db: Session):
     stage = get_stage_by_id(stage_id, db)
-    tournament = db.query(Tournament).filter(Tournament.id == stage.tournament_id)
+    tournament = db.query(Tournament).filter(Tournament.id == stage.tournament_id).first()
     if tournament.state != TournamentStates.IS_ON:
         raise WrongTournamentState()
     if stage.state == StageStates.FINISHED:
