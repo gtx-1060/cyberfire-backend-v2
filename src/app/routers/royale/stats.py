@@ -26,7 +26,7 @@ router = APIRouter(
 @router.get('/royale/stage', response_model=dict)
 def get_math_stats(stage_id: int, user_data: TokenData = Depends(try_auth_user), db: Session = Depends(get_db)):
     stage = get_stage_by_id(stage_id, db)
-    user_team = ''
+    user_team = '@!742731'
     if user_data is not None:
         user_team = get_user_by_email(user_data.email, db).team_name
     data, lobby_key = convert_lobbies_to_frontend_ready(stage.lobbies, user_team)
