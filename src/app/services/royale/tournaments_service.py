@@ -13,7 +13,8 @@ from src.app.crud.user import get_user_squad_by_email, get_user_by_email, get_us
 from src.app.database.db import SessionLocal
 from src.app.exceptions.tournament_exceptions import WrongTournamentDates, NotEnoughPlayersInSquad, \
     AllStagesMustBeFinished, \
-    WrongTournamentState, UserNotRegistered, MaxSquadsCount, UserAlreadyRegistered, StageAlreadyFinished
+    WrongTournamentState, UserNotRegistered, MaxSquadsCount, UserAlreadyRegistered, StageAlreadyFinished, \
+    TournamentAlreadyFinished
 from src.app.models.games import Games, game_squad_sizes
 from src.app.models.royale.stage import Stage
 from src.app.models.royale.stats import MatchStats, TournamentStats
@@ -178,6 +179,8 @@ def start_battleroyale_tournament(tournament_id: int):
 
 def end_battleroyale_tournament(tournament_id: int, db: Session):
     tournament = tournaments_crud.get_tournament_royale(tournament_id, db)
+    if tournament.state != TournamentStates.IS_ON:
+        raise TournamentAlreadyFinished(tournament_id)
     for stage in tournament.stages:
         if stage.state != StageStates.FINISHED:
             raise AllStagesMustBeFinished()

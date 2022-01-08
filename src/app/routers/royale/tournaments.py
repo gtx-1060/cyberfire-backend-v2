@@ -7,8 +7,7 @@ from starlette.responses import Response
 
 from src.app.config import OTHER_STATIC_PATH
 from src.app.crud.royale import tournaments as tournaments_crud_r
-from src.app.crud.royale import tournaments as tournaments_crud_r
-from src.app.crud.user import get_user_squad_by_team
+from src.app.crud.user import get_user_squad_by_team, user_by_team
 from src.app.models.games import Games
 from src.app.models.tournament_states import TournamentStates
 from src.app.schemas.token_data import TokenData
@@ -90,8 +89,9 @@ def unregister_in_tournament(tournament_id: int, db: Session = Depends(get_db),
 
 
 @router.get("/kick")
-def pause_tournament(tournament_id: int, team_name: str, db: Session = Depends(get_db), _=Depends(auth_admin)):
-    tournaments_crud_r.remove_user_from_tournament_royale(user_id, tournament_id, db)
+def kick_player_from_tournament(tournament_id: int, team_name: str, db: Session = Depends(get_db), _=Depends(auth_admin)):
+    user = user_by_team(team_name, db)
+    tournaments_crud_r.remove_user_from_tournament_royale(user.id, tournament_id, db)
     return Response(status_code=200)
 
 
